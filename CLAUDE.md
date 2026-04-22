@@ -6,26 +6,29 @@ Local-first developer tool that indexes image/icon assets across a codebase, gro
 
 **Dogfood target**: `~/Tribe/cohort-live-web` (Nuxt project, rich asset surface). Point the first real index at this.
 
-## Stack (pinned, verified April 2026)
+## Stack (verified 2026-04-22; re-check current before any phase start)
 
 - **Node 24 LTS**
-- **pnpm** (package manager)
-- **Next.js 16.2.2** App Router, TypeScript strict
-- **React 19**
-- **Tailwind CSS v4** (CSS-first config, no JS config file)
+- **pnpm 10.33.1** (package manager)
+- **Next.js 16.2.4** App Router, TypeScript strict
+- **TypeScript 6.0.3** (no `baseUrl` in tsconfig; `paths` resolve relative to the config file)
+- **React 19.2.5**
+- **Tailwind CSS v4.2.4** (CSS-first config, no JS config file)
 - **Radix Primitives** for Dialog, Popover, DropdownMenu, Slider, Tabs, Tooltip
 - **`cmdk`** for command palette
 - **`lucide-react`** for UI chrome icons (NOT for the indexed assets, which are user-owned)
-- **`drizzle-orm`** + **`drizzle-kit`** for SQLite access and migrations
-- **`better-sqlite3` 12.6.2** + WAL (driver under Drizzle)
+- **`drizzle-orm` 0.45** + **`drizzle-kit` 0.31** for SQLite access and migrations
+- **`better-sqlite3` 12.9.0** + WAL (driver under Drizzle)
 - **`@tanstack/react-query` v5** for all client-side server state
-- **`zustand`** for UI-only client state (selection, toggles, open/closed) — not React Context
-- **`sharp`** (dims, SVG raster, phash), **`xxhash-wasm`** (content hash)
+- **`zustand` 5** for UI-only client state (selection, toggles, open/closed), not React Context
+- **`sharp` 0.34** (dims, SVG raster, phash), **`xxhash-wasm`** (content hash)
 - **`@tanstack/react-virtual`** (any list > 200 rows)
 - **`fuse.js`** + SQLite FTS5 (search)
-- **`zod`** (config + API validation)
+- **`zod` 4** (config + API validation)
 - **`commander`** (CLI), **`tsx`** (runner), **`jiti`** (TS config loader), **`p-limit`** (bounded concurrency)
-- **Biome** (lint + format, single tool)
+- **Biome 2.4** (lint + format, single tool)
+
+**Version policy**: Pins above are what was current at last install. Before a new phase or major dep bump, run `npx npm-check-updates` and check `gh api /repos/:owner/:repo/dependabot/alerts`. If either shows drift, bump first and flag the delta to the user. Don't pin to what a stale plan doc says just because it's written down.
 
 ## Keep docs current — use Context7
 
@@ -38,15 +41,11 @@ Only skip Context7 for pure language features (plain TypeScript, vanilla JS, SQL
 
 Do NOT add: Base Web, styled-components, emotion, styletron, CSS Modules, Vanilla Extract, ESLint, Prettier, Prisma, raw SQL helpers that bypass Drizzle.
 
-## Install note: sharp on Node 24
+## Install notes
 
-If the user has libvips installed globally via Homebrew (`brew install vips`), sharp tries to build from source and fails. Set this before install:
-
-```bash
-SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install
-```
-
-Document this in README; add a postinstall guard in `package.json` if we see it hit real users.
+- **sharp on Node 24**: If libvips is installed globally via Homebrew (`brew install vips`), sharp builds from source and fails. Set `SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install`.
+- **pnpm approves**: pnpm 10 blocks native postinstalls by default. `package.json` declares `pnpm.onlyBuiltDependencies: ["better-sqlite3", "sharp", "esbuild"]`.
+- **esbuild override**: drizzle-kit still ships a legacy `@esbuild-kit/*` loader that pulls vulnerable `esbuild@0.18.x`. `package.json` overrides transitive `esbuild <0.25.0 → >=0.25.0`. Revisit after drizzle-kit updates its loader.
 
 ## Styling rules (Tailwind v4)
 
