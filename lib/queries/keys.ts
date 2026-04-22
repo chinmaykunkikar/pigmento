@@ -1,0 +1,11 @@
+export const qk = {
+  sources: ["sources"] as const,
+  tree: (sourceId: number) => ["tree", sourceId] as const,
+  folder: (path: string) => ["folder", path] as const,
+  asset: (id: number) => ["asset", id] as const,
+  usages: (id: number) => ["asset", id, "usages"] as const,
+  groups: (kind: string) => ["groups", kind] as const,
+  duplicates: (mode: string) => ["duplicates", mode] as const,
+  styles: ["styles"] as const,
+  status: ["status"] as const,
+};

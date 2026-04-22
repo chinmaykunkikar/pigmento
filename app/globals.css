@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #fbfbfa;
+  --color-surface: #ffffff;
+  --color-sunken: #f5f4f2;
+  --color-sunken-2: #eceae5;
+  --color-hover: #f0efec;
+
+  --color-text: #1a1a19;
+  --color-text-2: #54524e;
+  --color-text-3: #8a8782;
+  --color-text-4: #b3b0a9;
+
+  --color-border: #e8e6e2;
+  --color-border-2: #d8d5cf;
+  --color-divider: #efede9;
+
+  --color-accent: #3b6cd8;
+  --color-accent-bg: #eef3fe;
+  --color-accent-text: #2a53b0;
+
+  --color-warn: #b48a00;
+  --color-warn-bg: #fbf5e6;
+
+  --color-danger: #b03a2e;
+  --color-danger-bg: #fbeeea;
+
+  --color-ok: #3a8e5a;
+  --color-ok-bg: #ecf5ee;
+
+  --color-checker-a: #ffffff;
+  --color-checker-b: #f0eeea;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+}
