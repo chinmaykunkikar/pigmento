@@ -6,6 +6,7 @@ export type View = "grid" | "grouped" | "duplicates";
 export type ExplorerState = {
   selectedSourceId: number | null;
   selectedFolder: string | null;
+  selectedAssetId: number | null;
   view: View;
   drawerOpen: boolean;
   boundingBoxes: boolean;
@@ -15,6 +16,8 @@ export type ExplorerState = {
 
   setSelectedSource: (id: number | null) => void;
   setSelectedFolder: (path: string | null) => void;
+  openAsset: (id: number) => void;
+  closeDrawer: () => void;
   setView: (view: View) => void;
   setDrawerOpen: (open: boolean) => void;
   setBoundingBoxes: (on: boolean) => void;
@@ -28,6 +31,7 @@ export const useExplorerStore = create<ExplorerState>()(
     (set) => ({
       selectedSourceId: null,
       selectedFolder: null,
+      selectedAssetId: null,
       view: "grid",
       drawerOpen: false,
       boundingBoxes: false,
@@ -37,6 +41,8 @@ export const useExplorerStore = create<ExplorerState>()(
 
       setSelectedSource: (id) => set({ selectedSourceId: id }),
       setSelectedFolder: (path) => set({ selectedFolder: path }),
+      openAsset: (id) => set({ selectedAssetId: id, drawerOpen: true }),
+      closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null }),
       setView: (view) => set({ view }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
       setBoundingBoxes: (boundingBoxes) => set({ boundingBoxes }),
@@ -46,6 +52,15 @@ export const useExplorerStore = create<ExplorerState>()(
     }),
     {
       name: "pixeldex:ui",
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version < 1 && persistedState && typeof persistedState === "object") {
+          const s = persistedState as Record<string, unknown>;
+          delete s.drawerOpen;
+          delete s.selectedAssetId;
+        }
+        return persistedState as ExplorerState;
+      },
       partialize: (state) => ({
         selectedSourceId: state.selectedSourceId,
         selectedFolder: state.selectedFolder,

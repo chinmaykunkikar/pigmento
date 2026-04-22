@@ -5,7 +5,7 @@ export async function computePhash(buf: Buffer, ext: string): Promise<string | n
     const pipeline = ext === "svg" ? sharp(buf, { density: 72 }) : sharp(buf);
     const raw = await pipeline
       .flatten({ background: "#ffffff" })
-      .resize(9, 8, { fit: "fill" })
+      .resize(9, 8, { fit: "contain", background: "#ffffff" })
       .greyscale()
       .raw()
       .toBuffer();

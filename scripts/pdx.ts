@@ -1,11 +1,11 @@
 import { stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { Command } from "commander";
-import { loadConfig } from "../lib/config/load";
-import { getDb } from "../lib/db/client";
-import { countAssets } from "../lib/db/queries/assets";
-import { addSource, listSources } from "../lib/db/queries/sources";
-import { runIndexer } from "../lib/indexer/run";
+import { loadConfig } from "@/lib/config/load";
+import { getDb } from "@/lib/db/client";
+import { countAssets } from "@/lib/db/queries/assets";
+import { addSource, listSources } from "@/lib/db/queries/sources";
+import { runIndexer } from "@/lib/indexer/run";
 
 const out = (s: string) => process.stdout.write(`${s}\n`);
 const err = (s: string) => process.stderr.write(`${s}\n`);

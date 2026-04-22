@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { fail, ok } from "../../../lib/api/response";
-import { getDb } from "../../../lib/db/client";
-import { buildTree, folderDistribution } from "../../../lib/db/queries/folders";
+import { fail, ok } from "@/lib/api/response";
+import { getDb } from "@/lib/db/client";
+import { buildTree, folderDistribution } from "@/lib/db/queries/folders";
 
 const Query = z.object({ sourceId: z.coerce.number().int().positive() });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBytes } from "../../lib/time";
+import { formatBytes } from "@/lib/time";
 
 type Props = {
   sourceLabel: string;

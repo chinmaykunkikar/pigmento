@@ -1,7 +1,7 @@
 "use client";
 
-import type { Source } from "../lib/db/schema";
-import { useTree } from "../lib/queries/tree";
+import type { Source } from "@/lib/db/schema";
+import { useTree } from "@/lib/queries/tree";
 import { FolderTree } from "./tree/FolderTree";
 import { SourceSwitcher } from "./tree/SourceSwitcher";
 

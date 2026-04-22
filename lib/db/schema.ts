@@ -8,6 +8,7 @@ export const sources = sqliteTable(
     root: text("root").notNull(),
     label: text("label").notNull(),
     createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    lastIndexedAt: text("last_indexed_at"),
   },
   (t) => [uniqueIndex("sources_root_uq").on(t.root)],
 );

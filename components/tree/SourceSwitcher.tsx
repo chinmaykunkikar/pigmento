@@ -2,7 +2,7 @@
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
-import type { Source } from "../../lib/db/schema";
+import type { Source } from "@/lib/db/schema";
 import { AddSourceDialog } from "../empty/AddSourceDialog";
 import { ChevronDown, FolderPlus } from "../icons";
 

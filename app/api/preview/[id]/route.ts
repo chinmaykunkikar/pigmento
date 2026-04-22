@@ -2,9 +2,9 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { z } from "zod";
-import { fail } from "../../../../lib/api/response";
-import { getDb } from "../../../../lib/db/client";
-import { findAssetById } from "../../../../lib/db/queries/folders";
+import { fail } from "@/lib/api/response";
+import { getDb } from "@/lib/db/client";
+import { findAssetById } from "@/lib/db/queries/folders";
 
 const MIME: Record<string, string> = {
   svg: "image/svg+xml",

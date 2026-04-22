@@ -1,11 +1,11 @@
 import { stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { z } from "zod";
-import { fail, ok } from "../../../lib/api/response";
-import { loadConfig } from "../../../lib/config/load";
-import { getDb } from "../../../lib/db/client";
-import { addSource, listSources } from "../../../lib/db/queries/sources";
-import { runIndexer } from "../../../lib/indexer/run";
+import { fail, ok } from "@/lib/api/response";
+import { loadConfig } from "@/lib/config/load";
+import { getDb } from "@/lib/db/client";
+import { addSource, listSourcesWithMeta } from "@/lib/db/queries/sources";
+import { runIndexer } from "@/lib/indexer/run";
 
 const AddBody = z.object({
   root: z.string().min(1),
@@ -14,7 +14,7 @@ const AddBody = z.object({
 
 export async function GET() {
   const db = getDb();
-  const sources = listSources(db);
+  const sources = listSourcesWithMeta(db);
   return ok(sources);
 }
 

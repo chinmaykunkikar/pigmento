@@ -288,6 +288,7 @@ pixeldex.config.ts
 ## Coding rules (in addition to `~/.claude/rules/*`)
 
 - No em-dashes (use commas, colons, semicolons, or restructure)
+- **Cross-module imports go through the `@/` alias**, not relative `../` walks. `@/*` is mapped to the project root in `tsconfig.json`. Short in-directory imports (`./Sibling`, `../parent`) are fine — but any path climbing out of the current feature (e.g. from `components/detail/` into `lib/` or `app/`) MUST use `@/lib/...`, `@/components/...`, `@/app/...`. Never write `"../../../lib/..."`.
 - No comments unless the WHY is non-obvious. Never explain WHAT the code does.
 - Immutable data. No mutation of objects; spread and return new.
 - Files < 400 lines. Functions < 50 lines. Prefer many small files.

@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import pLimit from "p-limit";
 import type { Config } from "../config/schema";
 import type { Db } from "../db/client";
-import { type Asset, assets, type NewAsset, type Source } from "../db/schema";
+import { type Asset, assets, type NewAsset, type Source, sources } from "../db/schema";
 import { categorize } from "./category";
 import { hashCluster } from "./cluster-hash";
 import { nameCluster } from "./cluster-name";
@@ -191,6 +191,11 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
     rebuildFts(db);
     return { result: true, detail: "rebuilt" };
   });
+
+  db.update(sources)
+    .set({ lastIndexedAt: new Date().toISOString() })
+    .where(eq(sources.id, sourceId))
+    .run();
 
   const totalMs = Date.now() - runStart;
   progress.done(`(source: ${source.label})`);

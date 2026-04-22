@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
-import { useAddSource } from "../../lib/queries/sources";
+import { useAddSource } from "@/lib/queries/sources";
 import { FolderPlus, X } from "../icons";
 import { Button } from "../primitives/Button";
 import { IconBtn } from "../primitives/IconBtn";

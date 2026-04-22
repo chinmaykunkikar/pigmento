@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { SourceWithMeta } from "@/lib/db/queries/sources";
 import type { Source } from "../db/schema";
 import { apiGet, apiPost } from "./client";
 import { qk } from "./keys";
@@ -8,7 +9,7 @@ import { qk } from "./keys";
 export function useSources() {
   return useQuery({
     queryKey: qk.sources,
-    queryFn: () => apiGet<Source[]>("/api/sources"),
+    queryFn: () => apiGet<SourceWithMeta[]>("/api/sources"),
   });
 }
 

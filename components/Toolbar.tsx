@@ -1,9 +1,9 @@
 "use client";
 
-import type { Source } from "../lib/db/schema";
-import { useReindex } from "../lib/queries/reindex";
-import { useExplorerStore, type View } from "../lib/store";
-import { relativeTime } from "../lib/time";
+import type { SourceWithMeta } from "@/lib/db/queries/sources";
+import { useReindex } from "@/lib/queries/reindex";
+import { useExplorerStore, type View } from "@/lib/store";
+import { relativeTime } from "@/lib/time";
 import { Box, Layers, LayoutGrid, RefreshCw, Search, SquareStack } from "./icons";
 import { Chip, ChipGroup } from "./primitives/Chip";
 import { IconBtn } from "./primitives/IconBtn";
@@ -12,7 +12,7 @@ import { Segmented } from "./primitives/Segmented";
 import { Toggle } from "./primitives/Toggle";
 
 type Props = {
-  source: Source | null;
+  source: SourceWithMeta | null;
 };
 
 const TYPES = ["SVG", "PNG", "JPG", "WebP"] as const;
@@ -45,11 +45,13 @@ export function Toolbar({ source }: Props) {
         </div>
       </div>
 
-      <ChipGroup label="Size">
-        <Chip label="S" />
-        <Chip label="M" active />
-        <Chip label="L" />
-      </ChipGroup>
+      {source?.hasTshirtVariants ? (
+        <ChipGroup label="Size">
+          <Chip label="S" />
+          <Chip label="M" active />
+          <Chip label="L" />
+        </ChipGroup>
+      ) : null}
 
       <Toggle label="Unused only" on={unusedOnly} onClick={() => setUnusedOnly(!unusedOnly)} />
 
@@ -87,7 +89,7 @@ export function Toolbar({ source }: Props) {
 
       {source ? (
         <span className="font-mono text-xs text-text-3 tabular-nums">
-          Indexed {relativeTime(source.createdAt)}
+          Indexed {relativeTime(source.lastIndexedAt ?? source.createdAt)}
         </span>
       ) : null}
 

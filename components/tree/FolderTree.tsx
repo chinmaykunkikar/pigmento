@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { TreeNode } from "../../lib/db/queries/folders";
+import type { TreeNode } from "@/lib/db/queries/folders";
 import { ChevronDown, ChevronRight, Folder, FolderOpen } from "../icons";
 
 type Props = {

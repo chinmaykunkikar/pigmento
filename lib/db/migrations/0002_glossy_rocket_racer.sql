@@ -1,0 +1,1 @@
+ALTER TABLE `sources` ADD `last_indexed_at` text;

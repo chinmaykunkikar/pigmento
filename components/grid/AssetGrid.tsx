@@ -2,30 +2,29 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
-import type { AssetSummary } from "../../lib/db/queries/folders";
-import { useExplorerStore } from "../../lib/store";
+import type { AssetSummary } from "@/lib/db/queries/folders";
+import { useExplorerStore } from "@/lib/store";
 import { AssetTile } from "./AssetTile";
 
-type Props = {
-  assets: AssetSummary[];
-  drawerOpen?: boolean;
-};
+type Props = { assets: AssetSummary[] };
 
-const TILE_MIN_WIDTH = 132;
+const TILE_MIN_WIDTH = 140;
 const ROW_HEIGHT = 172;
 const GAP = 1;
 
-export function AssetGrid({ assets, drawerOpen }: Props) {
+export function AssetGrid({ assets }: Props) {
   const parentRef = useRef<HTMLDivElement>(null);
-  const [cols, setCols] = useState(drawerOpen ? 6 : 8);
+  const [cols, setCols] = useState(8);
   const boundingBoxes = useExplorerStore((s) => s.boundingBoxes);
+  const selectedAssetId = useExplorerStore((s) => s.selectedAssetId);
+  const openAsset = useExplorerStore((s) => s.openAsset);
 
   useEffect(() => {
     const el = parentRef.current;
     if (!el) return;
     const measure = () => {
       const w = el.clientWidth;
-      const c = Math.max(1, Math.floor((w - GAP) / (TILE_MIN_WIDTH + GAP)));
+      const c = Math.max(1, Math.floor((w + GAP) / (TILE_MIN_WIDTH + GAP)));
       setCols(c);
     };
     measure();
@@ -52,7 +51,7 @@ export function AssetGrid({ assets, drawerOpen }: Props) {
   }
 
   return (
-    <div ref={parentRef} className="flex-1 overflow-auto bg-border">
+    <div ref={parentRef} className="flex-1 overflow-auto bg-bg">
       <div
         style={{
           height: virtualizer.getTotalSize(),
@@ -72,11 +71,16 @@ export function AssetGrid({ assets, drawerOpen }: Props) {
                 height: ROW_HEIGHT,
                 gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
                 gap: GAP,
-                padding: `0 0 ${GAP}px 0`,
               }}
             >
               {rowAssets.map((a) => (
-                <AssetTile key={a.id} asset={a} showBoundingBox={boundingBoxes} />
+                <AssetTile
+                  key={a.id}
+                  asset={a}
+                  showBoundingBox={boundingBoxes}
+                  selected={a.id === selectedAssetId}
+                  onClick={() => openAsset(a.id)}
+                />
               ))}
             </div>
           );

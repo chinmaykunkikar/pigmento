@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { fail, ok } from "../../../../../lib/api/response";
-import { loadConfig } from "../../../../../lib/config/load";
-import { getDb } from "../../../../../lib/db/client";
-import { getSource } from "../../../../../lib/db/queries/sources";
-import { runIndexer } from "../../../../../lib/indexer/run";
+import { fail, ok } from "@/lib/api/response";
+import { loadConfig } from "@/lib/config/load";
+import { getDb } from "@/lib/db/client";
+import { getSource } from "@/lib/db/queries/sources";
+import { runIndexer } from "@/lib/indexer/run";
 
 const Params = z.object({ id: z.coerce.number().int().positive() });
 

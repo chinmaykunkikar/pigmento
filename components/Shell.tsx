@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useFolder } from "../lib/queries/folder";
-import { useSources } from "../lib/queries/sources";
-import { useExplorerStore } from "../lib/store";
+import { useFolder } from "@/lib/queries/folder";
+import { useSources } from "@/lib/queries/sources";
+import { useExplorerStore } from "@/lib/store";
+import { DetailDrawer } from "./detail/DetailDrawer";
 import { EmptyState } from "./empty/EmptyState";
 import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
@@ -77,13 +78,16 @@ export function Shell() {
             totalBytes={totalBytes}
             onSelect={(p) => setSelectedFolder(p)}
           />
-          {folder.isLoading ? (
-            <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
-              Loading folder…
-            </div>
-          ) : (
-            <AssetGrid assets={assets} />
-          )}
+          <div className="relative flex min-h-0 flex-1 overflow-hidden">
+            {folder.isLoading ? (
+              <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
+                Loading folder…
+              </div>
+            ) : (
+              <AssetGrid assets={assets} />
+            )}
+            <DetailDrawer />
+          </div>
         </div>
       </div>
       <StatusBar

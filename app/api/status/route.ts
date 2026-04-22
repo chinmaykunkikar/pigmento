@@ -1,4 +1,4 @@
-import { indexerEvents, type StageEvent } from "../../../lib/indexer/events";
+import { indexerEvents, type StageEvent } from "@/lib/indexer/events";
 
 export function GET(req: Request) {
   const emitter = indexerEvents();
