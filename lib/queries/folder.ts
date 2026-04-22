@@ -1,18 +1,44 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { AssetSummary } from "../db/queries/folders";
 import { apiGet } from "./client";
 import { qk } from "./keys";
 
-export function useFolder(sourceId: number | null, path: string | null) {
+export type FolderParams = {
+  sourceId: number | null;
+  path: string | null;
+  q?: string;
+  exts?: string[];
+  size?: "s" | "m" | "l" | null;
+  unusedOnly?: boolean;
+};
+
+function cacheKey(p: FolderParams): string {
+  const parts = [
+    p.sourceId ?? "null",
+    p.path ?? "*",
+    p.q ?? "",
+    (p.exts ?? []).join("+"),
+    p.size ?? "",
+    p.unusedOnly ? "1" : "0",
+  ];
+  return parts.join(":");
+}
+
+export function useFolder(p: FolderParams) {
   return useQuery({
-    queryKey: sourceId !== null ? qk.folder(`${sourceId}:${path ?? "*"}`) : ["folder", "none"],
+    queryKey: p.sourceId !== null ? qk.folder(cacheKey(p)) : ["folder", "none"],
     queryFn: () => {
-      const params = new URLSearchParams({ sourceId: String(sourceId) });
-      if (path !== null) params.set("path", path);
+      const params = new URLSearchParams({ sourceId: String(p.sourceId) });
+      if (p.path !== null) params.set("path", p.path);
+      if (p.q) params.set("q", p.q);
+      if (p.exts && p.exts.length > 0) params.set("exts", p.exts.join(","));
+      if (p.size) params.set("size", p.size);
+      if (p.unusedOnly) params.set("unusedOnly", "1");
       return apiGet<AssetSummary[]>(`/api/folders?${params.toString()}`);
     },
-    enabled: sourceId !== null,
+    enabled: p.sourceId !== null,
+    placeholderData: keepPreviousData,
   });
 }

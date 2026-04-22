@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type View = "grid" | "grouped" | "duplicates";
+export type SizeBucket = "s" | "m" | "l";
+export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
+export type ExtFilter = (typeof EXT_FILTERS)[number];
 
 export type ExplorerState = {
   selectedSourceId: number | null;
@@ -13,6 +16,8 @@ export type ExplorerState = {
   unusedOnly: boolean;
   styleClass: string | null;
   search: string;
+  extFilter: ExtFilter[];
+  sizeBucket: SizeBucket | null;
 
   setSelectedSource: (id: number | null) => void;
   setSelectedFolder: (path: string | null) => void;
@@ -24,6 +29,9 @@ export type ExplorerState = {
   setUnusedOnly: (on: boolean) => void;
   setStyleClass: (c: string | null) => void;
   setSearch: (q: string) => void;
+  toggleExtFilter: (ext: ExtFilter) => void;
+  setSizeBucket: (b: SizeBucket | null) => void;
+  clearFilters: () => void;
 };
 
 export const useExplorerStore = create<ExplorerState>()(
@@ -38,6 +46,8 @@ export const useExplorerStore = create<ExplorerState>()(
       unusedOnly: false,
       styleClass: null,
       search: "",
+      extFilter: [],
+      sizeBucket: null,
 
       setSelectedSource: (id) => set({ selectedSourceId: id }),
       setSelectedFolder: (path) => set({ selectedFolder: path }),
@@ -49,6 +59,14 @@ export const useExplorerStore = create<ExplorerState>()(
       setUnusedOnly: (unusedOnly) => set({ unusedOnly }),
       setStyleClass: (styleClass) => set({ styleClass }),
       setSearch: (search) => set({ search }),
+      toggleExtFilter: (ext) =>
+        set((s) => ({
+          extFilter: s.extFilter.includes(ext)
+            ? s.extFilter.filter((e) => e !== ext)
+            : [...s.extFilter, ext],
+        })),
+      setSizeBucket: (sizeBucket) => set({ sizeBucket }),
+      clearFilters: () => set({ search: "", extFilter: [], sizeBucket: null, unusedOnly: false }),
     }),
     {
       name: "pixeldex:ui",
@@ -68,6 +86,8 @@ export const useExplorerStore = create<ExplorerState>()(
         boundingBoxes: state.boundingBoxes,
         unusedOnly: state.unusedOnly,
         styleClass: state.styleClass,
+        extFilter: state.extFilter,
+        sizeBucket: state.sizeBucket,
       }),
     },
   ),

@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useFolder } from "@/lib/queries/folder";
 import { useSources } from "@/lib/queries/sources";
 import { useExplorerStore } from "@/lib/store";
 import { DetailDrawer } from "./detail/DetailDrawer";
+import { DuplicatesView } from "./duplicates/DuplicatesView";
 import { EmptyState } from "./empty/EmptyState";
 import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
+import { GroupedView } from "./grouped/GroupedView";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 import { Toolbar } from "./Toolbar";
@@ -19,6 +22,12 @@ export function Shell() {
   const selectedFolder = useExplorerStore((s) => s.selectedFolder);
   const setSelectedSource = useExplorerStore((s) => s.setSelectedSource);
   const setSelectedFolder = useExplorerStore((s) => s.setSelectedFolder);
+  const view = useExplorerStore((s) => s.view);
+  const search = useExplorerStore((s) => s.search);
+  const extFilter = useExplorerStore((s) => s.extFilter);
+  const sizeBucket = useExplorerStore((s) => s.sizeBucket);
+  const unusedOnly = useExplorerStore((s) => s.unusedOnly);
+  const debouncedSearch = useDebounce(search, 200);
 
   const list = sources.data ?? [];
   const selectedSource = useMemo(
@@ -33,7 +42,14 @@ export function Shell() {
   }, [list.length, selectedSource, selectedSourceId, setSelectedSource]);
 
   const effectivePath = selectedFolder ?? "";
-  const folder = useFolder(selectedSource?.id ?? null, effectivePath);
+  const folder = useFolder({
+    sourceId: selectedSource?.id ?? null,
+    path: effectivePath,
+    q: debouncedSearch,
+    exts: extFilter,
+    size: sizeBucket,
+    unusedOnly,
+  });
   const assets = folder.data ?? [];
 
   const totalBytes = useMemo(() => assets.reduce((n, a) => n + a.size, 0), [assets]);
@@ -71,23 +87,43 @@ export function Shell() {
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <Toolbar source={selectedSource} />
-          <BreadcrumbBar
-            sourceLabel={selectedSource.label}
-            folderPath={effectivePath}
-            assetCount={assets.length}
-            totalBytes={totalBytes}
-            onSelect={(p) => setSelectedFolder(p)}
-          />
-          <div className="relative flex min-h-0 flex-1 overflow-hidden">
-            {folder.isLoading ? (
-              <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
-                Loading folder…
+          {view === "grouped" ? (
+            <div className="relative flex min-h-0 flex-1 overflow-hidden">
+              <GroupedView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+              <DetailDrawer />
+            </div>
+          ) : view === "duplicates" ? (
+            <div className="relative flex min-h-0 flex-1 overflow-hidden">
+              <DuplicatesView sourceId={selectedSource.id} />
+              <DetailDrawer />
+            </div>
+          ) : (
+            <>
+              <BreadcrumbBar
+                sourceLabel={selectedSource.label}
+                folderPath={effectivePath}
+                assetCount={assets.length}
+                totalBytes={totalBytes}
+                filtered={
+                  debouncedSearch.length > 0 ||
+                  extFilter.length > 0 ||
+                  sizeBucket !== null ||
+                  unusedOnly
+                }
+                onSelect={(p) => setSelectedFolder(p)}
+              />
+              <div className="relative flex min-h-0 flex-1 overflow-hidden">
+                {folder.isLoading ? (
+                  <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
+                    Loading folder…
+                  </div>
+                ) : (
+                  <AssetGrid assets={assets} />
+                )}
+                <DetailDrawer />
               </div>
-            ) : (
-              <AssetGrid assets={assets} />
-            )}
-            <DetailDrawer />
-          </div>
+            </>
+          )}
         </div>
       </div>
       <StatusBar

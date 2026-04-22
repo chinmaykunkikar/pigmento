@@ -1,4 +1,4 @@
-import { and, asc, count, eq, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, like, lte, or, type SQL, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { assets } from "../schema";
 
@@ -76,6 +76,97 @@ export function listByFolder(db: Db, sourceId: number, dir: string, limit = 2000
     .orderBy(asc(assets.name))
     .limit(limit)
     .all();
+}
+
+export type SizeBucket = "s" | "m" | "l";
+
+export type AssetFilters = {
+  sourceId: number;
+  path?: string;
+  q?: string;
+  exts?: string[];
+  size?: SizeBucket;
+  unusedOnly?: boolean;
+  limit?: number;
+};
+
+const SIZE_SMALL_MAX = 4 * 1024;
+const SIZE_MEDIUM_MAX = 64 * 1024;
+
+function sizeBucketClause(bucket: SizeBucket): SQL<unknown> {
+  if (bucket === "s") return lte(assets.size, SIZE_SMALL_MAX);
+  if (bucket === "m") {
+    const combined = and(gt(assets.size, SIZE_SMALL_MAX), lte(assets.size, SIZE_MEDIUM_MAX));
+    if (combined) return combined;
+    return gt(assets.size, SIZE_SMALL_MAX);
+  }
+  return gt(assets.size, SIZE_MEDIUM_MAX);
+}
+
+function pushLikeMatch(conds: SQL<unknown>[], q: string) {
+  const combined = or(like(assets.stem, `%${q}%`), like(assets.relPath, `%${q}%`));
+  if (combined) conds.push(combined);
+}
+
+function ftsQuery(q: string): string {
+  const tokens = q
+    .toLowerCase()
+    .split(/[^a-z0-9]+/i)
+    .filter((t) => t.length > 0);
+  if (tokens.length === 0) return "";
+  return tokens.map((t) => `${t}*`).join(" ");
+}
+
+export function searchAssets(db: Db, f: AssetFilters): AssetSummary[] {
+  const conds: SQL<unknown>[] = [eq(assets.sourceId, f.sourceId)];
+  if (f.path !== undefined) conds.push(eq(assets.dir, f.path));
+  if (f.exts && f.exts.length > 0) conds.push(inArray(assets.ext, f.exts));
+  if (f.size) conds.push(sizeBucketClause(f.size));
+
+  const q = f.q?.trim() ?? "";
+  let matchedIds: number[] | null = null;
+  if (q.length >= 2) {
+    const fts = ftsQuery(q);
+    if (fts) {
+      const rows = db.all<{ id: number }>(
+        sql`SELECT rowid AS id FROM assets_fts WHERE assets_fts MATCH ${fts} ORDER BY bm25(assets_fts) LIMIT 2000`,
+      );
+      matchedIds = rows.map((r) => r.id);
+      if (matchedIds.length === 0) return [];
+      conds.push(inArray(assets.id, matchedIds));
+    } else {
+      pushLikeMatch(conds, q);
+    }
+  } else if (q.length === 1) {
+    pushLikeMatch(conds, q);
+  }
+
+  if (f.unusedOnly) {
+    conds.push(sql`${assets.id} IN (SELECT asset_id FROM v_asset_usage WHERE usage_count = 0)`);
+  }
+
+  const rows = db
+    .select({
+      id: assets.id,
+      name: assets.name,
+      ext: assets.ext,
+      size: assets.size,
+      width: assets.width,
+      height: assets.height,
+      category: assets.category,
+    })
+    .from(assets)
+    .where(and(...conds))
+    .orderBy(asc(assets.dir), asc(assets.name))
+    .limit(f.limit ?? 2000)
+    .all();
+
+  if (matchedIds && matchedIds.length > 0 && q.length >= 2) {
+    const rank = new Map<number, number>(matchedIds.map((id, i) => [id, i]));
+    return [...rows].sort((a, b) => (rank.get(a.id) ?? 1e9) - (rank.get(b.id) ?? 1e9));
+  }
+
+  return rows;
 }
 
 export function listBySource(db: Db, sourceId: number, limit = 10000): AssetSummary[] {

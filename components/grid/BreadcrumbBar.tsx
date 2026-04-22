@@ -7,6 +7,7 @@ type Props = {
   folderPath: string | null;
   assetCount: number;
   totalBytes: number;
+  filtered?: boolean;
   onSelect: (path: string) => void;
 };
 
@@ -15,6 +16,7 @@ export function BreadcrumbBar({
   folderPath,
   assetCount,
   totalBytes,
+  filtered,
   onSelect,
 }: Props) {
   const parts = folderPath ? folderPath.split("/").filter(Boolean) : [];
@@ -50,7 +52,12 @@ export function BreadcrumbBar({
       <div className="flex-1" />
 
       <span className="font-mono text-xs text-text-3 tabular-nums">
-        {assetCount.toLocaleString()} assets · {formatBytes(totalBytes)}
+        {filtered ? (
+          <span className="mr-1.5 rounded-xs bg-accent-bg px-1.5 py-px text-2xs font-semibold uppercase tracking-wider text-accent-text">
+            filtered
+          </span>
+        ) : null}
+        {assetCount.toLocaleString()} {filtered ? "matches" : "assets"} · {formatBytes(totalBytes)}
       </span>
       <span className="h-3 w-px bg-border" />
       <span className="text-xs text-text-3">
