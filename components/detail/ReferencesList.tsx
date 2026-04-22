@@ -2,6 +2,7 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useMemo, useRef } from "react";
+import { cn } from "@/lib/cn";
 import type { UsageRow } from "@/lib/db/queries/asset-detail";
 import { useAssetUsages } from "@/lib/queries/asset";
 
@@ -15,6 +16,7 @@ export function ReferencesList({ assetId, totalCount }: Props) {
 
   const rows: UsageRow[] = useMemo(() => q.data?.pages.flat() ?? [], [q.data]);
   const uniqueFiles = useMemo(() => new Set(rows.map((r) => r.relPath)).size, [rows]);
+  const commentedCount = useMemo(() => rows.filter((r) => r.commented).length, [rows]);
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -42,14 +44,22 @@ export function ReferencesList({ assetId, totalCount }: Props) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-surface px-3 py-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-text-3">
+        <span className="text-2xs font-semibold uppercase tracking-wider text-text-3">
           References
         </span>
-        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-[10px] font-medium text-text-2">
+        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
           {totalCount}
         </span>
+        {commentedCount > 0 ? (
+          <span
+            title="Some references are inside comments"
+            className="rounded-xs bg-warn-bg px-1.5 py-px font-mono text-2xs font-medium text-warn"
+          >
+            {commentedCount} commented
+          </span>
+        ) : null}
         <div className="flex-1" />
-        <span className="font-mono text-[10px] text-text-3">
+        <span className="font-mono text-2xs text-text-3">
           {uniqueFiles} file{uniqueFiles === 1 ? "" : "s"}
         </span>
       </div>
@@ -84,14 +94,32 @@ export function ReferencesList({ assetId, totalCount }: Props) {
 function RefItem({ row }: { row: UsageRow }) {
   return (
     <div className="border-b border-divider px-3 py-1.5">
-      <div
-        className="truncate font-mono text-[11px] text-text"
-        title={`${row.relPath}:${row.line}`}
-      >
-        {row.relPath}
-        <span className="text-text-3">:{row.line}</span>
+      <div className="flex items-center gap-1.5">
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate font-mono text-xs",
+            row.commented ? "text-text-3" : "text-text",
+          )}
+          title={`${row.relPath}:${row.line}`}
+        >
+          {row.relPath}
+          <span className="text-text-3">:{row.line}</span>
+        </span>
+        {row.commented ? (
+          <span
+            title="This reference is inside a comment"
+            className="flex-shrink-0 rounded-xs bg-warn-bg px-1 py-px font-mono text-3xs font-semibold uppercase tracking-wider text-warn"
+          >
+            Commented
+          </span>
+        ) : null}
       </div>
-      <div className="mt-0.5 truncate rounded-xs bg-sunken px-1.5 py-0.5 font-mono text-[10.5px] text-text-2">
+      <div
+        className={cn(
+          "mt-0.5 truncate rounded-xs bg-sunken px-1.5 py-0.5 font-mono text-2xs",
+          row.commented ? "text-text-3 italic" : "text-text-2",
+        )}
+      >
         {row.snippet}
       </div>
     </div>

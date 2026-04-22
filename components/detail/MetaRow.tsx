@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { Copy } from "../icons";
 
 type Props = {
@@ -19,14 +20,11 @@ export function MetaRow({ k, v = "", mono, copy, pill, children }: Props) {
       {children ? (
         children
       ) : pill ? (
-        <span className="w-fit rounded-xs bg-sunken px-1.5 py-px font-mono text-[10px] font-medium text-text">
+        <span className="w-fit rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text">
           {v}
         </span>
       ) : (
-        <span
-          className={`truncate ${mono ? "font-mono text-[11px]" : "text-xs"} text-text`}
-          title={v}
-        >
+        <span className={cn("truncate text-xs text-text", mono && "font-mono")} title={v}>
           {v}
         </span>
       )}

@@ -67,6 +67,7 @@ export const usages = sqliteTable(
     relPath: text("rel_path").notNull(),
     line: integer("line").notNull(),
     snippet: text("snippet").notNull(),
+    commented: integer("commented", { mode: "boolean" }).notNull().default(false),
   },
   (t) => [index("usages_asset_idx").on(t.assetId), index("usages_source_idx").on(t.sourceId)],
 );

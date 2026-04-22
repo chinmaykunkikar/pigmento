@@ -299,6 +299,7 @@ export type UsageRow = {
   relPath: string;
   line: number;
   snippet: string;
+  commented: boolean;
 };
 
 export function listAssetUsages(
@@ -313,6 +314,7 @@ export function listAssetUsages(
       relPath: usages.relPath,
       line: usages.line,
       snippet: usages.snippet,
+      commented: usages.commented,
     })
     .from(usages)
     .where(

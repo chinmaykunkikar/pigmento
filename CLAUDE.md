@@ -6,6 +6,38 @@ Local-first developer tool that indexes image/icon assets across a codebase, gro
 
 **Dogfood target**: `~/Tribe/cohort-live-web` (Nuxt project, rich asset surface). Point the first real index at this.
 
+## Design Context
+
+### Users
+
+Design-system engineers cleaning up an icon library before shipping a new token set, frontend leads auditing asset bloat in a monorepo, and solo developers asking "is there already an icon for this?" before adding another. All three sit in front of this screen for extended stretches during cleanup work — dense data grids, reference lists, and duplicate groups being their primary surfaces. They reach for PixelDex when an existing tool (IDE file tree, Figma, CLI optimisers) can't give them a *map* of the assets and their relationships.
+
+### Brand Personality
+
+Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets out of the way, the data and the relationships between files are the content. Emotional goal across a long cleanup session: **clear, focused, satisfying** — the user can see progress, every action has a definite outcome, and nothing surprises them. Visual language is close to a developer IDE or a high-end terminal, not a SaaS dashboard or a consumer productivity app.
+
+### Aesthetic Direction
+
+- **Theme scope:** light mode only for MVP. A dark palette may land as a later phase; do not design-double tokens now, but don't encode assumptions that would block it later either.
+- **Palette** (from `design-source/asset-explorer/project/components/tokens.jsx`, mirrored in `app/globals.css @theme`): warm-tinted light neutrals (`bg #fbfbfa`, `surface #ffffff`, `sunken #f5f4f2`, `text #1a1a19` → `text-4 #b3b0a9`). Semantic colours (`warn`, `danger`, `ok`) are muted and paired with backgrounds (`warn-bg`, `danger-bg`, `ok-bg`) for chips/callouts.
+- **One accent colour:** `#3b6cd8` (cool blue). Reserved strictly for: currently-selected items, the single primary action on any given screen, and focus rings. Never decorative, never a hover colour, never on an icon unless it signals selection.
+- **Surfaces:** hairlines, not cards. 1px `border-border` between regions. No gradients. No decorative shadows anywhere except the detail drawer's edge shadow.
+- **Type:** Inter for UI, JetBrains Mono for paths, hashes, counts, kbd hints, and anything structural. Per-size line-height, weight, and tracking come from `tokens.jsx` and are wired into `@theme` modifiers (`--text-<size>--line-height` etc.).
+- **Density:** 4px grid everywhere; fixed chrome heights (24/26/28/32 for controls, 24/36/44 for surfaces) are design contracts, not suggestions.
+- **What it is not:** not SaaS-marketing (no hero type, no gradient CTAs, no feature grids), not Figma-chrome (no dark default, no floating purple accents), not Storybook-doc (no centred prose), not consumer-friendly-rounded (no pastel, no emoji, no illustrations).
+
+### Accessibility
+
+**WCAG AA contrast is the baseline.** Every text/icon/border pair must hit 4.5:1 for text and 3:1 for UI components. When introducing any new colour-on-colour combination (accent on accent-bg, warn on warn-bg, text-3 on sunken, etc.) verify contrast before shipping. Keyboard navigation, reduced-motion, and colour-blind-safe duplicate signalling (icon + text always paired with colour) are not hard requirements for MVP but are aligned with the rest of the design philosophy and should be considered on the way in rather than retrofitted.
+
+### Design Principles
+
+1. **Tokens first, brackets last.** Before writing any class that names a colour, size, font, or radius, check whether the token already exists in `@theme`. If it's in `tokens.jsx` but not in `@theme`, fix that first. Bracket-arbitrary values (`text-[10px]`, `max-w-[360px]`) are reserved for genuinely off-scale one-offs and require a reason.
+2. **Chrome whispers, data speaks.** Fixed surface heights, hairline borders, mono for structure, sans for narrative. Never add decoration that competes with the content grid, the reference list, or the duplicate table.
+3. **The accent rule is inviolable.** `--color-accent` appears only on selection, single primary action, and focus. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy.
+4. **Precomputed, never lazy.** Every UI query reads from indexed DB shape. If a view needs a number that isn't in the schema yet, extend the indexer first — don't compute-at-request-time. This shows up visually as no spinners past initial load.
+5. **Information density beats prettiness.** Users spend hours in this interface. The right answer is almost always *fit more on screen without sacrificing legibility* — tighter rows, mono-aligned numerics, hairline dividers — not pad-and-card it into a marketing screenshot.
+
 ## Stack (verified 2026-04-22; re-check current before any phase start)
 
 - **Node 24 LTS**

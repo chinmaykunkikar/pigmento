@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { NearPairSide, NearPair as NearPairT } from "@/lib/db/queries/duplicates";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
@@ -49,7 +50,10 @@ export function NearPair({ pair }: Props) {
           </div>
           <div className="font-mono text-2xs text-text-2 tabular-nums">{similarity}% similar</div>
           <span
-            className={`mt-0.5 rounded-[2px] px-1.5 py-px font-mono text-3xs font-semibold uppercase tracking-wider ${chipColor}`}
+            className={cn(
+              "mt-0.5 rounded-[2px] px-1.5 py-px font-mono text-3xs font-semibold uppercase tracking-wider",
+              chipColor,
+            )}
           >
             {pair.confidence} confidence
           </span>
@@ -104,9 +108,10 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="mb-1 flex items-center gap-1.5">
           <span
-            className={`rounded-[2px] px-1.5 py-px font-mono text-3xs font-semibold tracking-wider ${
-              canonical ? "bg-accent-bg text-accent-text" : "bg-sunken text-text-3"
-            }`}
+            className={cn(
+              "rounded-[2px] px-1.5 py-px font-mono text-3xs font-semibold tracking-wider",
+              canonical ? "bg-accent-bg text-accent-text" : "bg-sunken text-text-3",
+            )}
           >
             {canonical ? "A · CANDIDATE" : "B · PROPOSED DROP"}
           </span>
@@ -117,7 +122,7 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
         <div className="mt-1 flex gap-3 font-mono text-2xs text-text-3 tabular-nums">
           <span>{side.width && side.height ? `${side.width}×${side.height}` : "—"}</span>
           <span>{formatBytes(side.size)}</span>
-          <span className={zeroRef ? "text-warn" : undefined}>
+          <span className={cn(zeroRef && "text-warn")}>
             {side.usageCount} {side.usageCount === 1 ? "ref" : "refs"}
           </span>
         </div>

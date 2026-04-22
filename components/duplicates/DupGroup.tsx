@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/cn";
 import type { ExactGroup } from "@/lib/db/queries/duplicates";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
@@ -26,9 +27,10 @@ export function DupGroup({ group, defaultOpen }: Props) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-hover ${
-          open ? "border-b border-border" : ""
-        }`}
+        className={cn(
+          "flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-hover",
+          open && "border-b border-border",
+        )}
       >
         <div
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xs border border-border"
@@ -90,14 +92,16 @@ export function DupGroup({ group, defaultOpen }: Props) {
                 key={m.assetId}
                 data-asset-tile="true"
                 onClick={() => openAsset(m.assetId)}
-                className={`grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-1.5 pl-16 pr-3 text-left font-mono text-xs transition-colors hover:bg-hover ${
-                  i === 0 ? "" : "border-t border-divider"
-                }`}
+                className={cn(
+                  "grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-1.5 pl-16 pr-3 text-left font-mono text-xs transition-colors hover:bg-hover",
+                  i !== 0 && "border-t border-divider",
+                )}
               >
                 <span
-                  className={`rounded-xs px-1.5 py-px text-3xs font-semibold tracking-wider ${
-                    canonical ? "bg-accent-bg text-accent-text" : "bg-sunken text-text-3"
-                  }`}
+                  className={cn(
+                    "rounded-xs px-1.5 py-px text-3xs font-semibold tracking-wider",
+                    canonical ? "bg-accent-bg text-accent-text" : "bg-sunken text-text-3",
+                  )}
                 >
                   {canonical ? "CANONICAL" : "DUPLICATE"}
                 </span>
@@ -105,7 +109,7 @@ export function DupGroup({ group, defaultOpen }: Props) {
                   {m.relPath}
                 </span>
                 <span
-                  className={`tabular-nums ${zeroRef ? "text-warn" : "text-text-3"}`}
+                  className={cn("tabular-nums", zeroRef ? "text-warn" : "text-text-3")}
                   title={`${m.usageCount} references`}
                 >
                   {m.usageCount} {m.usageCount === 1 ? "ref" : "refs"}

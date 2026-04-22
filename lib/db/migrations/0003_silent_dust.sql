@@ -1,0 +1,1 @@
+ALTER TABLE `usages` ADD `commented` integer DEFAULT false NOT NULL;

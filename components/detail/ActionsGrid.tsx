@@ -105,7 +105,7 @@ function ActionBtn({ icon, label, kbd, disabled, onClick }: ActionProps) {
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-7 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-xs border border-border bg-surface px-2 text-left text-[11.5px] font-medium text-text transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex h-7 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-xs border border-border bg-surface px-2 text-left text-xs font-medium text-text transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
     >
       <span className="flex-shrink-0 text-text-3">{icon}</span>
       <span className="flex-1 overflow-hidden text-ellipsis">{label}</span>
@@ -127,7 +127,7 @@ function DangerBtn({
     <button
       type="button"
       disabled={disabled}
-      className="inline-flex h-7 flex-1 items-center gap-1.5 rounded-xs border border-danger/30 bg-surface px-2 text-[11.5px] font-medium text-danger transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:border-border disabled:bg-sunken disabled:text-text-3"
+      className="inline-flex h-7 flex-1 items-center gap-1.5 rounded-xs border border-danger/30 bg-surface px-2 text-xs font-medium text-danger transition-colors hover:bg-danger-bg disabled:cursor-not-allowed disabled:border-border disabled:bg-sunken disabled:text-text-3"
     >
       <span className="flex-shrink-0">{icon}</span>
       <span>{label}</span>

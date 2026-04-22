@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/cn";
 import type { TreeNode } from "@/lib/db/queries/folders";
 import { ChevronDown, ChevronRight, Folder, FolderOpen } from "../icons";
 
@@ -118,11 +119,12 @@ function Row({
 }) {
   return (
     <div
-      className={`group flex h-6 cursor-pointer items-center gap-1 border-l-2 pr-2.5 text-xs ${
+      className={cn(
+        "group flex h-6 cursor-pointer items-center gap-1 border-l-2 pr-2.5 text-xs",
         selected
           ? "border-accent bg-accent-bg text-accent-text"
-          : "border-transparent text-text hover:bg-hover"
-      }`}
+          : "border-transparent text-text hover:bg-hover",
+      )}
       style={{ paddingLeft: `${6 + depth * 12}px` }}
       onClick={onSelect}
       onKeyDown={(e) => {
@@ -138,7 +140,10 @@ function Row({
           e.stopPropagation();
           if (hasKids) onToggle();
         }}
-        className={`flex h-4 w-3 items-center justify-center text-text-3 ${hasKids ? "" : "opacity-0"}`}
+        className={cn(
+          "flex h-4 w-3 items-center justify-center text-text-3",
+          !hasKids && "opacity-0",
+        )}
         tabIndex={-1}
       >
         {isOpen ? (
@@ -147,7 +152,7 @@ function Row({
           <ChevronRight size={10} strokeWidth={1.5} />
         )}
       </button>
-      <span className={selected ? "text-accent-text" : "text-text-3"}>
+      <span className={cn(selected ? "text-accent-text" : "text-text-3")}>
         {isOpen && hasKids ? (
           <FolderOpen size={13} strokeWidth={1.5} />
         ) : (
@@ -155,18 +160,18 @@ function Row({
         )}
       </span>
       <span
-        className={`flex-1 overflow-hidden truncate ${selected ? "font-medium" : "font-normal"}`}
+        className={cn("flex-1 overflow-hidden truncate", selected ? "font-medium" : "font-normal")}
       >
         {node.name || "/"}
       </span>
-      <span className="font-mono text-[10px] tabular-nums text-text-4">{node.count}</span>
+      <span className="font-mono text-2xs tabular-nums text-text-4">{node.count}</span>
     </div>
   );
 }
 
 function TreeHeader({ label, total }: { label: string; total: number }) {
   return (
-    <div className="flex items-center justify-between px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-3">
+    <div className="flex items-center justify-between px-2.5 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-wider text-text-3">
       <span>{label}</span>
       <span className="font-mono">{total}</span>
     </div>

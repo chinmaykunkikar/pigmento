@@ -30,7 +30,7 @@ export function AssetPreview({ id, name, width, height }: Props) {
         className="max-h-[80%] max-w-[80%] select-none"
       />
       {label ? (
-        <span className="absolute bottom-1.5 right-1.5 rounded-xs bg-surface/85 px-1 font-mono text-[9px] text-text-3">
+        <span className="absolute bottom-1.5 right-1.5 rounded-xs bg-surface/85 px-1 font-mono text-3xs text-text-3">
           {label}
         </span>
       ) : null}

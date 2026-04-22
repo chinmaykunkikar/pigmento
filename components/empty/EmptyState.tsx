@@ -23,7 +23,7 @@ export function EmptyState({ onAdded }: Props) {
         ))}
       </div>
 
-      <div className="max-w-[440px]">
+      <div className="max-w-110">
         <div className="mb-1.5 text-xl font-semibold tracking-tight text-text">
           No sources indexed
         </div>
@@ -44,7 +44,7 @@ export function EmptyState({ onAdded }: Props) {
           className="inline-flex h-8 cursor-not-allowed items-center gap-1.5 rounded-sm border border-border-2 bg-surface px-3.5 text-sm font-medium text-text opacity-50"
         >
           Clone from Git URL…
-          <span className="rounded-xs bg-sunken px-1 font-mono text-[9px] text-text-3">SOON</span>
+          <span className="rounded-xs bg-sunken px-1 font-mono text-3xs text-text-3">SOON</span>
         </button>
       </div>
 
@@ -60,7 +60,7 @@ export function EmptyState({ onAdded }: Props) {
         </span>
       </div>
 
-      <div className="mt-6 max-w-[440px] rounded-sm border border-border bg-surface px-3 py-2 text-left font-mono text-xs text-text-3">
+      <div className="mt-6 max-w-110 rounded-sm border border-border bg-surface px-3 py-2 text-left font-mono text-xs text-text-3">
         or from the terminal: <span className="text-text">pnpm pdx source add /path/to/repo</span>
       </div>
 

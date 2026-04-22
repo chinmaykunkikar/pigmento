@@ -1,5 +1,7 @@
 "use client";
 
+import { cn } from "@/lib/cn";
+
 type Props = { bins: number[]; threshold: number };
 
 export function HammingHistogram({ bins, threshold }: Props) {
@@ -22,7 +24,7 @@ export function HammingHistogram({ bins, threshold }: Props) {
             <div
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length histogram
               key={i}
-              className={`flex-1 rounded-[1px] ${active ? "bg-accent" : "bg-border-2"}`}
+              className={cn("flex-1 rounded-[1px]", active ? "bg-accent" : "bg-border-2")}
               style={{ height: `${h}px`, opacity }}
               title={`Δ${i}: ${v}`}
             />

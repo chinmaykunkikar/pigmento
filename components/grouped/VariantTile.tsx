@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { GroupMember } from "@/lib/db/queries/groups";
 
 const CHECKER = {
@@ -10,8 +11,7 @@ const CHECKER = {
   backgroundColor: "var(--color-checker-a)",
 };
 
-const SELECTED_SHADOW =
-  "inset 0 0 0 2px var(--color-accent), 0 8px 20px -10px rgba(59, 108, 216, 0.4)";
+const SELECTED_SHADOW = "var(--shadow-variant-selected)";
 
 type Props = {
   member: GroupMember;
@@ -26,9 +26,10 @@ export function VariantTile({ member, selected, onClick }: Props) {
       data-asset-tile="true"
       onClick={onClick}
       style={selected ? { boxShadow: SELECTED_SHADOW } : undefined}
-      className={`relative flex h-18 w-18 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xs border border-border transition-[box-shadow,border-color,transform] duration-150 ease-out active:scale-[0.97] hover:border-border-2 ${
-        selected ? "z-10 border-transparent" : ""
-      }`}
+      className={cn(
+        "relative flex h-18 w-18 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xs border border-border transition-[box-shadow,border-color,transform] duration-150 ease-out hover:border-border-2 active:scale-[0.97]",
+        selected && "z-10 border-transparent",
+      )}
       title={member.name}
     >
       <div className="absolute inset-0" style={CHECKER} />

@@ -41,7 +41,7 @@ export function MetadataSection({ asset }: Props) {
       <MetaRow k="Dimensions" v={dims} />
       <MetaRow k="Filesize" v={filesize} />
       <MetaRow k="Content hash">
-        <span className="truncate font-mono text-[11px] text-text" title={sha1Title}>
+        <span className="truncate font-mono text-xs text-text" title={sha1Title}>
           {sha1}
         </span>
       </MetaRow>

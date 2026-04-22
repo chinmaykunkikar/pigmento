@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { cn } from "@/lib/cn";
 
 export function ChipGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -14,14 +15,16 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   active?: boolean;
 };
 
-export function Chip({ label, active, className = "", ...props }: Props) {
+export function Chip({ label, active, className, ...props }: Props) {
   return (
     <button
       type="button"
       {...props}
-      className={`min-w-[18px] rounded-xs px-1.5 py-0.5 text-xs font-medium transition-colors ${
-        active ? "bg-text text-surface" : "bg-transparent text-text-2 hover:bg-hover"
-      } ${className}`}
+      className={cn(
+        "min-w-[18px] rounded-xs px-1.5 py-0.5 text-xs font-medium transition-colors",
+        active ? "bg-text text-surface" : "bg-transparent text-text-2 hover:bg-hover",
+        className,
+      )}
     >
       {label}
     </button>

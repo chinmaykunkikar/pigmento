@@ -1,7 +1,9 @@
 import { readFile } from "node:fs/promises";
+import { extname } from "node:path";
 import fg from "fast-glob";
 import pLimit from "p-limit";
 import type { Asset } from "../db/schema";
+import { classifyLine, initialBlockState, syntaxFor } from "./comment-detect";
 
 const CODE_GLOB =
   "**/*.{ts,tsx,js,jsx,mjs,cjs,vue,svelte,astro,html,htm,css,scss,sass,less,styl,json,md,mdx,yml,yaml}";
@@ -14,6 +16,7 @@ export type UsageHit = {
   relPath: string;
   line: number;
   snippet: string;
+  commented: boolean;
 };
 
 type ScanOpts = {
@@ -58,15 +61,35 @@ export async function scanUsages(opts: ScanOpts): Promise<UsageHit[]> {
           }
           if (!text || text.length > 2_000_000) return;
 
+          const ext = extname(codeFile).slice(1).toLowerCase();
+          const syntax = syntaxFor(ext);
+          let blockState = initialBlockState();
+
           const lines = text.split("\n");
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (!line) continue;
             FILENAME_RE.lastIndex = 0;
+            const hits: { match: RegExpExecArray; commented: boolean }[] = [];
             let m: RegExpExecArray | null;
             // biome-ignore lint/suspicious/noAssignInExpressions: canonical regex.exec loop
             while ((m = FILENAME_RE.exec(line)) !== null) {
               const candidates = byName.get(m[0]);
+              if (!candidates || candidates.length === 0) continue;
+              hits.push({ match: m, commented: false });
+            }
+            if (hits.length > 0) {
+              for (const h of hits) {
+                const res = classifyLine(line, h.match.index, syntax, blockState);
+                h.commented = res.commented;
+                blockState = res.state;
+              }
+            } else {
+              const res = classifyLine(line, line.length, syntax, blockState);
+              blockState = res.state;
+            }
+            for (const h of hits) {
+              const candidates = byName.get(h.match[0]);
               if (!candidates) continue;
               for (const a of candidates) {
                 const n = hitsPerAsset.get(a.id) ?? 0;
@@ -80,6 +103,7 @@ export async function scanUsages(opts: ScanOpts): Promise<UsageHit[]> {
                     : codeFile,
                   line: i + 1,
                   snippet: line.trim().slice(0, 200),
+                  commented: h.commented,
                 });
               }
             }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { cn } from "@/lib/cn";
 import { parsePixelSuffix, pixelSizeFromPath } from "@/lib/indexer/variants";
 import { useAsset } from "@/lib/queries/asset";
 import { useExplorerStore } from "@/lib/store";
@@ -61,10 +62,11 @@ export function DetailDrawer() {
     <aside
       ref={asideRef}
       aria-hidden={!drawerOpen}
-      className={`absolute inset-y-0 right-0 z-20 flex w-100 flex-col overflow-hidden border-l border-border bg-surface transition-transform duration-300 ease-out ${
-        drawerOpen ? "translate-x-0" : "pointer-events-none translate-x-full"
-      }`}
-      style={{ boxShadow: "-12px 0 32px -16px rgba(20, 20, 30, 0.18)" }}
+      className={cn(
+        "absolute inset-y-0 right-0 z-20 flex w-100 flex-col overflow-hidden border-l border-border bg-surface transition-transform duration-300 ease-out",
+        drawerOpen ? "translate-x-0" : "pointer-events-none translate-x-full",
+      )}
+      style={{ boxShadow: "var(--shadow-drawer)" }}
     >
       <div className="flex h-11 flex-shrink-0 items-center gap-2 border-b border-border px-3">
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-text">
@@ -73,7 +75,7 @@ export function DetailDrawer() {
         {inDupGroup ? (
           <span
             title="Part of a duplicate cluster"
-            className="inline-flex flex-shrink-0 items-center gap-1 rounded-xs bg-warn-bg px-1.5 py-px font-mono text-[10px] font-semibold text-warn"
+            className="inline-flex flex-shrink-0 items-center gap-1 rounded-xs bg-warn-bg px-1.5 py-px font-mono text-2xs font-semibold text-warn"
           >
             <TriangleAlert size={9} strokeWidth={2} />
             IN DUP GROUP

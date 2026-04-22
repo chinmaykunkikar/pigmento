@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { AssetSummary } from "@/lib/db/queries/folders";
 import { truncateMid } from "@/lib/text";
 import { formatBytes } from "@/lib/time";
@@ -12,8 +13,7 @@ const CHECKER = {
   backgroundColor: "var(--color-checker-a)",
 };
 
-const SELECTED_SHADOW =
-  "inset 0 0 0 2px var(--color-accent), 0 1px 0 var(--color-border), 0 12px 24px -10px rgba(59, 108, 216, 0.35)";
+const SELECTED_SHADOW = "var(--shadow-tile-selected)";
 
 type Props = {
   asset: AssetSummary;
@@ -29,14 +29,12 @@ export function AssetTile({ asset, selected, showBoundingBox, onClick }: Props) 
       data-asset-tile="true"
       onClick={onClick}
       style={selected ? { boxShadow: SELECTED_SHADOW } : undefined}
-      className={`relative flex cursor-pointer flex-col overflow-hidden rounded-xs border border-border bg-surface text-left transition-[box-shadow,border-color,transform] duration-150 ease-out will-change-transform hover:border-border-2 active:scale-[0.97] ${
-        selected ? "z-10 border-transparent" : ""
-      }`}
+      className={cn(
+        "relative flex cursor-pointer flex-col overflow-hidden rounded-xs border border-border bg-surface text-left transition-[box-shadow,border-color,transform] duration-150 ease-out will-change-transform hover:border-border-2 active:scale-[0.97]",
+        selected && "z-10 border-transparent",
+      )}
     >
-      <div
-        className="relative flex min-h-[100px] flex-1 items-center justify-center"
-        style={CHECKER}
-      >
+      <div className="relative flex min-h-25 flex-1 items-center justify-center" style={CHECKER}>
         {/** biome-ignore lint/performance/noImgElement: local preview stream, Next Image requires config */}
         <img
           src={`/api/preview/${asset.id}`}
@@ -52,22 +50,25 @@ export function AssetTile({ asset, selected, showBoundingBox, onClick }: Props) 
         />
       </div>
       <div
-        className={`border-t px-2 py-1.5 transition-colors ${
-          selected ? "border-accent/30 bg-accent-bg" : "border-border bg-surface"
-        }`}
+        className={cn(
+          "border-t px-2 py-1.5 transition-colors",
+          selected ? "border-accent/30 bg-accent-bg" : "border-border bg-surface",
+        )}
       >
         <div
-          className={`truncate font-mono text-[11px] ${
-            selected ? "font-semibold text-accent-text" : "text-text"
-          }`}
+          className={cn(
+            "truncate font-mono text-xs",
+            selected ? "font-semibold text-accent-text" : "text-text",
+          )}
           title={asset.name}
         >
           {truncateMid(asset.name, 20)}
         </div>
         <div
-          className={`mt-px flex justify-between font-mono text-[10px] ${
-            selected ? "text-accent-text/70" : "text-text-3"
-          }`}
+          className={cn(
+            "mt-px flex justify-between font-mono text-xs",
+            selected ? "text-accent-text/70" : "text-text-3",
+          )}
         >
           <span className="uppercase tracking-wider">{asset.ext}</span>
           <span className="tabular-nums">{formatBytes(asset.size)}</span>

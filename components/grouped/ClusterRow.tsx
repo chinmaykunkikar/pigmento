@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/cn";
 import type { Group } from "@/lib/db/queries/groups";
 import { useExplorerStore } from "@/lib/store";
 import { ChevronDown, ChevronRight } from "../icons";
@@ -30,9 +31,10 @@ export function ClusterRow({ group }: Props) {
           <ChevronRight size={12} strokeWidth={1.75} className="text-text-3" />
         )}
         <span
-          className={`min-w-0 flex-1 truncate font-mono text-xs font-medium ${
-            containsSelected ? "text-accent-text" : "text-text"
-          }`}
+          className={cn(
+            "min-w-0 flex-1 truncate font-mono text-xs font-medium",
+            containsSelected ? "text-accent-text" : "text-text",
+          )}
           title={group.key}
         >
           {group.key}

@@ -40,7 +40,7 @@ export function Sidebar({
 
       <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-text-3">
         <span>{tree.data ? `${tree.data.count.toLocaleString()} assets` : "—"}</span>
-        <span className="font-mono text-[10px]">v0.0.0</span>
+        <span className="font-mono text-2xs">v0.0.0</span>
       </div>
     </aside>
   );

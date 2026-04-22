@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { SizeVariant } from "@/lib/db/queries/asset-detail";
 import { useExplorerStore } from "@/lib/store";
 
@@ -22,11 +23,12 @@ export function SizePips({ currentSize, variants }: Props) {
             type="button"
             onClick={() => openAsset(v.assetId)}
             aria-pressed={isActive}
-            className={`h-[26px] min-w-[38px] rounded-xs border px-2 font-mono text-[11px] font-medium transition-colors ${
+            className={cn(
+              "h-[26px] min-w-[38px] rounded-xs border px-2 font-mono text-xs font-medium transition-colors",
               isActive
                 ? "border-text bg-text text-surface"
-                : "border-border-2 bg-surface text-text-2 hover:bg-hover"
-            }`}
+                : "border-border-2 bg-surface text-text-2 hover:bg-hover",
+            )}
           >
             {v.size}
           </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { GroupMember } from "@/lib/db/queries/groups";
 import { relativeTime } from "@/lib/time";
 
@@ -29,19 +30,24 @@ export function VariantTable({ members, selectedAssetId, onRowClick }: Props) {
             key={m.assetId}
             data-asset-tile="true"
             onClick={() => onRowClick(m.assetId)}
-            className={`grid w-full grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-3 border-b border-divider px-3 py-1.5 text-left transition-colors last:border-b-0 hover:bg-hover ${
-              isSelected ? "bg-accent-bg" : ""
-            }`}
+            className={cn(
+              "grid w-full grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-3 border-b border-divider px-3 py-1.5 text-left transition-colors last:border-b-0 hover:bg-hover",
+              isSelected && "bg-accent-bg",
+            )}
           >
             <span
-              className={`w-14 truncate rounded-xs px-1 py-px text-center font-mono text-3xs font-semibold ${
-                m.role === "canonical" ? "bg-ok-bg text-ok" : "bg-sunken text-text-3"
-              }`}
+              className={cn(
+                "w-14 truncate rounded-xs px-1 py-px text-center font-mono text-3xs font-semibold",
+                m.role === "canonical" ? "bg-ok-bg text-ok" : "bg-sunken text-text-3",
+              )}
             >
               {m.role === "canonical" ? "CANONICAL" : "VARIANT"}
             </span>
             <span
-              className={`truncate font-mono text-xs ${isSelected ? "text-accent-text" : "text-text"}`}
+              className={cn(
+                "truncate font-mono text-xs",
+                isSelected ? "text-accent-text" : "text-text",
+              )}
               title={m.relPath}
             >
               {m.relPath}
@@ -50,7 +56,10 @@ export function VariantTable({ members, selectedAssetId, onRowClick }: Props) {
               {(m.size / 1024).toFixed(1)}K
             </span>
             <span
-              className={`text-right font-mono text-2xs tabular-nums ${zero ? "text-warn" : "text-text-2"}`}
+              className={cn(
+                "text-right font-mono text-2xs tabular-nums",
+                zero ? "text-warn" : "text-text-2",
+              )}
             >
               {zero ? "unused" : `${m.usageCount}×`}
             </span>

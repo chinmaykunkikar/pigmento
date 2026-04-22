@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
 
 export type SegmentedItem<V extends string> = {
   value: V;
@@ -24,9 +25,10 @@ export function Segmented<V extends string>({ value, items, onChange }: Props<V>
             type="button"
             disabled={it.disabled}
             onClick={() => onChange(it.value)}
-            className={`flex h-full items-center gap-1.5 rounded-xs px-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-              active ? "bg-sunken font-semibold text-text" : "text-text-2 hover:bg-hover"
-            }`}
+            className={cn(
+              "flex h-full items-center gap-1.5 rounded-xs px-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+              active ? "bg-sunken font-semibold text-text" : "text-text-2 hover:bg-hover",
+            )}
           >
             {it.icon}
             {it.label}

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
 import { useReindex } from "@/lib/queries/reindex";
 import {
@@ -56,9 +57,10 @@ export function Toolbar({ source }: Props) {
   return (
     <div className="relative flex h-11 flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-3">
       <div
-        className={`flex h-7 min-w-55 max-w-90 flex-1 items-center gap-1.5 rounded-sm border bg-sunken pl-2 pr-1 focus-within:border-accent/40 ${
-          search ? "border-accent/30" : "border-border"
-        }`}
+        className={cn(
+          "flex h-7 min-w-55 max-w-90 flex-1 items-center gap-1.5 rounded-sm border bg-sunken pl-2 pr-1 focus-within:border-accent/40",
+          search ? "border-accent/30" : "border-border",
+        )}
       >
         <Search size={13} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
         <input
@@ -162,7 +164,7 @@ export function Toolbar({ source }: Props) {
         <RefreshCw
           size={12}
           strokeWidth={1.5}
-          className={reindex.isPending ? "animate-spin" : ""}
+          className={cn(reindex.isPending && "animate-spin")}
         />
         {reindex.isPending ? "Indexing…" : "Re-index"}
       </button>

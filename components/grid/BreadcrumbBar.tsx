@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import { formatBytes } from "@/lib/time";
 
 type Props = {
@@ -27,7 +28,7 @@ export function BreadcrumbBar({
         <button
           type="button"
           onClick={() => onSelect("")}
-          className={parts.length === 0 ? "text-text" : "hover:text-text"}
+          className={cn(parts.length === 0 ? "text-text" : "hover:text-text")}
         >
           {sourceLabel}
         </button>
@@ -40,7 +41,7 @@ export function BreadcrumbBar({
               <button
                 type="button"
                 onClick={() => onSelect(path)}
-                className={last ? "text-text" : "hover:text-text"}
+                className={cn(last ? "text-text" : "hover:text-text")}
               >
                 {p}
               </button>

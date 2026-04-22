@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { ClusterDetail, NameSibling, NearDuplicate } from "@/lib/db/queries/asset-detail";
 import { useExplorerStore } from "@/lib/store";
 import { Tag, TriangleAlert } from "../icons";
@@ -50,11 +51,9 @@ function HashBlock({
       <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
         <span className="inline-flex items-center gap-1 text-danger">
           <TriangleAlert size={11} strokeWidth={1.75} />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">
-            Exact duplicates
-          </span>
+          <span className="text-2xs font-semibold uppercase tracking-wider">Exact duplicates</span>
         </span>
-        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-[10px] font-medium text-text-2">
+        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
           {cluster.size}
         </span>
       </div>
@@ -70,20 +69,21 @@ function HashBlock({
               className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-2 border-b border-divider py-1 text-left transition-colors last:border-b-0 hover:bg-hover disabled:cursor-default disabled:opacity-60 disabled:hover:bg-transparent"
             >
               <span
-                className={`rounded-xs px-1 py-px font-mono text-[9px] font-semibold ${
-                  m.role === "canonical" ? "bg-ok-bg text-ok" : "bg-danger-bg text-danger"
-                }`}
+                className={cn(
+                  "rounded-xs px-1 py-px font-mono text-3xs font-semibold",
+                  m.role === "canonical" ? "bg-ok-bg text-ok" : "bg-danger-bg text-danger",
+                )}
               >
                 {m.role === "canonical" ? "CANONICAL" : "EXACT"}
               </span>
-              <span className="truncate font-mono text-[11px] text-text" title={m.relPath}>
+              <span className="truncate font-mono text-xs text-text" title={m.relPath}>
                 {m.relPath}
               </span>
-              <span className="font-mono text-[10px] text-text-3 tabular-nums">
+              <span className="font-mono text-2xs text-text-3 tabular-nums">
                 {(m.size / 1024).toFixed(1)}K
               </span>
               {isCurrent ? (
-                <span className="rounded-xs bg-accent-bg px-1 font-mono text-[9px] font-medium text-accent-text">
+                <span className="rounded-xs bg-accent-bg px-1 font-mono text-3xs font-medium text-accent-text">
                   THIS
                 </span>
               ) : (
@@ -93,7 +93,7 @@ function HashBlock({
           );
         })}
         {hidden > 0 ? (
-          <div className="mt-1 font-mono text-[10px] text-text-3">
+          <div className="mt-1 font-mono text-2xs text-text-3">
             +{hidden} more · open cluster view (coming soon)
           </div>
         ) : null}
@@ -112,9 +112,9 @@ function NameBlock({ items }: { items: NameSibling[] }) {
       <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
         <span className="inline-flex items-center gap-1 text-text-2">
           <Tag size={11} strokeWidth={1.75} />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Name family</span>
+          <span className="text-2xs font-semibold uppercase tracking-wider">Name family</span>
         </span>
-        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-[10px] font-medium text-text-2">
+        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
           {items.length}
         </span>
       </div>
@@ -127,22 +127,22 @@ function NameBlock({ items }: { items: NameSibling[] }) {
             className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-divider py-1 text-left transition-colors last:border-b-0 hover:bg-hover"
           >
             <span
-              className="truncate rounded-xs bg-sunken px-1 py-px font-mono text-[9px] font-medium text-text-2"
+              className="truncate rounded-xs bg-sunken px-1 py-px font-mono text-3xs font-medium text-text-2"
               title={`shared: ${m.shared.join(", ")}`}
             >
               {m.shared[0]}
               {m.shared.length > 1 ? `+${m.shared.length - 1}` : ""}
             </span>
-            <span className="truncate font-mono text-[11px] text-text" title={m.relPath}>
+            <span className="truncate font-mono text-xs text-text" title={m.relPath}>
               {m.relPath}
             </span>
-            <span className="font-mono text-[10px] text-text-3 tabular-nums">
+            <span className="font-mono text-2xs text-text-3 tabular-nums">
               {(m.size / 1024).toFixed(1)}K
             </span>
           </button>
         ))}
         {hidden > 0 ? (
-          <div className="mt-1 font-mono text-[10px] text-text-3">+{hidden} more</div>
+          <div className="mt-1 font-mono text-2xs text-text-3">+{hidden} more</div>
         ) : null}
       </div>
     </div>
@@ -159,11 +159,9 @@ function NearBlock({ items }: { items: NearDuplicate[] }) {
       <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
         <span className="inline-flex items-center gap-1 text-warn">
           <TriangleAlert size={11} strokeWidth={1.75} />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">
-            Near duplicates
-          </span>
+          <span className="text-2xs font-semibold uppercase tracking-wider">Near duplicates</span>
         </span>
-        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-[10px] font-medium text-text-2">
+        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
           {items.length}
         </span>
       </div>
@@ -175,19 +173,19 @@ function NearBlock({ items }: { items: NearDuplicate[] }) {
             onClick={() => openAsset(m.assetId)}
             className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-divider py-1 text-left transition-colors last:border-b-0 hover:bg-hover"
           >
-            <span className="rounded-xs bg-warn-bg px-1 py-px font-mono text-[9px] font-semibold text-warn">
+            <span className="rounded-xs bg-warn-bg px-1 py-px font-mono text-3xs font-semibold text-warn">
               Δ{m.hamming}
             </span>
-            <span className="truncate font-mono text-[11px] text-text" title={m.relPath}>
+            <span className="truncate font-mono text-xs text-text" title={m.relPath}>
               {m.relPath}
             </span>
-            <span className="font-mono text-[10px] text-text-3 tabular-nums">
+            <span className="font-mono text-2xs text-text-3 tabular-nums">
               {(m.size / 1024).toFixed(1)}K
             </span>
           </button>
         ))}
         {hidden > 0 ? (
-          <div className="mt-1 font-mono text-[10px] text-text-3">+{hidden} more</div>
+          <div className="mt-1 font-mono text-2xs text-text-3">+{hidden} more</div>
         ) : null}
       </div>
     </div>
