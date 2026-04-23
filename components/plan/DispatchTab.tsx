@@ -10,6 +10,7 @@ import {
   useDispatchPlan,
 } from "@/lib/queries/dispatch";
 import { Button } from "../primitives/Button";
+import { DispatchLogViewer } from "./DispatchLogViewer";
 
 type Props = { plan: Plan };
 
@@ -29,13 +30,13 @@ const MODES: { value: DispatchMode; label: string; ready: boolean; description: 
   {
     value: "patch",
     label: "Patch only",
-    ready: false,
+    ready: true,
     description: "Agent rewrites files locally, no commit.",
   },
   {
     value: "open-pr",
     label: "Open PR",
-    ready: false,
+    ready: true,
     description: "Agent commits, pushes, and opens a PR.",
   },
 ];
@@ -115,7 +116,7 @@ export function DispatchTab({ plan }: Props) {
 
       <Section label="Command preview">
         <pre className="overflow-auto rounded-sm bg-text p-3 font-mono text-2xs leading-relaxed text-[#e8e6e2]">
-          {`pdx plan send --to ${harness} --mode ${mode} plan-${plan.id}.json`}
+          {`pdx plan send --source ${plan.sourceId} --mode ${mode} --harness ${harness} plan-${plan.id}.json`}
         </pre>
       </Section>
 
@@ -147,7 +148,9 @@ export function DispatchTab({ plan }: Props) {
         </div>
       ) : null}
 
-      {dispatch.data ? <DispatchResultCard data={dispatch.data} /> : null}
+      {dispatch.data ? (
+        <DispatchResultCard data={dispatch.data} harness={harness} mode={mode} />
+      ) : null}
       {dispatch.error ? (
         <div className="rounded-sm border border-border border-l-[3px] border-l-danger bg-danger-bg px-3 py-2 font-mono text-xs text-danger">
           {dispatch.error.message}
@@ -166,27 +169,39 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function DispatchResultCard({ data }: { data: DispatchResult }) {
+function DispatchResultCard({
+  data,
+  harness,
+  mode,
+}: {
+  data: DispatchResult;
+  harness: DispatchHarness;
+  mode: DispatchMode;
+}) {
   return (
-    <div className="animate-[slide-down-in_260ms_var(--ease-out-quart)] rounded-sm border border-border border-l-[3px] border-l-ok bg-surface">
-      <div className="flex items-center gap-2 border-b border-divider px-3 py-2">
-        <span className="rounded-xs bg-ok-bg px-1.5 py-0.5 font-mono text-3xs font-semibold uppercase tracking-wider text-ok">
-          Written
-        </span>
-        <span className="font-mono text-xs text-text" title={data.dir}>
-          {data.dir}
-        </span>
+    <div className="flex flex-col gap-3">
+      <div className="animate-[slide-down-in_260ms_var(--ease-out-quart)] rounded-sm border border-border border-l-[3px] border-l-ok bg-surface">
+        <div className="flex items-center gap-2 border-b border-divider px-3 py-2">
+          <span className="rounded-xs bg-ok-bg px-1.5 py-0.5 font-mono text-3xs font-semibold uppercase tracking-wider text-ok">
+            Written
+          </span>
+          <span className="font-mono text-xs text-text" title={data.dir}>
+            {data.dir}
+          </span>
+        </div>
+        <ul className="flex flex-col gap-1 px-3 py-2 font-mono text-xs text-text-2">
+          {data.files.map((f) => (
+            <li key={f} className="truncate" title={f}>
+              {f}
+            </li>
+          ))}
+        </ul>
+        <div className="border-t border-divider bg-sunken px-3 py-2 font-mono text-2xs text-text-3">
+          Next: <span className="text-text">{data.hint}</span>
+        </div>
       </div>
-      <ul className="flex flex-col gap-1 px-3 py-2 font-mono text-xs text-text-2">
-        {data.files.map((f) => (
-          <li key={f} className="truncate" title={f}>
-            {f}
-          </li>
-        ))}
-      </ul>
-      <div className="border-t border-divider bg-sunken px-3 py-2 font-mono text-2xs text-text-3">
-        Next: <span className="text-text">{data.hint}</span>
-      </div>
+
+      {data.jobId ? <DispatchLogViewer jobId={data.jobId} harness={harness} mode={mode} /> : null}
     </div>
   );
 }

@@ -1,11 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { z } from "zod";
 import { fail, ok } from "@/lib/api/response";
 import { getDb } from "@/lib/db/client";
 import { getSource } from "@/lib/db/queries/sources";
-import { serializePlan } from "@/lib/plan/export";
-import { generatePrompt } from "@/lib/plan/prompt";
+import { writePlanArtifacts } from "@/lib/plan/dispatch/artifacts";
+import { listRunningForSource, startJob } from "@/lib/plan/dispatch/jobs";
+import { checkHarness } from "@/lib/plan/dispatch/registry";
 import { planSchema } from "@/lib/plan/schema";
 
 const Body = z.object({
@@ -21,28 +20,41 @@ export async function POST(req: Request) {
   }
   const { plan, mode, harness } = parsed.data;
 
-  if (mode !== "dry-run") {
-    return fail(`mode ${mode} is not implemented yet`, 501);
-  }
-  if (harness !== "claude-code") {
-    return fail(`harness ${harness} is not configured`, 501);
-  }
-
   const db = getDb();
   const source = getSource(db, plan.sourceId);
   if (!source) return fail("source not found", 404);
 
-  const dir = join(source.root, ".pixeldex", plan.id);
-  await mkdir(dir, { recursive: true });
+  if (mode === "dry-run") {
+    const artifacts = await writePlanArtifacts(plan, source.root, mode);
+    return ok({
+      jobId: null,
+      dir: artifacts.dir,
+      files: artifacts.files,
+      hint: `Run: cd ${source.root} && claude --plan ${artifacts.promptPath}`,
+    });
+  }
 
-  const jsonPath = join(dir, "plan.json");
-  const promptPath = join(dir, "plan.md");
-  await writeFile(jsonPath, serializePlan(plan, "json"), "utf8");
-  await writeFile(promptPath, generatePrompt(plan), "utf8");
+  if (listRunningForSource(source.id).length > 0) {
+    return fail("a dispatch is already running for this source", 409);
+  }
+
+  const { harness: adapter, readiness } = await checkHarness(harness, mode);
+  if (!adapter || !readiness.ready) {
+    return fail(readiness.ready ? `${harness} is not configured yet` : readiness.reason, 501);
+  }
+
+  const artifacts = await writePlanArtifacts(plan, source.root, mode);
+  const job = startJob(adapter, {
+    plan,
+    mode,
+    cwd: source.root,
+    planDir: artifacts.dir,
+  });
 
   return ok({
-    dir,
-    files: [jsonPath, promptPath],
-    hint: `Run: cd ${source.root} && claude --plan ${join(".pixeldex", plan.id, "plan.md")}`,
+    jobId: job.id,
+    dir: artifacts.dir,
+    files: artifacts.files,
+    hint: `streaming /api/plans/dispatch/${job.id}/stream`,
   });
 }

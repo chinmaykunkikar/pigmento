@@ -351,9 +351,16 @@ pixeldex.config.ts
 3. Wrap response in `ApiResponse<T>`: `{ success: true, data: ... }` or `{ success: false, error: ... }`.
 4. Add a matching `useQuery` hook in the caller component or `lib/queries/`.
 
-## When adding a new agent harness (deferred)
+## When adding a new agent harness
 
-Agent dispatch is Phase 10+ and most specifics (Devin, codex-cli integrations) are deferred. When that phase lands, implement `lib/plan/dispatch/types.ts::Harness`; never hardcode credentials; read from `.env.local`.
+The `claude-code` harness landed in Phase 10 slice 2 for both `patch` and `open-pr` modes. Devin and codex-cli adapters are still stubbed. When implementing one:
+
+1. Add a new file under `lib/plan/dispatch/<harness>.ts` exporting a `Harness` that satisfies `lib/plan/dispatch/types.ts`.
+2. Register it in `lib/plan/dispatch/registry.ts`.
+3. `isReady(mode)` should probe for CLI presence and any auth state (`.env.local` for API tokens, never hardcoded). Return a specific `reason` when not ready so the UI can surface it verbatim.
+4. `run(input, signal)` yields `DispatchEvent`s; treat `signal` abort as SIGTERM followed by SIGKILL after a short grace.
+5. Streaming route (`app/api/plans/dispatch/[jobId]/stream`) and cancel route (`app/api/plans/dispatch/[jobId]`) don't change — they read from the job registry.
+6. Flip the `ready` flag in `components/plan/DispatchTab.tsx::HARNESSES`.
 
 ## Verification before marking any phase done
 
