@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Plan, PlanAction } from "./plan/schema";
 
-export type View = "grid" | "grouped" | "duplicates" | "plan";
+export type View = "grid" | "grouped" | "duplicates" | "match" | "plan";
 export type SizeBucket = "s" | "m" | "l";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];

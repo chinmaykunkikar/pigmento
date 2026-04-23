@@ -4,8 +4,11 @@ import { Command } from "commander";
 import { loadConfig } from "@/lib/config/load";
 import { getDb } from "@/lib/db/client";
 import { countAssets } from "@/lib/db/queries/assets";
+import { findMatches } from "@/lib/db/queries/matches";
 import { addSource, getSource, listSources } from "@/lib/db/queries/sources";
 import { runIndexer } from "@/lib/indexer/run";
+import { isAllowedExt } from "@/lib/match/ext";
+import { computeSignature } from "@/lib/match/signature";
 import { writePlanArtifacts } from "@/lib/plan/dispatch/artifacts";
 import { checkHarness } from "@/lib/plan/dispatch/registry";
 import type { DispatchEvent, DispatchHarnessName, RunnableMode } from "@/lib/plan/dispatch/types";
@@ -153,6 +156,87 @@ planCmd
       process.exit(exitCode);
     },
   );
+
+program
+  .command("match <file>")
+  .description("Find matches for a file in an indexed source")
+  .option("-s, --source <id>", "source id (defaults to first source)")
+  .option("-t, --threshold <n>", "pHash Δ ceiling for near matches (0–20, default 12)", "12")
+  .action(async (file: string, opts: { source?: string; threshold: string }) => {
+    const abs = resolve(file);
+    const st = await stat(abs).catch(() => null);
+    if (!st?.isFile()) {
+      err(`not a file: ${abs}`);
+      process.exit(1);
+    }
+    if (!isAllowedExt(basename(abs))) {
+      err("unsupported file type (svg, png, jpg, webp, gif only)");
+      process.exit(1);
+    }
+
+    const db = getDb();
+    const sources = listSources(db);
+    const source = opts.source ? sources.find((s) => s.id === Number(opts.source)) : sources[0];
+    if (!source) {
+      err(opts.source ? `source ${opts.source} not found` : "no sources configured");
+      process.exit(1);
+    }
+
+    const thresholdRaw = Number(opts.threshold);
+    if (!Number.isInteger(thresholdRaw) || thresholdRaw < 0 || thresholdRaw > 20) {
+      err("--threshold must be an integer between 0 and 20");
+      process.exit(1);
+    }
+
+    const buf = await readFile(abs);
+    const signature = await computeSignature(buf, basename(abs));
+    const rawBuckets = findMatches(db, source.id, signature);
+    const buckets = {
+      ...rawBuckets,
+      near: rawBuckets.near.filter((m) => m.hamming <= thresholdRaw),
+    };
+
+    out(`${signature.name}  (${source.label})`);
+    out(`  sha1      ${signature.sha1}`);
+    out(`  content   ${signature.contentHash}`);
+    if (signature.phash) out(`  phash     ${signature.phash}`);
+    if (signature.width && signature.height) {
+      out(`  bounding  ${signature.width} × ${signature.height}`);
+    }
+    if (signature.dominantColor) out(`  dominant  ${signature.dominantColor}`);
+
+    printBucket(
+      "Exact content match",
+      buckets.exact.map((m) => `${refs(m.usageCount)}  ${m.relPath}`),
+    );
+    printBucket(
+      `Near matches (pHash Δ ≤ ${thresholdRaw})`,
+      buckets.near.map(
+        (m) => `Δ${String(m.hamming).padStart(2)}  ${m.pct}%  ${refs(m.usageCount)}  ${m.relPath}`,
+      ),
+    );
+    printBucket(
+      "Name clusters",
+      buckets.name.map(
+        (m) =>
+          `${Math.round(m.score * 100)}%  ${refs(m.usageCount)}  [${m.sharedTokens.join(" ")}]  ${m.relPath}`,
+      ),
+    );
+  });
+
+function refs(n: number): string {
+  return `${String(n).padStart(3)} ref${n === 1 ? " " : "s"}`;
+}
+
+function printBucket(label: string, rows: string[]) {
+  out("");
+  if (rows.length === 0) {
+    out(`${label}: —`);
+    return;
+  }
+  out(`${label}: ${rows.length}`);
+  for (const r of rows) out(`  ${r}`);
+}
 
 function printEvent(ev: DispatchEvent) {
   if (ev.type === "stderr") err(ev.line);

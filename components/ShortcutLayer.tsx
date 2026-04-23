@@ -25,7 +25,8 @@ export function ShortcutLayer({ source }: Props) {
       { combo: "1", handler: () => setView("grid"), enabled: !!source },
       { combo: "2", handler: () => setView("grouped"), enabled: !!source },
       { combo: "3", handler: () => setView("duplicates"), enabled: !!source },
-      { combo: "4", handler: () => setView("plan"), enabled: !!source },
+      { combo: "4", handler: () => setView("match"), enabled: !!source },
+      { combo: "5", handler: () => setView("plan"), enabled: !!source },
       {
         combo: "escape",
         handler: closeDrawer,

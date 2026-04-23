@@ -1,6 +1,7 @@
 export {
   Archive,
   ArrowLeft,
+  ArrowRight,
   Box,
   Check,
   ChevronDown,
@@ -30,6 +31,7 @@ export {
   Plus,
   RefreshCw,
   Replace,
+  ScanSearch,
   Search,
   Settings,
   SquareStack,

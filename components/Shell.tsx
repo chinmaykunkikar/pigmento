@@ -14,6 +14,7 @@ import { BreadcrumbBar } from "./grid/BreadcrumbBar";
 import { FolderEmptyState } from "./grid/FolderEmptyState";
 import { GroupedView } from "./grouped/GroupedView";
 import { IndexingCenter } from "./indexing/IndexingCenter";
+import { MatchView } from "./match/MatchView";
 import { CleanupPlan } from "./plan/CleanupPlan";
 import { ShortcutLayer } from "./ShortcutLayer";
 import { Sidebar } from "./Sidebar";
@@ -158,6 +159,12 @@ export function Shell() {
                 aria-hidden={view !== "duplicates"}
               >
                 <DuplicatesView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+              </div>
+              <div
+                className={view === "match" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
+                aria-hidden={view !== "match"}
+              >
+                <MatchView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               </div>
               {view === "plan" ? <CleanupPlan sourceLabel={selectedSource.label} /> : null}
               <DetailDrawer />

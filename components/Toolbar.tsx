@@ -12,7 +12,16 @@ import {
   type View,
 } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
-import { ClipboardList, Layers, LayoutGrid, RefreshCw, Search, SquareStack, X } from "./icons";
+import {
+  ClipboardList,
+  Layers,
+  LayoutGrid,
+  RefreshCw,
+  ScanSearch,
+  Search,
+  SquareStack,
+  X,
+} from "./icons";
 import { Chip } from "./primitives/Chip";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
@@ -173,6 +182,11 @@ export function Toolbar({ source, indexerProgress }: Props) {
             value: "duplicates",
             icon: <SquareStack size={13} strokeWidth={1.5} />,
             label: "Duplicates",
+          },
+          {
+            value: "match",
+            icon: <ScanSearch size={13} strokeWidth={1.5} />,
+            label: "Match",
           },
           {
             value: "plan",
