@@ -5,17 +5,19 @@ import { cn } from "@/lib/cn";
 import { computeStats } from "@/lib/plan/schema";
 import { useExplorerStore } from "@/lib/store";
 import { ChevronRight, Trash2 } from "../icons";
+import { DispatchTab } from "./DispatchTab";
 import { ExportTab } from "./ExportTab";
 import { PlanItemCard } from "./PlanItemCard";
 import { PlanSummary } from "./PlanSummary";
 import { PromptTab } from "./PromptTab";
 
-type Tab = "plan" | "prompt" | "export";
+type Tab = "plan" | "prompt" | "export" | "dispatch";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "plan", label: "Plan" },
   { value: "prompt", label: "Prompt" },
   { value: "export", label: "Export" },
+  { value: "dispatch", label: "Dispatch" },
 ];
 
 type Props = { sourceLabel: string };
@@ -97,10 +99,11 @@ export function CleanupPlan({ sourceLabel }: Props) {
 
           {tab === "prompt" && plan ? <PromptTab plan={plan} /> : null}
           {tab === "export" && plan ? <ExportTab plan={plan} /> : null}
+          {tab === "dispatch" && plan ? <DispatchTab plan={plan} /> : null}
           {tab !== "plan" && !plan ? (
             <div className="rounded-sm border border-border bg-surface px-4 py-8 text-center font-sans text-sm text-text-3">
               Queue at least one action in the Plan tab to generate{" "}
-              {tab === "prompt" ? "a prompt" : "exports"}.
+              {tab === "prompt" ? "a prompt" : tab === "export" ? "exports" : "a dispatch"}.
             </div>
           ) : null}
         </div>

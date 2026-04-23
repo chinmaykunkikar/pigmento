@@ -1,0 +1,191 @@
+"use client";
+
+import { useState } from "react";
+import { cn } from "@/lib/cn";
+import type { Plan } from "@/lib/plan/schema";
+import {
+  type DispatchHarness,
+  type DispatchMode,
+  type DispatchResult,
+  useDispatchPlan,
+} from "@/lib/queries/dispatch";
+
+type Props = { plan: Plan };
+
+const HARNESSES: { value: DispatchHarness; label: string; ready: boolean }[] = [
+  { value: "claude-code", label: "Claude Code", ready: true },
+  { value: "devin", label: "Devin", ready: false },
+  { value: "codex-cli", label: "codex-cli", ready: false },
+];
+
+const MODES: { value: DispatchMode; label: string; ready: boolean; description: string }[] = [
+  {
+    value: "dry-run",
+    label: "Dry run",
+    ready: true,
+    description: "Write plan files only — no mutations.",
+  },
+  {
+    value: "patch",
+    label: "Patch only",
+    ready: false,
+    description: "Agent rewrites files locally, no commit.",
+  },
+  {
+    value: "open-pr",
+    label: "Open PR",
+    ready: false,
+    description: "Agent commits, pushes, and opens a PR.",
+  },
+];
+
+export function DispatchTab({ plan }: Props) {
+  const [harness, setHarness] = useState<DispatchHarness>("claude-code");
+  const [mode, setMode] = useState<DispatchMode>("dry-run");
+  const dispatch = useDispatchPlan();
+
+  const canSend = plan.actions.length > 0 && !dispatch.isPending;
+  const readyMsg =
+    HARNESSES.find((h) => h.value === harness)?.ready === false
+      ? `${harness} is not configured yet`
+      : MODES.find((m) => m.value === mode)?.ready === false
+        ? `${mode} is not implemented yet`
+        : null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Section label="Harness">
+        <div className="flex gap-1.5">
+          {HARNESSES.map((h) => (
+            <button
+              key={h.value}
+              type="button"
+              onClick={() => setHarness(h.value)}
+              disabled={!h.ready}
+              className={cn(
+                "inline-flex h-7 items-center gap-1.5 rounded-sm border px-2.5 font-sans text-xs font-medium transition-colors",
+                harness === h.value
+                  ? "border-accent bg-accent-bg text-accent-text"
+                  : "border-border bg-surface text-text-2 hover:border-border-2 hover:bg-hover",
+                !h.ready && "cursor-not-allowed opacity-50",
+              )}
+            >
+              {h.label}
+              {!h.ready ? <span className="font-mono text-2xs text-text-4">soon</span> : null}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <Section label="Mode">
+        <div className="flex flex-col gap-1.5">
+          {MODES.map((m) => (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => setMode(m.value)}
+              disabled={!m.ready}
+              className={cn(
+                "flex items-center gap-2 rounded-sm border px-3 py-2 text-left transition-colors",
+                mode === m.value
+                  ? "border-accent bg-accent-bg"
+                  : "border-border bg-surface hover:border-border-2 hover:bg-hover",
+                !m.ready && "cursor-not-allowed opacity-50",
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border",
+                  mode === m.value ? "border-accent" : "border-border-2",
+                )}
+              >
+                {mode === m.value ? <span className="h-1.5 w-1.5 rounded-full bg-accent" /> : null}
+              </span>
+              <span className="flex-1">
+                <span className="font-sans text-sm font-medium text-text">{m.label}</span>
+                <span className="ml-2 font-mono text-xs text-text-3">{m.description}</span>
+              </span>
+              {!m.ready ? <span className="font-mono text-2xs text-text-4">soon</span> : null}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <Section label="Command preview">
+        <pre className="overflow-auto rounded-sm bg-text p-3 font-mono text-2xs leading-relaxed text-[#e8e6e2]">
+          {`pdx plan send --to ${harness} --mode ${mode} plan-${plan.id}.json`}
+        </pre>
+      </Section>
+
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs text-text-3">
+          {plan.actions.length} action{plan.actions.length === 1 ? "" : "s"} queued
+        </span>
+        <div className="flex-1" />
+        <button
+          type="button"
+          disabled={!canSend || !!readyMsg}
+          onClick={() => dispatch.mutate({ plan, mode, harness })}
+          className="inline-flex h-8 items-center gap-2 rounded-sm border border-accent bg-accent px-3 font-sans text-sm font-medium text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Send plan to agent
+          <span className="font-mono text-2xs opacity-80">⌘↵</span>
+        </button>
+      </div>
+
+      {readyMsg ? (
+        <div className="rounded-sm border border-border border-l-[3px] border-l-warn bg-warn-bg px-3 py-2 font-mono text-xs text-warn">
+          {readyMsg}
+        </div>
+      ) : null}
+
+      {dispatch.isPending ? (
+        <div className="rounded-sm border border-border bg-surface px-3 py-2 font-mono text-xs text-text-3">
+          Writing plan files…
+        </div>
+      ) : null}
+
+      {dispatch.data ? <DispatchResultCard data={dispatch.data} /> : null}
+      {dispatch.error ? (
+        <div className="rounded-sm border border-border border-l-[3px] border-l-danger bg-danger-bg px-3 py-2 font-mono text-xs text-danger">
+          {dispatch.error.message}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-2xs font-semibold uppercase tracking-wider text-text-3">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function DispatchResultCard({ data }: { data: DispatchResult }) {
+  return (
+    <div className="rounded-sm border border-border border-l-[3px] border-l-ok bg-surface">
+      <div className="flex items-center gap-2 border-b border-divider px-3 py-2">
+        <span className="rounded-xs bg-ok-bg px-1.5 py-0.5 font-mono text-3xs font-semibold uppercase tracking-wider text-ok">
+          Written
+        </span>
+        <span className="font-mono text-xs text-text" title={data.dir}>
+          {data.dir}
+        </span>
+      </div>
+      <ul className="flex flex-col gap-1 px-3 py-2 font-mono text-xs text-text-2">
+        {data.files.map((f) => (
+          <li key={f} className="truncate" title={f}>
+            {f}
+          </li>
+        ))}
+      </ul>
+      <div className="border-t border-divider bg-sunken px-3 py-2 font-mono text-2xs text-text-3">
+        Next: <span className="text-text">{data.hint}</span>
+      </div>
+    </div>
+  );
+}
