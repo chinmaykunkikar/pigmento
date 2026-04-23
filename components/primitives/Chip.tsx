@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 export function ChipGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex h-7 items-center gap-1.5 rounded-sm border border-border bg-surface px-2">
+    <div className="flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface px-2">
       <span className="text-xs text-text-3">{label}</span>
       <div className="flex gap-0.5">{children}</div>
     </div>

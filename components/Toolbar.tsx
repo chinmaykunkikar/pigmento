@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
 import { useReindex } from "@/lib/queries/reindex";
@@ -14,6 +15,7 @@ import { relativeTime } from "@/lib/time";
 import { Box, ClipboardList, Layers, LayoutGrid, RefreshCw, Search, SquareStack, X } from "./icons";
 import { Chip, ChipGroup } from "./primitives/Chip";
 import { IconBtn } from "./primitives/IconBtn";
+import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
 import { Segmented } from "./primitives/Segmented";
 import { Toggle } from "./primitives/Toggle";
@@ -54,6 +56,14 @@ export function Toolbar({ source, indexerProgress }: Props) {
   const planCount = useExplorerStore((s) =>
     s.draftPlan && s.draftPlan.sourceId === (source?.id ?? -1) ? s.draftPlan.actions.length : 0,
   );
+  const searchFocusNonce = useExplorerStore((s) => s.searchFocusNonce);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchFocusNonce === 0) return;
+    searchRef.current?.focus();
+    searchRef.current?.select();
+  }, [searchFocusNonce]);
 
   const planBadge = () => (planCount > 0 ? `Plan · ${planCount}` : "Plan");
 
@@ -61,7 +71,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
     search.length > 0 || extFilter.length > 0 || sizeBucket !== null || unusedOnly;
 
   return (
-    <div className="relative flex h-11 flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-3">
+    <div className="relative flex h-11 flex-shrink-0 items-center gap-3 border-b border-border bg-surface px-4">
       <div
         className={cn(
           "flex h-7 min-w-55 max-w-90 flex-1 items-center gap-1.5 rounded-sm border bg-sunken pl-2 pr-1 focus-within:border-accent/40",
@@ -70,6 +80,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
       >
         <Search size={13} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
         <input
+          ref={searchRef}
           placeholder="Search assets, paths, hashes…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -84,7 +95,9 @@ export function Toolbar({ source, indexerProgress }: Props) {
           >
             <X size={12} strokeWidth={1.75} />
           </button>
-        ) : null}
+        ) : (
+          <KbdHint keys={formatCombo("mod+f")} className="flex-shrink-0" />
+        )}
       </div>
 
       <ChipGroup label="Type">
@@ -117,7 +130,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
         <button
           type="button"
           onClick={() => useExplorerStore.getState().clearFilters()}
-          className="inline-flex h-7 items-center gap-1 rounded-sm px-2 font-mono text-xs text-text-3 transition-colors hover:bg-hover hover:text-text-2"
+          className="inline-flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-sm px-2 font-mono text-xs text-text-3 transition-colors hover:bg-hover hover:text-text-2"
           title="Clear all filters"
         >
           <X size={11} strokeWidth={1.75} />
@@ -158,10 +171,10 @@ export function Toolbar({ source, indexerProgress }: Props) {
         <Box size={14} strokeWidth={1.5} strokeDasharray="2 2" />
       </IconBtn>
 
-      <div className="mx-1 h-5 w-px bg-border" />
+      <div className="mx-1 h-5 w-px shrink-0 bg-border" />
 
       {source ? (
-        <span className="font-mono text-xs text-text-3 tabular-nums">
+        <span className="shrink-0 whitespace-nowrap font-mono text-xs text-text-3 tabular-nums">
           Indexed {relativeTime(source.lastIndexedAt ?? source.createdAt)}
         </span>
       ) : null}
@@ -170,7 +183,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
         type="button"
         disabled={reindex.isPending || !source}
         onClick={() => reindex.mutate({})}
-        className="inline-flex h-[26px] items-center gap-1.5 rounded-sm border border-border-2 bg-surface px-2.5 text-sm font-medium text-text transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-[26px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border-2 bg-surface px-2.5 text-sm font-medium text-text transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         <RefreshCw
           size={12}

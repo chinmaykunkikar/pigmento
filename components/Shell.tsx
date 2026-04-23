@@ -14,6 +14,7 @@ import { BreadcrumbBar } from "./grid/BreadcrumbBar";
 import { GroupedView } from "./grouped/GroupedView";
 import { IndexingCenter } from "./indexing/IndexingCenter";
 import { CleanupPlan } from "./plan/CleanupPlan";
+import { ShortcutLayer } from "./ShortcutLayer";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 import { Toolbar } from "./Toolbar";
@@ -75,6 +76,7 @@ export function Shell() {
         ) : (
           <EmptyState onAdded={(id) => setSelectedSource(id)} />
         )}
+        <ShortcutLayer source={null} />
       </div>
     );
   }
@@ -148,6 +150,7 @@ export function Shell() {
         totalBytes={totalBytes}
         folderPath={effectivePath || "/"}
       />
+      <ShortcutLayer source={selectedSource} />
     </div>
   );
 }

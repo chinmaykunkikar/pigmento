@@ -16,7 +16,7 @@ type Props<V extends string> = {
 
 export function Segmented<V extends string>({ value, items, onChange }: Props<V>) {
   return (
-    <div className="flex h-7 items-center gap-0.5 rounded-sm border border-border bg-surface p-0.5">
+    <div className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface p-0.5">
       {items.map((it) => {
         const active = it.value === value;
         return (
@@ -26,7 +26,7 @@ export function Segmented<V extends string>({ value, items, onChange }: Props<V>
             disabled={it.disabled}
             onClick={() => onChange(it.value)}
             className={cn(
-              "flex h-full items-center gap-1.5 rounded-xs px-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+              "flex h-full items-center gap-1.5 whitespace-nowrap rounded-xs px-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40",
               active ? "bg-sunken font-semibold text-text" : "text-text-2 hover:bg-hover",
             )}
           >

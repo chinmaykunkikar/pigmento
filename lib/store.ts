@@ -40,6 +40,12 @@ export type ExplorerState = {
   removePlanAction: (actionId: string) => void;
   renamePlan: (name: string) => void;
   clearPlan: () => void;
+
+  paletteOpen: boolean;
+  setPaletteOpen: (open: boolean) => void;
+  togglePalette: () => void;
+  searchFocusNonce: number;
+  focusSearch: () => void;
 };
 
 export const useExplorerStore = create<ExplorerState>()(
@@ -136,6 +142,12 @@ export const useExplorerStore = create<ExplorerState>()(
           return { draftPlan: { ...s.draftPlan, name, updatedAt: Date.now() } };
         }),
       clearPlan: () => set({ draftPlan: null }),
+
+      paletteOpen: false,
+      setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
+      togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
+      searchFocusNonce: 0,
+      focusSearch: () => set((s) => ({ searchFocusNonce: s.searchFocusNonce + 1 })),
     }),
     {
       name: "pixeldex:ui",
