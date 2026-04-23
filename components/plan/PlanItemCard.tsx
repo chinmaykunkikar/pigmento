@@ -52,6 +52,16 @@ export function PlanItemCard({ action, onRemove }: Props) {
               />
             ))}
           </>
+        ) : action.kind === "rename-asset" ? (
+          <>
+            <Row
+              kind="from"
+              relPath={action.asset.relPath}
+              size={action.asset.size}
+              refs={action.asset.usageCount}
+            />
+            <Row kind="to" relPath={action.newRelPath} size={action.asset.size} refs={0} />
+          </>
         ) : (
           action.drop.map((d) => (
             <Row
@@ -76,7 +86,9 @@ function KindChip({ kind }: { kind: PlanAction["kind"] }) {
         ? "MERGE CLUSTER"
         : kind === "review-group"
           ? "REVIEW"
-          : "DELETE";
+          : kind === "rename-asset"
+            ? "RENAME"
+            : "DELETE";
   const tone =
     kind === "delete-unused"
       ? "bg-danger-bg text-danger"
@@ -101,13 +113,23 @@ function Row({
   size,
   refs,
 }: {
-  kind: "keep" | "drop" | "delete" | "review";
+  kind: "keep" | "drop" | "delete" | "review" | "from" | "to";
   relPath: string;
   size: number;
   refs: number;
 }) {
   const kindLabel =
-    kind === "keep" ? "KEEP" : kind === "delete" ? "DELETE" : kind === "review" ? "REVIEW" : "DROP";
+    kind === "keep"
+      ? "KEEP"
+      : kind === "delete"
+        ? "DELETE"
+        : kind === "review"
+          ? "REVIEW"
+          : kind === "from"
+            ? "FROM"
+            : kind === "to"
+              ? "TO"
+              : "DROP";
   const kindClass =
     kind === "keep"
       ? "text-ok"
@@ -115,7 +137,12 @@ function Row({
         ? "text-danger"
         : kind === "review"
           ? "text-warn"
-          : "text-warn";
+          : kind === "from"
+            ? "text-text-3"
+            : kind === "to"
+              ? "text-accent-text"
+              : "text-warn";
+  const showRefs = kind !== "to";
   return (
     <div className="flex items-center gap-2 border-divider border-b px-3 py-1.5 last:border-b-0">
       <span
@@ -133,7 +160,7 @@ function Row({
         {formatBytes(size)}
       </span>
       <span className="w-14 flex-shrink-0 text-right font-mono text-xs text-text-3 tabular-nums">
-        {refs} ref{refs === 1 ? "" : "s"}
+        {showRefs ? `${refs} ref${refs === 1 ? "" : "s"}` : ""}
       </span>
     </div>
   );

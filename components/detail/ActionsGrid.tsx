@@ -4,15 +4,15 @@ import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import type { Asset } from "@/lib/db/schema";
-import { Check, ChevronDown, Copy, Download } from "../icons";
+import { Check, ChevronDown, Copy, Download, Pencil } from "../icons";
 import { IconBtn } from "../primitives/IconBtn";
 import { formatCombo, KbdHint } from "../primitives/KbdHint";
 
-type Props = { asset: Asset };
+type Props = { asset: Asset; onRename: () => void };
 
 type CopyKey = "path" | "import";
 
-export function ActionsGrid({ asset }: Props) {
+export function ActionsGrid({ asset, onRename }: Props) {
   const [justCopied, setJustCopied] = useState<CopyKey | null>(null);
 
   const copy = async (key: CopyKey, text: string) => {
@@ -95,6 +95,14 @@ export function ActionsGrid({ asset }: Props) {
               <Copy size={11} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
               <span className="flex-1">Copy import</span>
               <KbdHint keys={formatCombo("mod+shift+c")} />
+            </Dropdown.Item>
+            <Dropdown.Separator className="my-0.5 h-px bg-divider" />
+            <Dropdown.Item
+              onSelect={onRename}
+              className="flex h-7 items-center gap-2 rounded-xs px-2 font-sans text-xs text-text outline-none data-[highlighted]:bg-accent-bg data-[highlighted]:text-accent-text"
+            >
+              <Pencil size={11} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
+              <span className="flex-1">Rename…</span>
             </Dropdown.Item>
           </Dropdown.Content>
         </Dropdown.Portal>

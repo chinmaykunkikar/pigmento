@@ -32,6 +32,7 @@ export {
   Plus,
   RefreshCw,
   Replace,
+  RotateCcw,
   ScanSearch,
   Search,
   Settings,

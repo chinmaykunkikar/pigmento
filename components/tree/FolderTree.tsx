@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { TreeNode } from "@/lib/db/queries/folders";
-import { ChevronDown, ChevronRight, Folder, FolderOpen } from "../icons";
+import { ChevronRight, Folder, FolderOpen } from "../icons";
 
 type Props = {
   root: TreeNode;
@@ -83,19 +83,29 @@ function Branch({
         onToggle={() => onToggle(node.path)}
         onSelect={() => onSelect(node.path)}
       />
-      {isOpen && hasKids
-        ? node.children.map((c) => (
-            <Branch
-              key={c.path}
-              node={c}
-              depth={depth + 1}
-              open={open}
-              onToggle={onToggle}
-              selectedPath={selectedPath}
-              onSelect={onSelect}
-            />
-          ))
-        : null}
+      {hasKids ? (
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-200 ease-[var(--ease-out-quart)]",
+            isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+          aria-hidden={!isOpen}
+        >
+          <div className="min-h-0 overflow-hidden">
+            {node.children.map((c) => (
+              <Branch
+                key={c.path}
+                node={c}
+                depth={depth + 1}
+                open={open}
+                onToggle={onToggle}
+                selectedPath={selectedPath}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
@@ -117,22 +127,27 @@ function Row({
   onToggle: () => void;
   onSelect: () => void;
 }) {
+  const handleActivate = () => {
+    onSelect();
+    if (hasKids && !isOpen) onToggle();
+  };
   return (
     <div
       className={cn(
-        "group flex h-6 cursor-pointer items-center gap-1 border-l-2 pr-2.5 text-xs",
+        "group flex h-6 cursor-pointer items-center gap-1 border-l-2 pr-2.5 text-xs transition-colors duration-120 ease-[var(--ease-out-quart)]",
         selected
           ? "border-accent bg-accent-bg text-accent-text"
           : "border-transparent text-text hover:bg-hover",
       )}
       style={{ paddingLeft: `${6 + depth * 12}px` }}
-      onClick={onSelect}
+      onClick={handleActivate}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onSelect();
+        if (e.key === "Enter" || e.key === " ") handleActivate();
       }}
       role="treeitem"
       tabIndex={0}
       aria-selected={selected}
+      aria-expanded={hasKids ? isOpen : undefined}
     >
       <button
         type="button"
@@ -141,18 +156,27 @@ function Row({
           if (hasKids) onToggle();
         }}
         className={cn(
-          "flex h-4 w-3 items-center justify-center text-text-3",
+          "flex h-4 w-3 items-center justify-center text-text-3 transition-colors duration-150 ease-[var(--ease-out-quart)] group-hover:text-text-2",
           !hasKids && "opacity-0",
         )}
         tabIndex={-1}
+        aria-hidden={!hasKids}
       >
-        {isOpen ? (
-          <ChevronDown size={10} strokeWidth={1.5} />
-        ) : (
-          <ChevronRight size={10} strokeWidth={1.5} />
-        )}
+        <ChevronRight
+          size={10}
+          strokeWidth={1.5}
+          className={cn(
+            "transition-transform duration-150 ease-[var(--ease-out-quart)]",
+            isOpen && "rotate-90",
+          )}
+        />
       </button>
-      <span className={cn(selected ? "text-accent-text" : "text-text-3")}>
+      <span
+        className={cn(
+          "transition-colors duration-150 ease-[var(--ease-out-quart)]",
+          selected ? "text-accent-text" : "text-text-3 group-hover:text-text-2",
+        )}
+      >
         {isOpen && hasKids ? (
           <FolderOpen size={13} strokeWidth={1.5} />
         ) : (
@@ -164,7 +188,14 @@ function Row({
       >
         {node.name || "/"}
       </span>
-      <span className="font-mono text-2xs tabular-nums text-text-4">{node.count}</span>
+      <span
+        className={cn(
+          "font-mono text-2xs tabular-nums transition-colors duration-150 ease-[var(--ease-out-quart)]",
+          selected ? "text-accent-text/70" : "text-text-4 group-hover:text-text-3",
+        )}
+      >
+        {node.count}
+      </span>
     </div>
   );
 }

@@ -9,6 +9,8 @@
       "!data",
       "!design-source",
       "!lib/db/migrations",
+      "!.claude/skills",
+      "!.agents/skills",
       "!**/*.css"
     ]
   },

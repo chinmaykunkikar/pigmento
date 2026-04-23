@@ -38,6 +38,29 @@ function serializeCsv(plan: Plan): string {
       }
       continue;
     }
+    if (a.kind === "rename-asset") {
+      rows.push(
+        [
+          a.id,
+          a.kind,
+          "from",
+          a.asset.assetId,
+          a.asset.relPath,
+          a.asset.name,
+          a.asset.size,
+          a.asset.usageCount,
+          "",
+        ]
+          .map(csvCell)
+          .join(","),
+      );
+      rows.push(
+        [a.id, a.kind, "to", a.asset.assetId, a.newRelPath, a.newName, a.asset.size, 0, ""]
+          .map(csvCell)
+          .join(","),
+      );
+      continue;
+    }
     rows.push(
       [
         a.id,
@@ -89,6 +112,13 @@ function serializeYaml(plan: Plan): string {
       for (const r of a.assetRefs) {
         lines.push(yamlAsset(r, 6, true));
       }
+      continue;
+    }
+    if (a.kind === "rename-asset") {
+      lines.push(`    newName: ${yamlStr(a.newName)}`);
+      lines.push(`    newRelPath: ${yamlStr(a.newRelPath)}`);
+      lines.push(`    asset:`);
+      lines.push(yamlAsset(a.asset, 6));
       continue;
     }
     if (a.kind === "merge-exact" || a.kind === "merge-cluster") {

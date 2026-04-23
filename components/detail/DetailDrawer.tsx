@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { parsePixelSuffix, pixelSizeFromPath } from "@/lib/indexer/variants";
 import { useAsset } from "@/lib/queries/asset";
 import { useExplorerStore } from "@/lib/store";
-import { ArrowLeft, X } from "../icons";
+import { ArrowLeft, Pencil, X } from "../icons";
 import { IconBtn } from "../primitives/IconBtn";
 import { ScrollArea } from "../primitives/ScrollArea";
 import { ActionsGrid } from "./ActionsGrid";
@@ -13,6 +13,7 @@ import { AssetPreview } from "./AssetPreview";
 import { DuplicateGroupSection } from "./DuplicateGroupSection";
 import { MetadataSection } from "./MetadataSection";
 import { ReferencesList } from "./ReferencesList";
+import { RenameDialog } from "./RenameDialog";
 import { SizePips } from "./SizePips";
 
 export function DetailDrawer() {
@@ -24,6 +25,7 @@ export function DetailDrawer() {
   const q = useAsset(drawerOpen ? selectedAssetId : null);
   const asideRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [renameOpen, setRenameOpen] = useState(false);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -81,9 +83,16 @@ export function DetailDrawer() {
             <span className="truncate">{prevEntry.name}</span>
           </button>
         ) : null}
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-text">
-          {q.data?.asset.name ?? "-"}
-        </span>
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <span className="min-w-0 truncate font-mono text-xs font-medium text-text">
+            {q.data?.asset.name ?? "-"}
+          </span>
+          {q.data ? (
+            <IconBtn label="Rename" onClick={() => setRenameOpen(true)}>
+              <Pencil size={12} strokeWidth={1.5} />
+            </IconBtn>
+          ) : null}
+        </div>
         <IconBtn label="Close" onClick={closeDrawer}>
           <X size={14} strokeWidth={1.5} />
         </IconBtn>
@@ -105,7 +114,7 @@ export function DetailDrawer() {
             <SizePips currentSize={currentSize} variants={q.data.sizeVariants} />
           </div>
           <MetadataSection asset={q.data.asset} />
-          <ActionsGrid asset={q.data.asset} />
+          <ActionsGrid asset={q.data.asset} onRename={() => setRenameOpen(true)} />
           <DuplicateGroupSection
             clusters={q.data.clusters}
             nearDuplicates={q.data.nearDuplicates}
@@ -115,6 +124,9 @@ export function DetailDrawer() {
           />
           <ReferencesList assetId={q.data.asset.id} totalCount={q.data.usageCount} />
         </ScrollArea>
+      ) : null}
+      {q.data ? (
+        <RenameDialog asset={q.data.asset} open={renameOpen} onOpenChange={setRenameOpen} />
       ) : null}
     </aside>
   );

@@ -26,6 +26,17 @@ export function generatePrompt(plan: Plan, mode: DispatchMode = "dry-run"): stri
       lines.push("");
       continue;
     }
+    if (a.kind === "rename-asset") {
+      lines.push(`   - From: \`${a.asset.relPath}\``);
+      lines.push(`   - To:   \`${a.newRelPath}\``);
+      const refNote =
+        a.asset.usageCount > 0
+          ? ` (${a.asset.usageCount} reference${a.asset.usageCount === 1 ? "" : "s"} to rewrite)`
+          : "";
+      lines.push(`   - Update every reference to the old path${refNote}.`);
+      lines.push("");
+      continue;
+    }
     if (a.kind !== "delete-unused") {
       lines.push(`   - Keep: \`${a.keep.relPath}\``);
     }
@@ -60,8 +71,8 @@ function intro(plan: Plan, mode: DispatchMode): string {
 function guardrails(mode: DispatchMode): string[] {
   const shared = [
     "Before editing, read any of `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `README.md` at the repo root if they exist, and follow the conventions they specify (commit style, formatting, branch naming, review process, etc.).",
-    "Do not touch any file not listed in the drop list above.",
-    "Rewrite every reference to dropped files to point at the kept file.",
+    "Do not touch any asset file not listed in the actions above. You may edit referrer files (source code, templates, styles) only as needed to rewrite references.",
+    "Rewrite every reference to dropped files to point at the kept file. For renames, rewrite every reference to the old path to the new path.",
   ];
   if (mode === "patch") {
     return [...shared, "Do not run git commands — no branch, no commit, no push."];
@@ -87,6 +98,9 @@ function actionSentence(a: PlanAction): string {
   }
   if (a.kind === "review-group") {
     return `Review ${a.assetRefs.length} flagged asset${a.assetRefs.length === 1 ? "" : "s"} and decide whether to merge, delete, or keep.`;
+  }
+  if (a.kind === "rename-asset") {
+    return `Rename \`${a.asset.name}\` to \`${a.newName}\` and update every reference.`;
   }
   return `Delete ${a.drop.length} unused asset${a.drop.length === 1 ? "" : "s"}.`;
 }
