@@ -5,6 +5,7 @@ import type { Config } from "../config/schema";
 import type { Db } from "../db/client";
 import { type Asset, assets, type NewAsset, type Source, sources } from "../db/schema";
 import { categorize } from "./category";
+import { runClipStage } from "./clip";
 import { hashCluster } from "./cluster-hash";
 import { nameCluster } from "./cluster-name";
 import { phashCluster } from "./cluster-phash";
@@ -155,6 +156,20 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
   const allAssets: Asset[] = await stage(progress, sourceId, "load", () => {
     const rows = db.select().from(assets).where(eq(assets.sourceId, sourceId)).all();
     return { result: rows, detail: `${rows.length} rows` };
+  });
+
+  await stage(progress, sourceId, "clip", async () => {
+    const res = await runClipStage(db, sourceId, { full, enabled: config.clip.enabled });
+    if (res.skippedDisabled) {
+      return { result: res, detail: "disabled (set clip.enabled in pixeldex.config.ts)" };
+    }
+    if (res.skippedModelUnavailable) {
+      return { result: res, detail: "model unavailable, skipped" };
+    }
+    return {
+      result: res,
+      detail: `${res.embedded} embedded, ${res.failed} failed, ${res.processed} targeted`,
+    };
   });
 
   await stage(progress, sourceId, "usage-scan", async () => {

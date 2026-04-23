@@ -16,17 +16,18 @@ export function ShortcutLayer({ source }: Props) {
   const drawerOpen = useExplorerStore((s) => s.drawerOpen);
   const closeDrawer = useExplorerStore((s) => s.closeDrawer);
   const toggleSidebar = useExplorerStore((s) => s.toggleSidebar);
+  const togglePlanDrawer = useExplorerStore((s) => s.togglePlanDrawer);
 
   const specs = useMemo(
     () => [
       { combo: "mod+k", handler: togglePalette, allowInInputs: true },
       { combo: "mod+f", handler: focusSearch },
       { combo: "mod+b", handler: toggleSidebar },
+      { combo: "`", handler: () => setView("overview"), enabled: !!source },
       { combo: "1", handler: () => setView("grid"), enabled: !!source },
-      { combo: "2", handler: () => setView("grouped"), enabled: !!source },
-      { combo: "3", handler: () => setView("duplicates"), enabled: !!source },
-      { combo: "4", handler: () => setView("match"), enabled: !!source },
-      { combo: "5", handler: () => setView("plan"), enabled: !!source },
+      { combo: "2", handler: () => setView("clusters"), enabled: !!source },
+      { combo: "3", handler: () => setView("match"), enabled: !!source },
+      { combo: "4", handler: togglePlanDrawer, enabled: !!source },
       {
         combo: "escape",
         handler: closeDrawer,
@@ -38,6 +39,7 @@ export function ShortcutLayer({ source }: Props) {
       focusSearch,
       toggleSidebar,
       setView,
+      togglePlanDrawer,
       source,
       drawerOpen,
       paletteOpen,

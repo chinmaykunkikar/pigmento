@@ -1,7 +1,7 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useLayoutEffect, useRef, useState } from "react";
+import { type MouseEvent, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AssetSummary } from "@/lib/db/queries/folders";
 import { useExplorerStore } from "@/lib/store";
 import { ScrollArea } from "../primitives/ScrollArea";
@@ -19,6 +19,12 @@ export function AssetGrid({ assets }: Props) {
   const boundingBoxes = useExplorerStore((s) => s.boundingBoxes);
   const selectedAssetId = useExplorerStore((s) => s.selectedAssetId);
   const openAsset = useExplorerStore((s) => s.openAsset);
+  const cartIds = useExplorerStore((s) => s.cartIds);
+  const toggleCartItem = useExplorerStore((s) => s.toggleCartItem);
+  const setCartRange = useExplorerStore((s) => s.setCartRange);
+
+  const cartSet = useMemo(() => new Set(cartIds), [cartIds]);
+  const orderedIds = useMemo(() => assets.map((a) => a.id), [assets]);
 
   useLayoutEffect(() => {
     const el = parentRef.current;
@@ -47,6 +53,28 @@ export function AssetGrid({ assets }: Props) {
   if (assets.length === 0) {
     return null;
   }
+
+  const cartActive = cartIds.length > 0;
+
+  const handleTileClick = (id: number) => (e: MouseEvent) => {
+    if (e.metaKey || e.ctrlKey) {
+      e.preventDefault();
+      toggleCartItem(id);
+      return;
+    }
+    if (e.shiftKey && cartIds.length > 0) {
+      e.preventDefault();
+      setCartRange(id, orderedIds);
+      return;
+    }
+    if (cartActive) {
+      toggleCartItem(id);
+      return;
+    }
+    openAsset(id);
+  };
+
+  const handleToggle = (id: number) => () => toggleCartItem(id);
 
   return (
     <ScrollArea ref={parentRef} className="flex-1 bg-bg">
@@ -77,7 +105,10 @@ export function AssetGrid({ assets }: Props) {
                   asset={a}
                   showBoundingBox={boundingBoxes}
                   selected={a.id === selectedAssetId}
-                  onClick={() => openAsset(a.id)}
+                  inCart={cartSet.has(a.id)}
+                  cartActive={cartActive}
+                  onClick={handleTileClick(a.id)}
+                  onToggleCart={handleToggle(a.id)}
                 />
               ))}
             </div>

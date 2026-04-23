@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type MouseEvent, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { ExactGroup } from "@/lib/db/queries/duplicates";
 import type { MergeExactAction } from "@/lib/plan/schema";
@@ -8,6 +8,7 @@ import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
 import { ChevronDown, ChevronRight } from "../icons";
 import { AddToPlanButton } from "../plan/AddToPlanButton";
+import { SelectCheckbox } from "../primitives/SelectCheckbox";
 
 const CHECKER = {
   backgroundImage:
@@ -27,7 +28,18 @@ type Props = {
 export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const openAsset = useExplorerStore((s) => s.openAsset);
+  const cartIds = useExplorerStore((s) => s.cartIds);
+  const toggleCartItem = useExplorerStore((s) => s.toggleCartItem);
+  const setCartRange = useExplorerStore((s) => s.setCartRange);
+  const addToCart = useExplorerStore((s) => s.addToCart);
+  const removeFromCart = useExplorerStore((s) => s.removeFromCart);
   const shortHash = `${group.key.slice(0, 10)}…`;
+
+  const cartSet = useMemo(() => new Set(cartIds), [cartIds]);
+  const orderedIds = useMemo(() => group.members.map((m) => m.assetId), [group.members]);
+  const cartActive = cartIds.length > 0;
+  const selectedInGroup = orderedIds.filter((id) => cartSet.has(id)).length;
+  const allInCart = selectedInGroup === orderedIds.length && orderedIds.length > 0;
 
   const action: MergeExactAction = {
     id: `merge-exact:${group.id}`,
@@ -53,6 +65,20 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
       })),
   };
 
+  const handleMemberClick = (id: number, e: MouseEvent) => {
+    if (e.metaKey || e.ctrlKey) {
+      e.preventDefault();
+      toggleCartItem(id);
+      return;
+    }
+    if (e.shiftKey && cartIds.length > 0) {
+      e.preventDefault();
+      setCartRange(id, orderedIds);
+      return;
+    }
+    openAsset(id);
+  };
+
   return (
     <div className="overflow-hidden rounded-sm border border-border bg-surface">
       {/* biome-ignore lint/a11y/useSemanticElements: native button would nest the Add-to-plan button */}
@@ -72,6 +98,12 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
           open && "border-b border-border",
         )}
       >
+        <SelectCheckbox
+          checked={allInCart}
+          onToggle={() => (allInCart ? removeFromCart(orderedIds) : addToCart(orderedIds))}
+          label={allInCart ? "Deselect all copies" : "Select all copies"}
+        />
+
         <div
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xs border border-border"
           style={CHECKER}
@@ -97,6 +129,11 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
             <span className="flex-shrink-0 rounded-sm bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
               ×{group.count} copies
             </span>
+            {selectedInGroup > 0 ? (
+              <span className="flex-shrink-0 rounded-sm bg-accent-bg px-1.5 py-px font-mono text-2xs font-medium text-accent-text">
+                {selectedInGroup} selected
+              </span>
+            ) : null}
           </div>
           <div className="mt-0.5 font-mono text-2xs text-text-3" title={group.key}>
             {shortHash} · {formatBytes(group.perFileSize)} each
@@ -124,17 +161,34 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
           {group.members.map((m, i) => {
             const canonical = m.role === "canonical";
             const zeroRef = m.usageCount === 0;
+            const inCart = cartSet.has(m.assetId);
             return (
               <button
                 type="button"
                 key={m.assetId}
                 data-asset-tile="true"
-                onClick={() => openAsset(m.assetId)}
+                onClick={(e) => handleMemberClick(m.assetId, e)}
                 className={cn(
-                  "grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-1.5 pl-16 pr-3 text-left font-mono text-xs transition-colors hover:bg-hover",
+                  "group/dup-row grid w-full grid-cols-[auto_auto_1fr_auto_auto] items-center gap-3 py-1.5 pl-16 pr-3 text-left font-mono text-xs transition-colors hover:bg-hover",
                   i !== 0 && "border-t border-divider",
+                  inCart && "bg-accent-bg/40",
                 )}
               >
+                <span
+                  className={cn(
+                    "transition-opacity duration-150",
+                    cartActive || inCart
+                      ? "opacity-100"
+                      : "opacity-0 group-hover/dup-row:opacity-100 group-focus-within/dup-row:opacity-100",
+                  )}
+                >
+                  <SelectCheckbox
+                    checked={inCart}
+                    onToggle={() => toggleCartItem(m.assetId)}
+                    label={m.name}
+                    size="sm"
+                  />
+                </span>
                 <span
                   className={cn(
                     "rounded-xs px-1.5 py-px text-3xs font-semibold tracking-wider",

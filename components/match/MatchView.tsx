@@ -32,7 +32,7 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
 
   const onPick = useCallback((next: File) => {
     if (!isAllowedExt(next.name)) {
-      setRejectReason(`${next.name} — unsupported file type`);
+      setRejectReason(`${next.name}: unsupported file type`);
       return;
     }
     setRejectReason(null);
@@ -83,8 +83,13 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
     e.preventDefault();
   };
 
+  const clipEnabled = match.data?.clipEnabled ?? false;
   const buckets = useBuckets(match.data?.buckets, threshold);
-  const total = buckets.exact.length + buckets.near.length + buckets.name.length;
+  const total =
+    buckets.exact.length +
+    buckets.near.length +
+    buckets.name.length +
+    (clipEnabled ? buckets.semantic.length : 0);
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: drop target spans the view, not a button
@@ -93,8 +98,8 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
         <div className="shrink-0 border-b border-border px-4 py-3">
           <div className="font-sans text-sm font-semibold text-text">Find a match</div>
           <div className="mt-0.5 font-sans text-xs leading-relaxed text-text-3">
-            Drop any SVG, PNG, JPG, or WebP — we'll find exact duplicates, near matches, and name
-            clusters where it probably belongs.
+            Drop any SVG, PNG, JPG, or WebP. We'll find exact duplicates, near matches, and name
+            clusters{clipEnabled ? ", plus anything that shares the same visual concept" : ""}.
           </div>
         </div>
         <DropCard
@@ -132,6 +137,7 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
           ) : match.data ? (
             <BucketList
               buckets={buckets}
+              clipEnabled={clipEnabled}
               threshold={threshold}
               droppedName={file.name}
               droppedPreview={preview}
@@ -148,18 +154,24 @@ type MappedBuckets = ReturnType<typeof useBuckets>;
 
 function BucketList({
   buckets,
+  clipEnabled,
   threshold,
   droppedName,
   droppedPreview,
   onView,
 }: {
   buckets: MappedBuckets;
+  clipEnabled: boolean;
   threshold: number;
   droppedName: string;
   droppedPreview: string | null;
   onView: (assetId: number) => void;
 }) {
-  const hasAny = buckets.exact.length > 0 || buckets.near.length > 0 || buckets.name.length > 0;
+  const hasAny =
+    buckets.exact.length > 0 ||
+    buckets.near.length > 0 ||
+    buckets.name.length > 0 ||
+    (clipEnabled && buckets.semantic.length > 0);
   return (
     <div className="flex flex-col gap-3 pb-6">
       <Bucket
@@ -168,7 +180,7 @@ function BucketList({
         tone="danger"
         note={
           buckets.exact.length > 0
-            ? "Byte-identical. Do not add — reuse the existing asset."
+            ? "Byte-identical. Do not add. Reuse the existing asset."
             : undefined
         }
       >
@@ -210,7 +222,7 @@ function BucketList({
         tone="accent"
         note={
           buckets.name.length > 0
-            ? "Existing assets with a similar canonical name — your file likely belongs here."
+            ? "Existing assets with a similar canonical name. Your file likely belongs here."
             : undefined
         }
       >
@@ -225,11 +237,38 @@ function BucketList({
         ))}
       </Bucket>
 
+      {clipEnabled ? (
+        <Bucket
+          label="Semantic matches"
+          badge={countBadge(buckets.semantic.length, "match", "matches")}
+          tone="ok"
+          note={
+            buckets.semantic.length > 0
+              ? "Shares visual concept even if the geometry differs. Likely the same icon, redrawn."
+              : undefined
+          }
+        >
+          {buckets.semantic.map((r) => (
+            <ResultRow
+              key={r.assetId}
+              data={r}
+              droppedName={droppedName}
+              droppedPreview={droppedPreview}
+              onView={() => onView(r.assetId)}
+            />
+          ))}
+        </Bucket>
+      ) : null}
+
       {!hasAny ? (
         <Bucket
           label="Nothing matches"
           tone="muted"
-          note="No hash, phash, or name overlap with any indexed asset. Looks like a genuine new addition."
+          note={
+            clipEnabled
+              ? "No hash, phash, name, or semantic overlap with any indexed asset. Looks like a genuine new addition."
+              : "No hash, phash, or name overlap with any indexed asset. Looks like a genuine new addition."
+          }
         />
       ) : null}
     </div>
@@ -265,6 +304,15 @@ type RawBuckets = {
     score: number;
     sharedTokens: string[];
   }[];
+  semantic: {
+    assetId: number;
+    name: string;
+    relPath: string;
+    ext: string;
+    size: number;
+    usageCount: number;
+    score: number;
+  }[];
 };
 
 function useBuckets(
@@ -274,9 +322,10 @@ function useBuckets(
   exact: ResultRowData[];
   near: ResultRowData[];
   name: ResultRowData[];
+  semantic: ResultRowData[];
 } {
   return useMemo(() => {
-    if (!raw) return { exact: [], near: [], name: [] };
+    if (!raw) return { exact: [], near: [], name: [], semantic: [] };
     return {
       exact: raw.exact.map<ResultRowData>((r) => ({
         assetId: r.assetId,
@@ -289,7 +338,7 @@ function useBuckets(
         metricValue: "✓",
         metricUnit: "byte-identical",
         pct: 100,
-        diff: "Same bytes — reuse the existing file, do not commit this one.",
+        diff: "Same bytes. Reuse the existing file, do not commit this one.",
         tone: "danger",
         roleLabel: "CANONICAL",
       })),
@@ -325,6 +374,24 @@ function useBuckets(
         tone: "accent",
         roleLabel: "CLUSTER",
       })),
+      semantic: raw.semantic.map<ResultRowData>((r) => {
+        const pct = Math.round(r.score * 100);
+        return {
+          assetId: r.assetId,
+          name: r.name,
+          relPath: r.relPath,
+          ext: r.ext,
+          size: r.size,
+          usageCount: r.usageCount,
+          metric: "COSINE",
+          metricValue: String(pct),
+          metricUnit: "% similar",
+          pct,
+          diff: "Semantically similar; shares visual concept, different geometry.",
+          tone: "ok",
+          roleLabel: "SEMANTIC",
+        };
+      }),
     };
   }, [raw, threshold]);
 }

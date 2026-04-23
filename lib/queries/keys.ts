@@ -6,6 +6,7 @@ export const qk = {
   usages: (id: number) => ["asset", id, "usages"] as const,
   groups: (kind: string) => ["groups", kind] as const,
   duplicates: (mode: string) => ["duplicates", mode] as const,
+  overview: (sourceId: number) => ["overview", sourceId] as const,
   styles: ["styles"] as const,
   status: ["status"] as const,
 };

@@ -32,6 +32,8 @@ export function DispatchLogViewer({ jobId, harness, mode }: Props) {
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (distanceFromBottom > 48) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
       el.scrollTop = el.scrollHeight;

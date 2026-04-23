@@ -1,5 +1,18 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import {
+  customType,
+  index,
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
+
+const float32Blob = customType<{ data: Float32Array; driverData: Buffer }>({
+  dataType: () => "blob",
+  toDriver: (v) => Buffer.from(v.buffer, v.byteOffset, v.byteLength),
+  fromDriver: (b) => new Float32Array(b.buffer, b.byteOffset, b.byteLength / 4),
+});
 
 export const sources = sqliteTable(
   "sources",
@@ -42,6 +55,7 @@ export const assets = sqliteTable(
     literalColors: text("literal_colors"),
     dominantColor: text("dominant_color"),
     author: text("author"),
+    clipEmbedding: float32Blob("clip_embedding"),
   },
   (t) => [
     uniqueIndex("assets_abs_uq").on(t.absPath),

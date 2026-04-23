@@ -16,6 +16,16 @@ export function generatePrompt(plan: Plan, mode: DispatchMode = "dry-run"): stri
     const a = plan.actions[i];
     if (!a) continue;
     lines.push(`${i + 1}. ${actionSentence(a)}`);
+    if (a.kind === "review-group") {
+      if (a.note) lines.push(`   - Note: ${a.note}`);
+      for (const r of a.assetRefs) {
+        const refNote =
+          r.usageCount > 0 ? ` (${r.usageCount} reference${r.usageCount === 1 ? "" : "s"})` : "";
+        lines.push(`   - Review: \`${r.relPath}\`${refNote}`);
+      }
+      lines.push("");
+      continue;
+    }
     if (a.kind !== "delete-unused") {
       lines.push(`   - Keep: \`${a.keep.relPath}\``);
     }
@@ -49,6 +59,7 @@ function intro(plan: Plan, mode: DispatchMode): string {
 
 function guardrails(mode: DispatchMode): string[] {
   const shared = [
+    "Before editing, read any of `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `README.md` at the repo root if they exist, and follow the conventions they specify (commit style, formatting, branch naming, review process, etc.).",
     "Do not touch any file not listed in the drop list above.",
     "Rewrite every reference to dropped files to point at the kept file.",
   ];
@@ -58,9 +69,10 @@ function guardrails(mode: DispatchMode): string[] {
   if (mode === "open-pr") {
     return [
       ...shared,
+      "Before creating your working branch: detect the repo's default branch with `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` (fallback: `git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`). Check that branch out and `git pull` it — NEVER branch off whatever branch is currently checked out, which may be an unrelated in-progress feature branch.",
       "Run tests before committing.",
       "Branch name should reflect the plan id.",
-      "Use `gh pr create` to open the PR and print the URL as your final output.",
+      "Use `gh pr create --base <default-branch>` to open the PR against the detected default branch, and print the URL as your final output.",
     ];
   }
   return [...shared, "Run tests before committing."];
@@ -72,6 +84,9 @@ function actionSentence(a: PlanAction): string {
   }
   if (a.kind === "merge-cluster") {
     return `Merge the \`${a.clusterKey}\` cluster (${a.drop.length} variant${a.drop.length === 1 ? "" : "s"}) into \`${a.keep.name}\`.`;
+  }
+  if (a.kind === "review-group") {
+    return `Review ${a.assetRefs.length} flagged asset${a.assetRefs.length === 1 ? "" : "s"} and decide whether to merge, delete, or keep.`;
   }
   return `Delete ${a.drop.length} unused asset${a.drop.length === 1 ? "" : "s"}.`;
 }

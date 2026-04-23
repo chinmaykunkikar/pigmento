@@ -4,8 +4,15 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import type { DispatchEvent, DispatchJobInput, Harness, RunnableMode } from "./types";
 
-const PATCH_TOOLS = "Read Write Edit MultiEdit Glob Grep LS";
-const PR_TOOLS = `${PATCH_TOOLS} Bash(git:*) Bash(gh:*) Bash(pnpm:*) Bash(npm:*) Bash(node:*)`;
+const PATCH_TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"];
+const PR_TOOLS = [
+  ...PATCH_TOOLS,
+  "Bash(git:*)",
+  "Bash(gh:*)",
+  "Bash(pnpm:*)",
+  "Bash(npm:*)",
+  "Bash(node:*)",
+];
 
 export const claudeCodeHarness: Harness = {
   name: "claude-code",
@@ -54,11 +61,14 @@ async function* runClaude(
   const queue = new EventQueue();
   const ts = () => Date.now();
 
-  const child = spawn("claude", [...args, prompt], {
+  const child = spawn("claude", args, {
     cwd: input.cwd,
     env: process.env,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["pipe", "pipe", "pipe"],
   });
+
+  child.stdin?.write(prompt);
+  child.stdin?.end();
 
   const stdoutLines = createInterface({ input: child.stdout });
   const stderrLines = createInterface({ input: child.stderr });
@@ -98,7 +108,11 @@ async function* runClaude(
   signal.addEventListener("abort", onAbort, { once: true });
 
   try {
-    yield { type: "info", line: `$ claude ${args.join(" ")} <prompt>`, ts: ts() };
+    yield {
+      type: "info",
+      line: `$ claude ${args.join(" ")} < plan.md (${prompt.length} chars)`,
+      ts: ts(),
+    };
     for await (const ev of queue) yield ev;
   } finally {
     signal.removeEventListener("abort", onAbort);
@@ -115,7 +129,7 @@ function buildArgs(mode: RunnableMode): string[] {
     "--permission-mode",
     "acceptEdits",
     "--allowedTools",
-    tools,
+    ...tools,
   ];
 }
 

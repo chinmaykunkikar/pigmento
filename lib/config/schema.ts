@@ -25,6 +25,11 @@ export const ConfigSchema = z.object({
       maxHamming: z.number().int().min(0).max(64).default(12),
     })
     .default({ enabled: true, maxHamming: 12 }),
+  clip: z
+    .object({
+      enabled: z.boolean().default(false),
+    })
+    .default({ enabled: false }),
   usage: z
     .object({
       maxHitsPerAsset: z.number().int().min(1).default(50),

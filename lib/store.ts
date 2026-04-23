@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Plan, PlanAction } from "./plan/schema";
 
-export type View = "grid" | "grouped" | "duplicates" | "match" | "plan";
+export type View = "overview" | "grid" | "clusters" | "match";
 export type SizeBucket = "s" | "m" | "l";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];
@@ -39,6 +39,7 @@ export type ExplorerState = {
   selectedAssetId: number | null;
   assetHistory: AssetHistoryEntry[];
   view: View;
+  viewManuallySet: boolean;
   drawerOpen: boolean;
   boundingBoxes: boolean;
   unusedOnly: boolean;
@@ -47,12 +48,15 @@ export type ExplorerState = {
   extFilter: ExtFilter[];
   sizeBucket: SizeBucket | null;
 
+  cartIds: readonly number[];
+  cartAnchor: number | null;
+
   setSelectedSource: (id: number | null) => void;
   setSelectedFolder: (path: string | null) => void;
   openAsset: (id: number, prevName?: string) => void;
   goBackAsset: () => void;
   closeDrawer: () => void;
-  setView: (view: View) => void;
+  setView: (view: View, opts?: { manual?: boolean }) => void;
   setDrawerOpen: (open: boolean) => void;
   setBoundingBoxes: (on: boolean) => void;
   setUnusedOnly: (on: boolean) => void;
@@ -64,12 +68,22 @@ export type ExplorerState = {
   gridSort: GridSort;
   setGridSort: (s: GridSort) => void;
 
+  toggleCartItem: (id: number) => void;
+  setCartRange: (toId: number, orderedIds: readonly number[]) => void;
+  addToCart: (ids: readonly number[]) => void;
+  removeFromCart: (ids: readonly number[]) => void;
+  clearCart: () => void;
+
   draftPlan: Plan | null;
   ensureDraftPlan: (sourceId: number, sourceLabel: string) => Plan;
   addPlanAction: (action: PlanAction, sourceId: number, sourceLabel: string) => void;
   removePlanAction: (actionId: string) => void;
   renamePlan: (name: string) => void;
   clearPlan: () => void;
+
+  planDrawerOpen: boolean;
+  setPlanDrawerOpen: (open: boolean) => void;
+  togglePlanDrawer: () => void;
 
   paletteOpen: boolean;
   setPaletteOpen: (open: boolean) => void;
@@ -88,7 +102,8 @@ export const useExplorerStore = create<ExplorerState>()(
       selectedFolder: null,
       selectedAssetId: null,
       assetHistory: [],
-      view: "grid",
+      view: "overview",
+      viewManuallySet: false,
       drawerOpen: false,
       boundingBoxes: false,
       unusedOnly: false,
@@ -96,6 +111,9 @@ export const useExplorerStore = create<ExplorerState>()(
       search: "",
       extFilter: [],
       sizeBucket: null,
+
+      cartIds: [],
+      cartAnchor: null,
 
       setSelectedSource: (id) => set({ selectedSourceId: id }),
       setSelectedFolder: (path) => set({ selectedFolder: path }),
@@ -131,7 +149,7 @@ export const useExplorerStore = create<ExplorerState>()(
           };
         }),
       closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null, assetHistory: [] }),
-      setView: (view) => set({ view }),
+      setView: (view, opts) => set({ view, viewManuallySet: opts?.manual ?? true }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
       setBoundingBoxes: (boundingBoxes) => set({ boundingBoxes }),
       setUnusedOnly: (unusedOnly) => set({ unusedOnly }),
@@ -147,6 +165,44 @@ export const useExplorerStore = create<ExplorerState>()(
       clearFilters: () => set({ search: "", extFilter: [], sizeBucket: null, unusedOnly: false }),
       gridSort: "name-asc" as GridSort,
       setGridSort: (gridSort) => set({ gridSort }),
+
+      toggleCartItem: (id) =>
+        set((s) => {
+          const has = s.cartIds.includes(id);
+          const nextIds = has ? s.cartIds.filter((n) => n !== id) : [...s.cartIds, id];
+          return { cartIds: nextIds, cartAnchor: has ? s.cartAnchor : id };
+        }),
+      setCartRange: (toId, orderedIds) =>
+        set((s) => {
+          const anchor = s.cartAnchor ?? toId;
+          const aIdx = orderedIds.indexOf(anchor);
+          const bIdx = orderedIds.indexOf(toId);
+          if (aIdx === -1 || bIdx === -1) {
+            const has = s.cartIds.includes(toId);
+            return {
+              cartIds: has ? s.cartIds : [...s.cartIds, toId],
+              cartAnchor: toId,
+            };
+          }
+          const lo = Math.min(aIdx, bIdx);
+          const hi = Math.max(aIdx, bIdx);
+          const range = orderedIds.slice(lo, hi + 1);
+          const merged = new Set<number>(s.cartIds);
+          for (const id of range) merged.add(id);
+          return { cartIds: Array.from(merged), cartAnchor: toId };
+        }),
+      addToCart: (ids) =>
+        set((s) => {
+          const merged = new Set<number>(s.cartIds);
+          for (const id of ids) merged.add(id);
+          return { cartIds: Array.from(merged) };
+        }),
+      removeFromCart: (ids) =>
+        set((s) => {
+          const drop = new Set<number>(ids);
+          return { cartIds: s.cartIds.filter((n) => !drop.has(n)) };
+        }),
+      clearCart: () => set({ cartIds: [], cartAnchor: null }),
 
       draftPlan: null,
       ensureDraftPlan: (sourceId: number, sourceLabel: string): Plan => {
@@ -209,6 +265,10 @@ export const useExplorerStore = create<ExplorerState>()(
         }),
       clearPlan: () => set({ draftPlan: null }),
 
+      planDrawerOpen: false,
+      setPlanDrawerOpen: (planDrawerOpen) => set({ planDrawerOpen }),
+      togglePlanDrawer: () => set((s) => ({ planDrawerOpen: !s.planDrawerOpen })),
+
       paletteOpen: false,
       setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
       togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
@@ -227,6 +287,11 @@ export const useExplorerStore = create<ExplorerState>()(
           delete s.drawerOpen;
           delete s.selectedAssetId;
         }
+        if (persistedState && typeof persistedState === "object") {
+          const s = persistedState as Record<string, unknown>;
+          if (s.view === "grouped" || s.view === "duplicates") s.view = "clusters";
+          if (s.view === "plan") s.view = "overview";
+        }
         return persistedState as ExplorerState;
       },
       partialize: (state) => ({
@@ -241,6 +306,7 @@ export const useExplorerStore = create<ExplorerState>()(
         gridSort: state.gridSort,
         draftPlan: state.draftPlan,
         sidebarCollapsed: state.sidebarCollapsed,
+        cartIds: state.cartIds,
       }),
     },
   ),

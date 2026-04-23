@@ -21,7 +21,7 @@ export function PromptTab({ plan }: Props) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span className="font-mono text-xs text-text-3">
-          Generated from the structured plan — paste into a coding agent or PR description.
+          Generated from the structured plan. Paste into a coding agent or PR description.
         </span>
         <div className="flex-1" />
         <button

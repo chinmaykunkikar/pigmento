@@ -22,6 +22,7 @@ export {
   GitBranch,
   Grid3x3 as Grid,
   Hash,
+  Home,
   Info,
   Layers,
   LayoutGrid,

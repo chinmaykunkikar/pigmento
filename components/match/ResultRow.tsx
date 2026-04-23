@@ -33,6 +33,7 @@ const METER_FILL: Record<BucketTone, string> = {
   danger: "bg-danger",
   warn: "bg-warn",
   accent: "bg-accent",
+  ok: "bg-ok",
   muted: "bg-text-3",
 };
 
@@ -40,6 +41,7 @@ const SIDE_LABEL_TONE: Record<BucketTone, string> = {
   danger: "bg-danger-bg text-danger",
   warn: "bg-warn-bg text-warn",
   accent: "bg-accent-bg text-accent-text",
+  ok: "bg-ok-bg text-ok",
   muted: "bg-sunken text-text-3",
 };
 

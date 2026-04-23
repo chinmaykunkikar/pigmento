@@ -36,10 +36,17 @@ const deleteUnusedAction = baseAction.extend({
   drop: z.array(assetRef).min(1),
 });
 
+const reviewGroupAction = baseAction.extend({
+  kind: z.literal("review-group"),
+  note: z.string().optional(),
+  assetRefs: z.array(assetRef).min(1),
+});
+
 export const planAction = z.discriminatedUnion("kind", [
   mergeExactAction,
   mergeClusterAction,
   deleteUnusedAction,
+  reviewGroupAction,
 ]);
 
 export const planSchema = z.object({
@@ -61,6 +68,7 @@ export type PlanAction = z.infer<typeof planAction>;
 export type MergeExactAction = z.infer<typeof mergeExactAction>;
 export type MergeClusterAction = z.infer<typeof mergeClusterAction>;
 export type DeleteUnusedAction = z.infer<typeof deleteUnusedAction>;
+export type ReviewGroupAction = z.infer<typeof reviewGroupAction>;
 export type Plan = z.infer<typeof planSchema>;
 
 export type PlanStats = {
@@ -75,6 +83,7 @@ export function computeStats(plan: Plan): PlanStats {
   let refs = 0;
   let bytes = 0;
   for (const a of plan.actions) {
+    if (a.kind === "review-group") continue;
     files += a.drop.length;
     for (const d of a.drop) {
       refs += d.usageCount;
@@ -92,5 +101,8 @@ export function computeStats(plan: Plan): PlanStats {
 export function actionTitle(a: PlanAction): string {
   if (a.kind === "merge-exact") return `Merge duplicates into ${a.keep.name}`;
   if (a.kind === "merge-cluster") return `Merge cluster ${a.clusterKey} into ${a.keep.name}`;
+  if (a.kind === "review-group") {
+    return `Review ${a.assetRefs.length} flagged asset${a.assetRefs.length === 1 ? "" : "s"}`;
+  }
   return `Delete ${a.drop.length} unused asset${a.drop.length === 1 ? "" : "s"}`;
 }

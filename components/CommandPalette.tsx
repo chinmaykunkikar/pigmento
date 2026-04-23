@@ -12,12 +12,12 @@ import {
   ClipboardList,
   Eye,
   EyeOff,
+  Home,
   Layers,
   LayoutGrid,
   RefreshCw,
   ScanSearch,
   Search,
-  SquareStack,
   Trash2,
 } from "./icons";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
@@ -48,6 +48,7 @@ export function CommandPalette({ source }: Props) {
   const sidebarCollapsed = useExplorerStore((s) => s.sidebarCollapsed);
   const clearPlan = useExplorerStore((s) => s.clearPlan);
   const planCount = useExplorerStore((s) => s.draftPlan?.actions.length ?? 0);
+  const togglePlanDrawer = useExplorerStore((s) => s.togglePlanDrawer);
   const reindex = useReindex(source?.id ?? null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +72,15 @@ export function CommandPalette({ source }: Props) {
 
   const actions: Action[] = [
     {
+      id: "view:overview",
+      label: "Go to Overview",
+      combo: "`",
+      icon: <Home size={13} strokeWidth={1.5} />,
+      group: "View",
+      onRun: run(() => setView("overview")),
+      enabled: !!source,
+    },
+    {
       id: "view:grid",
       label: "Go to Grid",
       combo: "1",
@@ -80,27 +90,18 @@ export function CommandPalette({ source }: Props) {
       enabled: !!source,
     },
     {
-      id: "view:grouped",
-      label: "Go to Grouped",
+      id: "view:clusters",
+      label: "Go to Clusters",
       combo: "2",
       icon: <Layers size={13} strokeWidth={1.5} />,
       group: "View",
-      onRun: run(() => setView("grouped")),
-      enabled: !!source,
-    },
-    {
-      id: "view:duplicates",
-      label: "Go to Duplicates",
-      combo: "3",
-      icon: <SquareStack size={13} strokeWidth={1.5} />,
-      group: "View",
-      onRun: run(() => setView("duplicates")),
+      onRun: run(() => setView("clusters")),
       enabled: !!source,
     },
     {
       id: "view:match",
       label: "Match a file",
-      combo: "4",
+      combo: "3",
       icon: <ScanSearch size={13} strokeWidth={1.5} />,
       group: "View",
       onRun: run(() => setView("match")),
@@ -108,11 +109,11 @@ export function CommandPalette({ source }: Props) {
     },
     {
       id: "view:plan",
-      label: planCount > 0 ? `Open cleanup plan · ${planCount}` : "Open cleanup plan",
-      combo: "5",
+      label: planCount > 0 ? `Toggle cleanup plan · ${planCount}` : "Open cleanup plan",
+      combo: "4",
       icon: <ClipboardList size={13} strokeWidth={1.5} />,
       group: "View",
-      onRun: run(() => setView("plan")),
+      onRun: run(togglePlanDrawer),
       enabled: !!source,
     },
     {
@@ -192,8 +193,13 @@ export function CommandPalette({ source }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
+        aria-describedby="command-palette-description"
         className="absolute left-1/2 top-[18%] w-[min(560px,92vw)] overflow-hidden rounded-md border border-border bg-surface [transform:translateX(-50%)] animate-[scale-in_180ms_var(--ease-out-expo)]"
       >
+        <p id="command-palette-description" className="sr-only">
+          Search and run commands to navigate views, toggle display options, or manage the cleanup
+          plan.
+        </p>
         <Command label="Command palette" shouldFilter>
           <div className="flex items-center gap-2 border-b border-border px-3">
             <Search size={14} strokeWidth={1.5} className="text-text-3" />

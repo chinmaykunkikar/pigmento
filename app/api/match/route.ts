@@ -1,8 +1,10 @@
 import { fail, ok } from "@/lib/api/response";
+import { getConfig } from "@/lib/config/load";
 import { getDb } from "@/lib/db/client";
 import { findMatches, type MatchBuckets } from "@/lib/db/queries/matches";
 import { getSource } from "@/lib/db/queries/sources";
-import { isAllowedExt, type QuerySignature } from "@/lib/match/ext";
+import { embedImage } from "@/lib/match/clip";
+import { isAllowedExt, normalizeExt, type QuerySignature } from "@/lib/match/ext";
 import { computeSignature } from "@/lib/match/signature";
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -10,6 +12,7 @@ const MAX_BYTES = 2 * 1024 * 1024;
 export type MatchResponse = {
   signature: QuerySignature;
   buckets: MatchBuckets;
+  clipEnabled: boolean;
 };
 
 export async function POST(req: Request) {
@@ -44,9 +47,15 @@ export async function POST(req: Request) {
   const source = getSource(db, sourceId);
   if (!source) return fail("source not found", 404);
 
-  const buf = Buffer.from(await file.arrayBuffer());
-  const signature = await computeSignature(buf, file.name);
-  const buckets = findMatches(db, sourceId, signature);
+  const config = await getConfig();
+  const clipEnabled = config.clip.enabled;
 
-  return ok<MatchResponse>({ signature, buckets });
+  const buf = Buffer.from(await file.arrayBuffer());
+  const [signature, embedding] = await Promise.all([
+    computeSignature(buf, file.name),
+    clipEnabled ? embedImage(buf, normalizeExt(file.name)) : Promise.resolve(null),
+  ]);
+  const buckets = findMatches(db, sourceId, signature, embedding);
+
+  return ok<MatchResponse>({ signature, buckets, clipEnabled });
 }

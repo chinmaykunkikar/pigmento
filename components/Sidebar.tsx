@@ -93,7 +93,7 @@ export function Sidebar({
 
       <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-2 text-xs text-text-3">
         <span className="truncate">
-          {tree.data ? `${tree.data.count.toLocaleString()} assets` : "—"}
+          {tree.data ? `${tree.data.count.toLocaleString()} assets` : "-"}
         </span>
         <KbdHint keys={formatCombo("mod+b")} className="flex-shrink-0" />
       </div>

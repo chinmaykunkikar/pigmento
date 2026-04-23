@@ -11,7 +11,7 @@ type Props = { asset: Asset };
 export function MetadataSection({ asset }: Props) {
   const [copied, setCopied] = useState<"path" | "sha1" | null>(null);
 
-  const dims = asset.width && asset.height ? `${asset.width} × ${asset.height}` : "—";
+  const dims = asset.width && asset.height ? `${asset.width} × ${asset.height}` : "-";
   const modifiedRel = relativeTime(new Date(asset.mtime).toISOString());
   const sha1Short = `${asset.sha1.slice(0, 7)}…${asset.sha1.slice(-6)}`;
 

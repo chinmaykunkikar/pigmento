@@ -1,0 +1,1 @@
+ALTER TABLE `assets` ADD `clip_embedding` blob;

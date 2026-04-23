@@ -21,7 +21,7 @@ export function SignaturePanel({ signature, isPending }: Props) {
       <SigLabel>Signature</SigLabel>
       <SigRow k="SHA-1" v={formatHex(signature.sha1, 8)} />
       <SigRow k="Content" v={signature.contentHash} />
-      <SigRow k="pHash" v={signature.phash ? formatPhash(signature.phash) : "—"} />
+      <SigRow k="pHash" v={signature.phash ? formatPhash(signature.phash) : "-"} />
       <SigRow
         k="Bounding"
         v={
@@ -32,7 +32,7 @@ export function SignaturePanel({ signature, isPending }: Props) {
       />
       <SigRow
         k="Dominant"
-        v={signature.dominantColor ?? "—"}
+        v={signature.dominantColor ?? "-"}
         swatch={signature.dominantColor ?? undefined}
       />
       {signature.svg ? (

@@ -35,7 +35,7 @@ export function StageRow({ stage, isFirst }: Props) {
 }
 
 function renderCount(status: StageState["status"], detail: string | null, ms: number | null) {
-  if (status === "pending") return "—";
+  if (status === "pending") return "-";
   if (status === "active") return "running…";
   if (detail && ms !== null) return `${detail} · ${fmtMs(ms)}`;
   if (detail) return detail;

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export type BucketTone = "danger" | "warn" | "accent" | "muted";
+export type BucketTone = "danger" | "warn" | "accent" | "ok" | "muted";
 
 type Props = {
   label: string;
@@ -17,6 +17,7 @@ const BADGE_TONE: Record<BucketTone, string> = {
   danger: "bg-danger-bg text-danger",
   warn: "bg-warn-bg text-warn",
   accent: "bg-accent-bg text-accent-text",
+  ok: "bg-ok-bg text-ok",
   muted: "bg-sunken text-text-3",
 };
 

@@ -177,7 +177,6 @@ Old `bg-[--x]` syntax is gone. Parens for CSS var references, brackets for liter
 
 | Surface | px | utility |
 |---|---|---|
-| WindowChrome | 36 | `h-9` |
 | Toolbar | 44 | `h-11` |
 | StatusBar | 24 | `h-6` |
 | Sidebar | 260 | `w-65` |
@@ -281,7 +280,7 @@ app/
   page.tsx          Main shell (no URL nav; state in zustand)
   api/**            Route handlers, zod-validated
 components/
-  Shell.tsx, Toolbar.tsx, StatusBar.tsx, WindowChrome.tsx, CommandPalette.tsx
+  Shell.tsx, Toolbar.tsx, StatusBar.tsx, CommandPalette.tsx
   tree/ grid/ grouped/ duplicates/ detail/ match/ plan/ empty/ indexing/ primitives/
 lib/
   design/tokens.ts  TS mirror of CSS @theme values, for programmatic access

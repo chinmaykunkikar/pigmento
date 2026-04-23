@@ -115,8 +115,8 @@ function DropPrompt({ empty, sourceLabel }: { empty: boolean; sourceLabel: strin
         {empty ? `Add actions for ${sourceLabel}` : "Add another action"}
       </div>
       <div className="mt-1 font-mono text-xs text-text-3 [text-wrap:pretty]">
-        Open Duplicates or Grouped and click{" "}
-        <span className="rounded-xs bg-sunken px-1 py-px">Add to plan</span> on any cluster or pair.
+        Open Clusters and click <span className="rounded-xs bg-sunken px-1 py-px">Add to plan</span>{" "}
+        on any group, or build a selection from any view and use the floating action bar.
       </div>
     </div>
   );

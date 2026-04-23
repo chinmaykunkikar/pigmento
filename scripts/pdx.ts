@@ -7,7 +7,8 @@ import { countAssets } from "@/lib/db/queries/assets";
 import { findMatches } from "@/lib/db/queries/matches";
 import { addSource, getSource, listSources } from "@/lib/db/queries/sources";
 import { runIndexer } from "@/lib/indexer/run";
-import { isAllowedExt } from "@/lib/match/ext";
+import { embedImage } from "@/lib/match/clip";
+import { isAllowedExt, normalizeExt } from "@/lib/match/ext";
 import { computeSignature } from "@/lib/match/signature";
 import { writePlanArtifacts } from "@/lib/plan/dispatch/artifacts";
 import { checkHarness } from "@/lib/plan/dispatch/registry";
@@ -188,9 +189,15 @@ program
       process.exit(1);
     }
 
+    const config = await loadConfig();
+    const clipEnabled = config.clip.enabled;
+
     const buf = await readFile(abs);
-    const signature = await computeSignature(buf, basename(abs));
-    const rawBuckets = findMatches(db, source.id, signature);
+    const [signature, embedding] = await Promise.all([
+      computeSignature(buf, basename(abs)),
+      clipEnabled ? embedImage(buf, normalizeExt(basename(abs))) : Promise.resolve(null),
+    ]);
+    const rawBuckets = findMatches(db, source.id, signature, embedding);
     const buckets = {
       ...rawBuckets,
       near: rawBuckets.near.filter((m) => m.hamming <= thresholdRaw),
@@ -222,6 +229,14 @@ program
           `${Math.round(m.score * 100)}%  ${refs(m.usageCount)}  [${m.sharedTokens.join(" ")}]  ${m.relPath}`,
       ),
     );
+    if (clipEnabled) {
+      printBucket(
+        "Semantic matches",
+        buckets.semantic.map(
+          (m) => `${Math.round(m.score * 100)}%  ${refs(m.usageCount)}  ${m.relPath}`,
+        ),
+      );
+    }
   });
 
 function refs(n: number): string {
@@ -231,7 +246,7 @@ function refs(n: number): string {
 function printBucket(label: string, rows: string[]) {
   out("");
   if (rows.length === 0) {
-    out(`${label}: —`);
+    out(`${label}: -`);
     return;
   }
   out(`${label}: ${rows.length}`);

@@ -140,7 +140,7 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
           {side.relPath}
         </div>
         <div className="mt-1 flex gap-3 font-mono text-2xs text-text-3 tabular-nums">
-          <span>{side.width && side.height ? `${side.width}×${side.height}` : "—"}</span>
+          <span>{side.width && side.height ? `${side.width}×${side.height}` : "-"}</span>
           <span>{formatBytes(side.size)}</span>
           <span className={cn(zeroRef && "text-warn")}>
             {side.usageCount} {side.usageCount === 1 ? "ref" : "refs"}

@@ -12,3 +12,10 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<Config> {
   const mod = await jiti.import<{ default: unknown }>(configPath);
   return ConfigSchema.parse(mod.default);
 }
+
+let cachedConfig: Promise<Config> | null = null;
+
+export function getConfig(): Promise<Config> {
+  if (!cachedConfig) cachedConfig = loadConfig();
+  return cachedConfig;
+}

@@ -1,6 +1,7 @@
-import { and, count, eq, inArray, ne } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { jaccard, sharedTokens, tokenize } from "@/lib/indexer/name-tokens";
 import { hamming } from "@/lib/indexer/phash";
+import { cosine } from "@/lib/match/clip";
 import type { QuerySignature } from "@/lib/match/ext";
 import type { Db } from "../client";
 import { assets, usages } from "../schema";
@@ -8,9 +9,11 @@ import { assets, usages } from "../schema";
 export const NEAR_HAMMING_CEILING = 20;
 export const NEAR_HAMMING_DEFAULT = 12;
 const NAME_JACCARD_MIN = 0.33;
+const SEMANTIC_SCORE_MIN = 0.75;
 const LIMIT_EXACT = 10;
 const LIMIT_NEAR = 30;
 const LIMIT_NAME = 10;
+const LIMIT_SEMANTIC = 10;
 
 export type MatchRow = {
   assetId: number;
@@ -37,31 +40,46 @@ export type NameMatch = MatchRow & {
   sharedTokens: string[];
 };
 
+export type SemanticMatch = MatchRow & {
+  score: number;
+};
+
 export type MatchBuckets = {
   exact: ExactMatch[];
   near: NearMatch[];
   name: NameMatch[];
+  semantic: SemanticMatch[];
 };
 
-export function findMatches(db: Db, sourceId: number, signature: QuerySignature): MatchBuckets {
+export function findMatches(
+  db: Db,
+  sourceId: number,
+  signature: QuerySignature,
+  queryEmbedding: Float32Array | null,
+): MatchBuckets {
   const exact = findExact(db, sourceId, signature.contentHash);
   const exactIds = new Set(exact.map((m) => m.assetId));
   const near = findNear(db, sourceId, signature.ext, signature.phash, exactIds);
   const nearIds = new Set(near.map((m) => m.assetId));
-  const excluded = new Set([...exactIds, ...nearIds]);
-  const name = findNameCluster(db, sourceId, signature.stem, excluded);
+  const nameExclude = new Set([...exactIds, ...nearIds]);
+  const name = findNameCluster(db, sourceId, signature.stem, nameExclude);
+  const nameIds = new Set(name.map((m) => m.assetId));
+  const semanticExclude = new Set([...exactIds, ...nearIds, ...nameIds]);
+  const semantic = findSemantic(db, sourceId, queryEmbedding, semanticExclude);
 
   const allIds = [
     ...exact.map((m) => m.assetId),
     ...near.map((m) => m.assetId),
     ...name.map((m) => m.assetId),
+    ...semantic.map((m) => m.assetId),
   ];
   const usageBy = countUsages(db, allIds);
   applyUsage(exact, usageBy);
   applyUsage(near, usageBy);
   applyUsage(name, usageBy);
+  applyUsage(semantic, usageBy);
 
-  return { exact, near, name };
+  return { exact, near, name, semantic };
 }
 
 function countUsages(db: Db, assetIds: number[]): Map<number, number> {
@@ -200,4 +218,52 @@ function findNameCluster(
   }
   hits.sort((a, b) => b.score - a.score);
   return hits.slice(0, LIMIT_NAME);
+}
+
+function findSemantic(
+  db: Db,
+  sourceId: number,
+  queryEmbedding: Float32Array | null,
+  exclude: Set<number>,
+): SemanticMatch[] {
+  if (!queryEmbedding) return [];
+  const candidates = db
+    .select({
+      assetId: assets.id,
+      name: assets.name,
+      relPath: assets.relPath,
+      ext: assets.ext,
+      size: assets.size,
+      width: assets.width,
+      height: assets.height,
+      dominantColor: assets.dominantColor,
+      strokeWidths: assets.strokeWidths,
+      embedding: assets.clipEmbedding,
+    })
+    .from(assets)
+    .where(and(eq(assets.sourceId, sourceId), isNotNull(assets.clipEmbedding)))
+    .all();
+
+  const hits: SemanticMatch[] = [];
+  for (const c of candidates) {
+    if (exclude.has(c.assetId)) continue;
+    if (!c.embedding) continue;
+    const score = cosine(queryEmbedding, c.embedding);
+    if (score < SEMANTIC_SCORE_MIN) continue;
+    hits.push({
+      assetId: c.assetId,
+      name: c.name,
+      relPath: c.relPath,
+      ext: c.ext,
+      size: c.size,
+      width: c.width,
+      height: c.height,
+      dominantColor: c.dominantColor,
+      strokeWidths: c.strokeWidths,
+      usageCount: 0,
+      score,
+    });
+  }
+  hits.sort((a, b) => b.score - a.score);
+  return hits.slice(0, LIMIT_SEMANTIC);
 }

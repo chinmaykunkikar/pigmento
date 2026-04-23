@@ -25,7 +25,7 @@ const MODES: { value: DispatchMode; label: string; ready: boolean; description: 
     value: "dry-run",
     label: "Dry run",
     ready: true,
-    description: "Write plan files only — no mutations.",
+    description: "Write plan files only. No mutations.",
   },
   {
     value: "patch",

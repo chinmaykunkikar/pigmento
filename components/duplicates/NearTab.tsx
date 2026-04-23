@@ -81,7 +81,7 @@ export function NearTab({ sourceId, sourceLabel }: Props) {
             ) : null}
           </div>
           <div className="mt-0.5 font-mono text-xs text-text-3">
-            perceptual hash distance · review manually — not all are truly redundant
+            perceptual hash distance · review manually; not all are truly redundant
           </div>
         </div>
         <HammingHistogram bins={data.histogram} threshold={threshold} />

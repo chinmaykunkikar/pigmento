@@ -8,6 +8,7 @@ const config: Config = {
   ignore: ["**/node_modules/**", "**/.next/**", "**/.nuxt/**", "**/dist/**"],
   dbPath: "./data/pixeldex.db",
   phash: { enabled: true, maxHamming: 12 },
+  clip: { enabled: false },
   usage: { maxHitsPerAsset: 50 },
   agent: {
     harnesses: {

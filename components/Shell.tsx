@@ -1,26 +1,26 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useFolder } from "@/lib/queries/folder";
-import { useIndexerStatus } from "@/lib/queries/indexer-status";
+import { type IndexerRun, useIndexerStatus } from "@/lib/queries/indexer-status";
 import { useSources } from "@/lib/queries/sources";
 import { useExplorerStore } from "@/lib/store";
+import { ActionBar } from "./actions/ActionBar";
+import { ClustersView } from "./clusters/ClustersView";
 import { DetailDrawer } from "./detail/DetailDrawer";
-import { DuplicatesView } from "./duplicates/DuplicatesView";
 import { EmptyState } from "./empty/EmptyState";
 import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
 import { FolderEmptyState } from "./grid/FolderEmptyState";
-import { GroupedView } from "./grouped/GroupedView";
 import { IndexingCenter } from "./indexing/IndexingCenter";
 import { MatchView } from "./match/MatchView";
-import { CleanupPlan } from "./plan/CleanupPlan";
+import { PostIndexOverview } from "./overview/PostIndexOverview";
+import { PlanDrawer } from "./plan/PlanDrawer";
 import { ShortcutLayer } from "./ShortcutLayer";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 import { Toolbar } from "./Toolbar";
-import { WindowChrome } from "./WindowChrome";
 
 export function Shell() {
   const sources = useSources();
@@ -29,6 +29,7 @@ export function Shell() {
   const setSelectedSource = useExplorerStore((s) => s.setSelectedSource);
   const setSelectedFolder = useExplorerStore((s) => s.setSelectedFolder);
   const view = useExplorerStore((s) => s.view);
+  const setView = useExplorerStore((s) => s.setView);
   const search = useExplorerStore((s) => s.search);
   const extFilter = useExplorerStore((s) => s.extFilter);
   const sizeBucket = useExplorerStore((s) => s.sizeBucket);
@@ -36,6 +37,7 @@ export function Shell() {
   const gridSort = useExplorerStore((s) => s.gridSort);
   const debouncedSearch = useDebounce(search, 200);
   const indexerRun = useIndexerStatus();
+  usePostIndexRouting(indexerRun, setView);
 
   const list = sources.data ?? [];
   const selectedSource = useMemo(
@@ -62,6 +64,7 @@ export function Shell() {
   const assets = folder.data ?? [];
 
   const totalBytes = useMemo(() => assets.reduce((n, a) => n + a.size, 0), [assets]);
+  const assetIds = useMemo(() => assets.map((a) => a.id), [assets]);
 
   if (sources.isLoading) {
     return (
@@ -74,7 +77,6 @@ export function Shell() {
   if (list.length === 0 || !selectedSource) {
     return (
       <div className="flex h-screen flex-col">
-        <WindowChrome title="PixelDex" />
         {indexerRun ? (
           <IndexingCenter run={indexerRun} />
         ) : (
@@ -87,7 +89,6 @@ export function Shell() {
 
   return (
     <div className="flex h-screen flex-col">
-      <WindowChrome title={`PixelDex — ${selectedSource.label}`} />
       <div className="flex min-h-0 flex-1">
         <Sidebar
           sources={list}
@@ -111,6 +112,16 @@ export function Shell() {
           ) : (
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
               <div
+                className={view === "overview" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
+                aria-hidden={view !== "overview"}
+              >
+                <PostIndexOverview
+                  sourceId={selectedSource.id}
+                  sourceLabel={selectedSource.label}
+                  lastIndexedAt={selectedSource.lastIndexedAt ?? selectedSource.createdAt}
+                />
+              </div>
+              <div
                 className={view === "grid" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
                 aria-hidden={view !== "grid"}
               >
@@ -118,6 +129,7 @@ export function Shell() {
                   sourceLabel={selectedSource.label}
                   folderPath={effectivePath}
                   assetCount={assets.length}
+                  assetIds={assetIds}
                   totalBytes={totalBytes}
                   filtered={
                     debouncedSearch.length > 0 ||
@@ -149,16 +161,10 @@ export function Shell() {
                 </div>
               </div>
               <div
-                className={view === "grouped" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
-                aria-hidden={view !== "grouped"}
+                className={view === "clusters" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
+                aria-hidden={view !== "clusters"}
               >
-                <GroupedView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
-              </div>
-              <div
-                className={view === "duplicates" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
-                aria-hidden={view !== "duplicates"}
-              >
-                <DuplicatesView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+                <ClustersView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               </div>
               <div
                 className={view === "match" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
@@ -166,8 +172,9 @@ export function Shell() {
               >
                 <MatchView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               </div>
-              {view === "plan" ? <CleanupPlan sourceLabel={selectedSource.label} /> : null}
+              <ActionBar sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               <DetailDrawer />
+              <PlanDrawer sourceLabel={selectedSource.label} />
             </div>
           )}
         </div>
@@ -180,4 +187,28 @@ export function Shell() {
       <ShortcutLayer source={selectedSource} />
     </div>
   );
+}
+
+function usePostIndexRouting(
+  run: IndexerRun | null,
+  setView: (view: "overview", opts?: { manual?: boolean }) => void,
+) {
+  const prevRef = useRef<IndexerRun | null>(null);
+  useEffect(() => {
+    const prev = prevRef.current;
+    prevRef.current = run;
+
+    const justStarted = run && !run.endedAt && (!prev || prev.endedAt);
+    if (justStarted) {
+      useExplorerStore.setState({ viewManuallySet: false });
+      return;
+    }
+
+    const justEnded = run?.endedAt && prev && !prev.endedAt;
+    if (justEnded) {
+      if (!useExplorerStore.getState().viewManuallySet) {
+        setView("overview", { manual: false });
+      }
+    }
+  }, [run, setView]);
 }

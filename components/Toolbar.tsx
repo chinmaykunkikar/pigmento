@@ -12,16 +12,7 @@ import {
   type View,
 } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
-import {
-  ClipboardList,
-  Layers,
-  LayoutGrid,
-  RefreshCw,
-  ScanSearch,
-  Search,
-  SquareStack,
-  X,
-} from "./icons";
+import { ClipboardList, Layers, LayoutGrid, RefreshCw, ScanSearch, Search, X } from "./icons";
 import { Chip } from "./primitives/Chip";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
@@ -169,32 +160,24 @@ export function Toolbar({ source, indexerProgress }: Props) {
       <div className="flex-1" />
 
       <Segmented<View>
-        value={view}
-        onChange={setView}
+        value={view === "overview" ? "grid" : view}
+        onChange={(v) => setView(v)}
         items={[
           { value: "grid", icon: <LayoutGrid size={13} strokeWidth={1.5} />, label: "Grid" },
           {
-            value: "grouped",
+            value: "clusters",
             icon: <Layers size={13} strokeWidth={1.5} />,
-            label: "Grouped",
-          },
-          {
-            value: "duplicates",
-            icon: <SquareStack size={13} strokeWidth={1.5} />,
-            label: "Duplicates",
+            label: "Clusters",
           },
           {
             value: "match",
             icon: <ScanSearch size={13} strokeWidth={1.5} />,
             label: "Match",
           },
-          {
-            value: "plan",
-            icon: <ClipboardList size={13} strokeWidth={1.5} />,
-            label: planBadge(),
-          },
         ]}
       />
+
+      <PlanTrigger label={planBadge()} active={planCount > 0} />
 
       <button
         type="button"
@@ -235,5 +218,30 @@ export function Toolbar({ source, indexerProgress }: Props) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function PlanTrigger({ label, active }: { label: string; active: boolean }) {
+  const open = useExplorerStore((s) => s.planDrawerOpen);
+  const togglePlanDrawer = useExplorerStore((s) => s.togglePlanDrawer);
+  return (
+    <button
+      type="button"
+      data-plan-trigger="true"
+      aria-pressed={open}
+      onClick={togglePlanDrawer}
+      className={cn(
+        "inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border px-2.5 font-sans text-sm font-medium transition-colors",
+        open
+          ? "border-accent/30 bg-accent-bg text-accent-text"
+          : active
+            ? "border-border-2 bg-surface text-text hover:bg-hover"
+            : "border-border bg-surface text-text-2 hover:bg-hover hover:text-text",
+      )}
+      title={open ? "Hide cleanup plan" : "Open cleanup plan"}
+    >
+      <ClipboardList size={13} strokeWidth={1.5} />
+      {label}
+    </button>
   );
 }

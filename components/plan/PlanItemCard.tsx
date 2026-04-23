@@ -27,7 +27,7 @@ export function PlanItemCard({ action, onRemove }: Props) {
       </div>
 
       <div className="flex flex-col">
-        {action.kind !== "delete-unused" ? (
+        {action.kind === "merge-exact" || action.kind === "merge-cluster" ? (
           <Row
             kind="keep"
             relPath={action.keep.relPath}
@@ -35,15 +35,34 @@ export function PlanItemCard({ action, onRemove }: Props) {
             refs={action.keep.usageCount}
           />
         ) : null}
-        {action.drop.map((d) => (
-          <Row
-            key={d.assetId}
-            kind={action.kind === "delete-unused" ? "delete" : "drop"}
-            relPath={d.relPath}
-            size={d.size}
-            refs={d.usageCount}
-          />
-        ))}
+        {action.kind === "review-group" ? (
+          <>
+            {action.note ? (
+              <div className="border-b border-divider px-3 py-1.5 font-mono text-xs text-text-3 italic">
+                {action.note}
+              </div>
+            ) : null}
+            {action.assetRefs.map((r) => (
+              <Row
+                key={r.assetId}
+                kind="review"
+                relPath={r.relPath}
+                size={r.size}
+                refs={r.usageCount}
+              />
+            ))}
+          </>
+        ) : (
+          action.drop.map((d) => (
+            <Row
+              key={d.assetId}
+              kind={action.kind === "delete-unused" ? "delete" : "drop"}
+              relPath={d.relPath}
+              size={d.size}
+              refs={d.usageCount}
+            />
+          ))
+        )}
       </div>
     </div>
   );
@@ -51,12 +70,24 @@ export function PlanItemCard({ action, onRemove }: Props) {
 
 function KindChip({ kind }: { kind: PlanAction["kind"] }) {
   const label =
-    kind === "merge-exact" ? "MERGE EXACT" : kind === "merge-cluster" ? "MERGE CLUSTER" : "DELETE";
+    kind === "merge-exact"
+      ? "MERGE EXACT"
+      : kind === "merge-cluster"
+        ? "MERGE CLUSTER"
+        : kind === "review-group"
+          ? "REVIEW"
+          : "DELETE";
+  const tone =
+    kind === "delete-unused"
+      ? "bg-danger-bg text-danger"
+      : kind === "review-group"
+        ? "bg-warn-bg text-warn"
+        : "bg-accent-bg text-accent-text";
   return (
     <span
       className={cn(
         "rounded-xs px-1.5 py-0.5 font-mono text-3xs font-semibold uppercase tracking-wider",
-        kind === "delete-unused" ? "bg-danger-bg text-danger" : "bg-accent-bg text-accent-text",
+        tone,
       )}
     >
       {label}
@@ -70,13 +101,21 @@ function Row({
   size,
   refs,
 }: {
-  kind: "keep" | "drop" | "delete";
+  kind: "keep" | "drop" | "delete" | "review";
   relPath: string;
   size: number;
   refs: number;
 }) {
-  const kindLabel = kind === "keep" ? "KEEP" : kind === "delete" ? "DELETE" : "DROP";
-  const kindClass = kind === "keep" ? "text-ok" : kind === "delete" ? "text-danger" : "text-warn";
+  const kindLabel =
+    kind === "keep" ? "KEEP" : kind === "delete" ? "DELETE" : kind === "review" ? "REVIEW" : "DROP";
+  const kindClass =
+    kind === "keep"
+      ? "text-ok"
+      : kind === "delete"
+        ? "text-danger"
+        : kind === "review"
+          ? "text-warn"
+          : "text-warn";
   return (
     <div className="flex items-center gap-2 border-divider border-b px-3 py-1.5 last:border-b-0">
       <span

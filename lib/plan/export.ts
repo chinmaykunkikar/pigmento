@@ -1,4 +1,4 @@
-import type { Plan, PlanAction } from "./schema";
+import type { AssetRef, Plan, PlanAction } from "./schema";
 import { planFormatVersion } from "./schema";
 
 export type ExportFormat = "json" | "csv" | "yaml";
@@ -28,6 +28,16 @@ function serializeCsv(plan: Plan): string {
   const rows: string[] = [header];
   for (const a of plan.actions) {
     const key = clusterKeyOf(a);
+    if (a.kind === "review-group") {
+      for (const r of a.assetRefs) {
+        rows.push(
+          [a.id, a.kind, "review", r.assetId, r.relPath, r.name, r.size, r.usageCount, ""]
+            .map(csvCell)
+            .join(","),
+        );
+      }
+      continue;
+    }
     rows.push(
       [
         a.id,
@@ -73,6 +83,14 @@ function serializeYaml(plan: Plan): string {
       lines.push(`    clusterKey: ${yamlStr(a.clusterKey)}`);
       lines.push(`    clusterKind: ${a.clusterKind}`);
     }
+    if (a.kind === "review-group") {
+      if (a.note) lines.push(`    note: ${yamlStr(a.note)}`);
+      lines.push(`    assetRefs:`);
+      for (const r of a.assetRefs) {
+        lines.push(yamlAsset(r, 6, true));
+      }
+      continue;
+    }
     if (a.kind === "merge-exact" || a.kind === "merge-cluster") {
       lines.push(`    keep:`);
       lines.push(yamlAsset(a.keep, 6));
@@ -86,11 +104,7 @@ function serializeYaml(plan: Plan): string {
   return lines.join("\n");
 }
 
-function yamlAsset(
-  a: Plan["actions"][number]["drop"][number],
-  indent: number,
-  dashed = false,
-): string {
+function yamlAsset(a: AssetRef, indent: number, dashed = false): string {
   const pad = " ".repeat(indent);
   const dash = dashed ? "- " : "";
   const subPad = " ".repeat(indent + (dashed ? 2 : 0));
@@ -120,20 +134,23 @@ function clusterKeyOf(a: PlanAction): string {
   if (a.kind === "merge-cluster") return a.clusterKey;
   return "";
 }
+function hasKeep(a: PlanAction): a is Extract<PlanAction, { keep: unknown }> {
+  return a.kind === "merge-exact" || a.kind === "merge-cluster";
+}
 function keepAssetId(a: PlanAction): number | "" {
-  return a.kind === "delete-unused" ? "" : a.keep.assetId;
+  return hasKeep(a) ? a.keep.assetId : "";
 }
 function keepPath(a: PlanAction): string {
-  return a.kind === "delete-unused" ? "" : a.keep.relPath;
+  return hasKeep(a) ? a.keep.relPath : "";
 }
 function keepName(a: PlanAction): string {
-  return a.kind === "delete-unused" ? "" : a.keep.name;
+  return hasKeep(a) ? a.keep.name : "";
 }
 function keepSize(a: PlanAction): number | "" {
-  return a.kind === "delete-unused" ? "" : a.keep.size;
+  return hasKeep(a) ? a.keep.size : "";
 }
 function keepUsage(a: PlanAction): number | "" {
-  return a.kind === "delete-unused" ? "" : a.keep.usageCount;
+  return hasKeep(a) ? a.keep.usageCount : "";
 }
 
 export function planSchemaFooter(): string {
