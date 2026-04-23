@@ -1,6 +1,31 @@
-import { and, asc, count, eq, gt, inArray, like, lte, or, type SQL, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, like, lte, or, type SQL, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { assets } from "../schema";
+
+export type GridSort =
+  | "name-asc"
+  | "name-desc"
+  | "size-asc"
+  | "size-desc"
+  | "mtime-desc"
+  | "mtime-asc";
+
+function orderByFor(sort: GridSort): SQL[] {
+  switch (sort) {
+    case "name-asc":
+      return [asc(assets.name)];
+    case "name-desc":
+      return [desc(assets.name)];
+    case "size-asc":
+      return [asc(assets.size), asc(assets.name)];
+    case "size-desc":
+      return [desc(assets.size), asc(assets.name)];
+    case "mtime-desc":
+      return [desc(assets.mtime), asc(assets.name)];
+    case "mtime-asc":
+      return [asc(assets.mtime), asc(assets.name)];
+  }
+}
 
 export type TreeNode = {
   name: string;
@@ -60,7 +85,13 @@ function sortTree(node: TreeNode): void {
   for (const c of node.children) sortTree(c);
 }
 
-export function listByFolder(db: Db, sourceId: number, dir: string, limit = 2000): AssetSummary[] {
+export function listByFolder(
+  db: Db,
+  sourceId: number,
+  dir: string,
+  sort: GridSort = "name-asc",
+  limit = 2000,
+): AssetSummary[] {
   return db
     .select({
       id: assets.id,
@@ -73,7 +104,7 @@ export function listByFolder(db: Db, sourceId: number, dir: string, limit = 2000
     })
     .from(assets)
     .where(and(eq(assets.sourceId, sourceId), eq(assets.dir, dir)))
-    .orderBy(asc(assets.name))
+    .orderBy(...orderByFor(sort))
     .limit(limit)
     .all();
 }
@@ -87,6 +118,7 @@ export type AssetFilters = {
   exts?: string[];
   size?: SizeBucket;
   unusedOnly?: boolean;
+  sort?: GridSort;
   limit?: number;
 };
 
@@ -145,6 +177,9 @@ export function searchAssets(db: Db, f: AssetFilters): AssetSummary[] {
     conds.push(sql`${assets.id} IN (SELECT asset_id FROM v_asset_usage WHERE usage_count = 0)`);
   }
 
+  const hasExplicitSort = f.sort !== undefined;
+  const orderBy = f.sort !== undefined ? orderByFor(f.sort) : [asc(assets.dir), asc(assets.name)];
+
   const rows = db
     .select({
       id: assets.id,
@@ -157,11 +192,11 @@ export function searchAssets(db: Db, f: AssetFilters): AssetSummary[] {
     })
     .from(assets)
     .where(and(...conds))
-    .orderBy(asc(assets.dir), asc(assets.name))
+    .orderBy(...orderBy)
     .limit(f.limit ?? 2000)
     .all();
 
-  if (matchedIds && matchedIds.length > 0 && q.length >= 2) {
+  if (!hasExplicitSort && matchedIds && matchedIds.length > 0 && q.length >= 2) {
     const rank = new Map<number, number>(matchedIds.map((id, i) => [id, i]));
     return [...rows].sort((a, b) => (rank.get(a.id) ?? 1e9) - (rank.get(b.id) ?? 1e9));
   }

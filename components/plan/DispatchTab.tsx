@@ -167,7 +167,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function DispatchResultCard({ data }: { data: DispatchResult }) {
   return (
-    <div className="rounded-sm border border-border border-l-[3px] border-l-ok bg-surface">
+    <div className="animate-[slide-down-in_260ms_var(--ease-out-quart)] rounded-sm border border-border border-l-[3px] border-l-ok bg-surface">
       <div className="flex items-center gap-2 border-b border-divider px-3 py-2">
         <span className="rounded-xs bg-ok-bg px-1.5 py-0.5 font-mono text-3xs font-semibold uppercase tracking-wider text-ok">
           Written

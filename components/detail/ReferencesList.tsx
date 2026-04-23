@@ -1,49 +1,37 @@
 "use client";
 
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/cn";
 import type { UsageRow } from "@/lib/db/queries/asset-detail";
 import { useAssetUsages } from "@/lib/queries/asset";
-
-const ROW_HEIGHT = 48;
 
 type Props = { assetId: number; totalCount: number };
 
 export function ReferencesList({ assetId, totalCount }: Props) {
   const q = useAssetUsages(assetId);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const rows: UsageRow[] = useMemo(() => q.data?.pages.flat() ?? [], [q.data]);
   const uniqueFiles = useMemo(() => new Set(rows.map((r) => r.relPath)).size, [rows]);
   const commentedCount = useMemo(() => rows.filter((r) => r.commented).length, [rows]);
 
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 8,
-  });
-
-  useEffect(() => {
-    const items = virtualizer.getVirtualItems();
-    const last = items[items.length - 1];
-    if (!last) return;
-    if (last.index >= rows.length - 4 && q.hasNextPage && !q.isFetchingNextPage) {
-      q.fetchNextPage();
-    }
-  }, [virtualizer, rows.length, q]);
-
   if (q.isLoading) {
-    return <div className="px-3 py-4 text-xs text-text-3">Loading references…</div>;
+    return (
+      <div className="border-b border-border px-3 py-3 text-xs text-text-3">
+        Loading references…
+      </div>
+    );
   }
   if (rows.length === 0) {
-    return <div className="px-3 py-4 text-xs text-text-3">No references found</div>;
+    return (
+      <div className="border-b border-border px-3 py-3 text-xs text-text-3">
+        No references found
+      </div>
+    );
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-surface px-3 py-2">
+    <div className="border-b border-border">
+      <div className="flex items-center gap-2 px-3 pt-3 pb-1.5">
         <span className="text-2xs font-semibold uppercase tracking-wider text-text-3">
           References
         </span>
@@ -64,36 +52,33 @@ export function ReferencesList({ assetId, totalCount }: Props) {
         </span>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-auto">
-        <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
-          {virtualizer.getVirtualItems().map((vr) => {
-            const r = rows[vr.index];
-            if (!r) return null;
-            return (
-              <div
-                key={vr.key}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  transform: `translateY(${vr.start}px)`,
-                  height: ROW_HEIGHT,
-                }}
-              >
-                <RefItem row={r} />
-              </div>
-            );
-          })}
-        </div>
+      <div className="pb-2">
+        {rows.map((r) => (
+          <RefItem key={r.id} row={r} />
+        ))}
       </div>
+
+      {q.hasNextPage ? (
+        <div className="border-t border-divider px-3 py-2">
+          <button
+            type="button"
+            onClick={() => q.fetchNextPage()}
+            disabled={q.isFetchingNextPage}
+            className="inline-flex h-6 items-center gap-1 rounded-xs font-mono text-2xs text-text-3 transition-colors hover:text-text disabled:opacity-50"
+          >
+            {q.isFetchingNextPage
+              ? "Loading…"
+              : `Load ${Math.min(50, totalCount - rows.length)} more`}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 function RefItem({ row }: { row: UsageRow }) {
   return (
-    <div className="border-b border-divider px-3 py-1.5">
+    <div className="border-t border-divider px-3 py-1.5 first:border-t-0">
       <div className="flex items-center gap-1.5">
         <span
           className={cn(

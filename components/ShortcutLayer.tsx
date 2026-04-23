@@ -15,11 +15,13 @@ export function ShortcutLayer({ source }: Props) {
   const focusSearch = useExplorerStore((s) => s.focusSearch);
   const drawerOpen = useExplorerStore((s) => s.drawerOpen);
   const closeDrawer = useExplorerStore((s) => s.closeDrawer);
+  const toggleSidebar = useExplorerStore((s) => s.toggleSidebar);
 
   const specs = useMemo(
     () => [
       { combo: "mod+k", handler: togglePalette, allowInInputs: true },
       { combo: "mod+f", handler: focusSearch },
+      { combo: "mod+b", handler: toggleSidebar },
       { combo: "1", handler: () => setView("grid"), enabled: !!source },
       { combo: "2", handler: () => setView("grouped"), enabled: !!source },
       { combo: "3", handler: () => setView("duplicates"), enabled: !!source },
@@ -30,7 +32,16 @@ export function ShortcutLayer({ source }: Props) {
         enabled: drawerOpen && !paletteOpen,
       },
     ],
-    [togglePalette, focusSearch, setView, source, drawerOpen, paletteOpen, closeDrawer],
+    [
+      togglePalette,
+      focusSearch,
+      toggleSidebar,
+      setView,
+      source,
+      drawerOpen,
+      paletteOpen,
+      closeDrawer,
+    ],
   );
 
   useHotkeys(specs);

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useExactDuplicates, useNearDuplicates } from "@/lib/queries/duplicates";
+import { useExplorerStore } from "@/lib/store";
+import { FolderScopeChip } from "../primitives/FolderScopeChip";
+import { ScrollArea } from "../primitives/ScrollArea";
 import { DupTab } from "./DupTab";
 import { ExactTab } from "./ExactTab";
 import { NearTab } from "./NearTab";
@@ -12,15 +15,17 @@ type Props = { sourceId: number; sourceLabel: string };
 
 export function DuplicatesView({ sourceId, sourceLabel }: Props) {
   const [mode, setMode] = useState<Mode>("exact");
-  const exact = useExactDuplicates(sourceId);
-  const near = useNearDuplicates(sourceId);
+  const selectedFolder = useExplorerStore((s) => s.selectedFolder);
+  const folder = selectedFolder ?? undefined;
+  const exact = useExactDuplicates(sourceId, folder);
+  const near = useNearDuplicates(sourceId, folder);
 
   const exactCount = exact.data?.totalGroups ?? 0;
   const nearCount = near.data?.pairs.length ?? 0;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-auto bg-bg">
-      <div className="sticky top-0 z-10 flex h-9 flex-shrink-0 items-center border-b border-border bg-surface pr-4">
+    <div className="flex min-h-0 flex-1 flex-col bg-bg">
+      <div className="flex h-9 flex-shrink-0 items-center border-b border-border bg-surface pr-4">
         <DupTab
           label="Exact"
           count={exactCount}
@@ -33,6 +38,9 @@ export function DuplicatesView({ sourceId, sourceLabel }: Props) {
           active={mode === "near"}
           onClick={() => setMode("near")}
         />
+        <span className="ml-2">
+          <FolderScopeChip />
+        </span>
         <div className="flex-1" />
         {mode === "exact" ? (
           <span className="font-mono text-xs text-text-3">
@@ -46,11 +54,13 @@ export function DuplicatesView({ sourceId, sourceLabel }: Props) {
         )}
       </div>
 
-      {mode === "exact" ? (
-        <ExactTab sourceId={sourceId} sourceLabel={sourceLabel} />
-      ) : (
-        <NearTab sourceId={sourceId} sourceLabel={sourceLabel} />
-      )}
+      <ScrollArea className="flex-1">
+        {mode === "exact" ? (
+          <ExactTab sourceId={sourceId} sourceLabel={sourceLabel} />
+        ) : (
+          <NearTab sourceId={sourceId} sourceLabel={sourceLabel} />
+        )}
+      </ScrollArea>
     </div>
   );
 }

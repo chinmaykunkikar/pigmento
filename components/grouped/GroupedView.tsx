@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { GroupSort } from "@/lib/db/queries/groups";
 import { useGroups } from "@/lib/queries/groups";
+import { useExplorerStore } from "@/lib/store";
+import { ScrollArea } from "../primitives/ScrollArea";
 import { ClusterRow } from "./ClusterRow";
 import { GroupedBreadcrumb } from "./GroupedBreadcrumb";
 
@@ -10,7 +12,8 @@ type Props = { sourceId: number; sourceLabel: string };
 
 export function GroupedView({ sourceId, sourceLabel }: Props) {
   const [sort, setSort] = useState<GroupSort>("size");
-  const q = useGroups(sourceId, sort);
+  const selectedFolder = useExplorerStore((s) => s.selectedFolder);
+  const q = useGroups(sourceId, sort, selectedFolder ?? undefined);
   const page = q.data;
 
   return (
@@ -22,7 +25,7 @@ export function GroupedView({ sourceId, sourceLabel }: Props) {
         sort={sort}
         onSortChange={setSort}
       />
-      <div className="flex-1 overflow-auto bg-bg">
+      <ScrollArea className="flex-1 bg-bg">
         {q.isLoading ? (
           <div className="flex h-full items-center justify-center text-sm text-text-3">
             Loading clusters…
@@ -45,7 +48,7 @@ export function GroupedView({ sourceId, sourceLabel }: Props) {
             ))}
           </div>
         )}
-      </div>
+      </ScrollArea>
     </div>
   );
 }

@@ -1,9 +1,18 @@
 import { z } from "zod";
 import { fail, ok } from "@/lib/api/response";
 import { getDb } from "@/lib/db/client";
-import { type SizeBucket, searchAssets } from "@/lib/db/queries/folders";
+import { type GridSort, type SizeBucket, searchAssets } from "@/lib/db/queries/folders";
 
 const ALLOWED_EXTS = ["svg", "png", "jpg", "jpeg", "webp", "gif"] as const;
+
+const SORTS: readonly GridSort[] = [
+  "name-asc",
+  "name-desc",
+  "size-asc",
+  "size-desc",
+  "mtime-desc",
+  "mtime-asc",
+];
 
 const Query = z.object({
   sourceId: z.coerce.number().int().positive(),
@@ -12,6 +21,7 @@ const Query = z.object({
   exts: z.string().optional(),
   size: z.enum(["s", "m", "l"]).optional(),
   unusedOnly: z.enum(["1", "0", "true", "false"]).optional(),
+  sort: z.enum(SORTS as [GridSort, ...GridSort[]]).optional(),
 });
 
 export function GET(req: Request) {
@@ -23,6 +33,7 @@ export function GET(req: Request) {
     exts: url.searchParams.get("exts") ?? undefined,
     size: url.searchParams.get("size") ?? undefined,
     unusedOnly: url.searchParams.get("unusedOnly") ?? undefined,
+    sort: url.searchParams.get("sort") ?? undefined,
   });
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "bad query", 400);
 
@@ -42,6 +53,7 @@ export function GET(req: Request) {
     exts: exts && exts.length > 0 ? exts : undefined,
     size: parsed.data.size as SizeBucket | undefined,
     unusedOnly,
+    sort: parsed.data.sort,
   });
   return ok(assets, { total: assets.length });
 }

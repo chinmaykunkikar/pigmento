@@ -1,6 +1,12 @@
-import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, like, or, type SQL } from "drizzle-orm";
 import type { Db } from "../client";
 import { assets, clusterMembers, clusters, usages } from "../schema";
+
+function folderClause(folder: string | undefined): SQL | undefined {
+  if (!folder) return undefined;
+  const escaped = folder.replace(/[\\%_]/g, (c) => `\\${c}`);
+  return or(eq(assets.dir, folder), like(assets.dir, `${escaped}/%`));
+}
 
 export type GroupSort = "size" | "alpha";
 
@@ -38,18 +44,42 @@ export function listNameGroups(
   sort: GroupSort,
   limit: number,
   offset: number,
+  folder?: string,
 ): GroupsPage {
-  const [{ total }] = db
-    .select({ total: count() })
-    .from(clusters)
-    .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, "name")))
-    .all() as [{ total: number }];
+  const fc = folderClause(folder);
+  const folderScopedIds = fc
+    ? new Set(
+        db
+          .select({ id: clusterMembers.clusterId })
+          .from(clusterMembers)
+          .innerJoin(clusters, eq(clusters.id, clusterMembers.clusterId))
+          .innerJoin(assets, eq(assets.id, clusterMembers.assetId))
+          .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, "name"), fc))
+          .groupBy(clusterMembers.clusterId)
+          .all()
+          .map((r) => r.id),
+      )
+    : null;
+
+  if (folderScopedIds && folderScopedIds.size === 0) {
+    return { groups: [], total: 0, totalVariants: 0 };
+  }
+
+  const baseCond = and(
+    eq(clusters.sourceId, sourceId),
+    eq(clusters.kind, "name"),
+    folderScopedIds ? inArray(clusters.id, Array.from(folderScopedIds)) : undefined,
+  );
+
+  const [{ total }] = db.select({ total: count() }).from(clusters).where(baseCond).all() as [
+    { total: number },
+  ];
 
   const [{ totalVariants }] = db
     .select({ totalVariants: count() })
     .from(clusterMembers)
     .innerJoin(clusters, eq(clusters.id, clusterMembers.clusterId))
-    .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, "name")))
+    .where(baseCond)
     .all() as [{ totalVariants: number }];
 
   const sortExpr = sort === "alpha" ? asc(clusters.key) : desc(clusters.size);
@@ -61,7 +91,7 @@ export function listNameGroups(
       size: clusters.size,
     })
     .from(clusters)
-    .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, "name")))
+    .where(baseCond)
     .orderBy(sortExpr, asc(clusters.key))
     .limit(limit)
     .offset(offset)

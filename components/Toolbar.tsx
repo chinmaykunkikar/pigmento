@@ -12,9 +12,8 @@ import {
   type View,
 } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
-import { Box, ClipboardList, Layers, LayoutGrid, RefreshCw, Search, SquareStack, X } from "./icons";
-import { Chip, ChipGroup } from "./primitives/Chip";
-import { IconBtn } from "./primitives/IconBtn";
+import { ClipboardList, Layers, LayoutGrid, RefreshCw, Search, SquareStack, X } from "./icons";
+import { Chip } from "./primitives/Chip";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
 import { Segmented } from "./primitives/Segmented";
@@ -42,8 +41,6 @@ const EXT_LABELS: Record<ExtFilter, string> = {
 export function Toolbar({ source, indexerProgress }: Props) {
   const view = useExplorerStore((s) => s.view);
   const setView = useExplorerStore((s) => s.setView);
-  const boundingBoxes = useExplorerStore((s) => s.boundingBoxes);
-  const setBoundingBoxes = useExplorerStore((s) => s.setBoundingBoxes);
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
   const setUnusedOnly = useExplorerStore((s) => s.setUnusedOnly);
   const search = useExplorerStore((s) => s.search);
@@ -69,39 +66,53 @@ export function Toolbar({ source, indexerProgress }: Props) {
 
   const filterActive =
     search.length > 0 || extFilter.length > 0 || sizeBucket !== null || unusedOnly;
+  const filtersApply = view === "grid";
+  const inactiveTip = "Type / size / unused / search apply to the Grid view only";
 
   return (
     <div className="relative flex h-11 flex-shrink-0 items-center gap-3 border-b border-border bg-surface px-4">
       <div
+        title={filtersApply ? undefined : inactiveTip}
+        aria-disabled={!filtersApply}
         className={cn(
-          "flex h-7 min-w-55 max-w-90 flex-1 items-center gap-1.5 rounded-sm border bg-sunken pl-2 pr-1 focus-within:border-accent/40",
-          search ? "border-accent/30" : "border-border",
+          "flex h-11 min-w-0 flex-1 items-center gap-3 transition-opacity",
+          !filtersApply && "opacity-50",
         )}
       >
-        <Search size={13} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
-        <input
-          ref={searchRef}
-          placeholder="Search assets, paths, hashes…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-full min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-4"
-        />
-        {search ? (
-          <button
-            type="button"
-            onClick={() => setSearch("")}
-            className="flex-shrink-0 rounded-xs p-0.5 text-text-3 hover:bg-hover hover:text-text-2"
-            aria-label="Clear search"
-          >
-            <X size={12} strokeWidth={1.75} />
-          </button>
-        ) : (
-          <KbdHint keys={formatCombo("mod+f")} className="flex-shrink-0" />
-        )}
-      </div>
+        <div
+          className={cn(
+            "flex h-7 min-w-55 max-w-90 flex-1 items-center gap-1.5 rounded-sm border bg-sunken pl-2 pr-1 focus-within:border-accent/40",
+            search ? "border-accent/30" : "border-border",
+          )}
+        >
+          <Search size={13} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
+          <input
+            ref={searchRef}
+            placeholder={filtersApply ? "Search assets, paths, hashes…" : "Search applies to Grid"}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            disabled={!filtersApply}
+            className="h-full min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-4 disabled:cursor-not-allowed"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              disabled={!filtersApply}
+              className="flex-shrink-0 rounded-xs p-0.5 text-text-3 hover:bg-hover hover:text-text-2 disabled:cursor-not-allowed"
+              aria-label="Clear search"
+            >
+              <X size={12} strokeWidth={1.75} />
+            </button>
+          ) : (
+            <KbdHint keys={formatCombo("mod+f")} className="flex-shrink-0" />
+          )}
+        </div>
 
-      <ChipGroup label="Type">
-        <div className="flex gap-0.5">
+        <div
+          aria-disabled={!filtersApply}
+          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none"
+        >
           {EXT_FILTERS.map((ext) => (
             <TypePill
               key={ext}
@@ -111,32 +122,40 @@ export function Toolbar({ source, indexerProgress }: Props) {
             />
           ))}
         </div>
-      </ChipGroup>
 
-      <ChipGroup label="Size">
-        {SIZE_BUCKETS.map((b) => (
-          <Chip
-            key={b.value}
-            label={b.label}
-            active={sizeBucket === b.value}
-            onClick={() => setSizeBucket(sizeBucket === b.value ? null : b.value)}
-          />
-        ))}
-      </ChipGroup>
-
-      <Toggle label="Unused only" on={unusedOnly} onClick={() => setUnusedOnly(!unusedOnly)} />
-
-      {filterActive ? (
-        <button
-          type="button"
-          onClick={() => useExplorerStore.getState().clearFilters()}
-          className="inline-flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-sm px-2 font-mono text-xs text-text-3 transition-colors hover:bg-hover hover:text-text-2"
-          title="Clear all filters"
+        <div
+          aria-disabled={!filtersApply}
+          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none"
         >
-          <X size={11} strokeWidth={1.75} />
-          clear
-        </button>
-      ) : null}
+          {SIZE_BUCKETS.map((b) => (
+            <Chip
+              key={b.value}
+              label={b.label}
+              active={sizeBucket === b.value}
+              onClick={() => setSizeBucket(sizeBucket === b.value ? null : b.value)}
+            />
+          ))}
+        </div>
+
+        <Toggle
+          label="Unused only"
+          on={unusedOnly}
+          onClick={() => setUnusedOnly(!unusedOnly)}
+          disabled={!filtersApply}
+        />
+
+        {filterActive && filtersApply ? (
+          <button
+            type="button"
+            onClick={() => useExplorerStore.getState().clearFilters()}
+            className="inline-flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-sm px-2 font-mono text-xs text-text-3 transition-colors hover:bg-hover hover:text-text-2"
+            title="Clear all filters"
+          >
+            <X size={11} strokeWidth={1.75} />
+            clear
+          </button>
+        ) : null}
+      </div>
 
       <div className="flex-1" />
 
@@ -163,34 +182,34 @@ export function Toolbar({ source, indexerProgress }: Props) {
         ]}
       />
 
-      <IconBtn
-        label="Bounding boxes"
-        active={boundingBoxes}
-        onClick={() => setBoundingBoxes(!boundingBoxes)}
-      >
-        <Box size={14} strokeWidth={1.5} strokeDasharray="2 2" />
-      </IconBtn>
-
-      <div className="mx-1 h-5 w-px shrink-0 bg-border" />
-
-      {source ? (
-        <span className="shrink-0 whitespace-nowrap font-mono text-xs text-text-3 tabular-nums">
-          Indexed {relativeTime(source.lastIndexedAt ?? source.createdAt)}
-        </span>
-      ) : null}
-
       <button
         type="button"
         disabled={reindex.isPending || !source}
         onClick={() => reindex.mutate({})}
-        className="inline-flex h-[26px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border-2 bg-surface px-2.5 text-sm font-medium text-text transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+        title={
+          source && !reindex.isPending
+            ? `Last indexed ${relativeTime(source.lastIndexedAt ?? source.createdAt)}`
+            : undefined
+        }
+        className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border-2 bg-surface px-2.5 font-sans text-sm font-medium text-text transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         <RefreshCw
           size={12}
           strokeWidth={1.5}
           className={cn(reindex.isPending && "animate-spin")}
         />
-        {reindex.isPending ? "Indexing…" : "Re-index"}
+        {reindex.isPending ? (
+          "Indexing…"
+        ) : (
+          <>
+            Re-index
+            {source ? (
+              <span className="font-mono text-xs text-text-3 tabular-nums">
+                · {relativeTime(source.lastIndexedAt ?? source.createdAt)}
+              </span>
+            ) : null}
+          </>
+        )}
       </button>
 
       {indexerProgress !== null ? (

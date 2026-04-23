@@ -1,54 +1,86 @@
 "use client";
 
+import { useState } from "react";
 import type { Asset } from "@/lib/db/schema";
 import { formatBytes, relativeTime } from "@/lib/time";
-import { MetaRow } from "./MetaRow";
-import { Section } from "./Section";
+import { Copy } from "../icons";
 
 type Props = { asset: Asset };
 
 export function MetadataSection({ asset }: Props) {
-  const dims =
-    asset.width && asset.height
-      ? asset.viewBox
-        ? `${asset.width} × ${asset.height} · viewBox ${asset.viewBox}`
-        : `${asset.width} × ${asset.height}`
-      : "—";
+  const [copied, setCopied] = useState<"path" | "sha1" | null>(null);
 
-  const filesize = `${formatBytes(asset.size)} (${asset.size.toLocaleString()} bytes)`;
-  const sha1 = `sha1:${asset.sha1.slice(0, 7)}…${asset.sha1.slice(-6)}`;
-  const sha1Title = `sha1:${asset.sha1}`;
+  const dims = asset.width && asset.height ? `${asset.width} × ${asset.height}` : "—";
+  const modifiedRel = relativeTime(new Date(asset.mtime).toISOString());
+  const sha1Short = `${asset.sha1.slice(0, 7)}…${asset.sha1.slice(-6)}`;
 
-  const fill = asset.ext === "svg" ? (asset.hasFill ? "Yes" : "No (stroke only)") : "—";
-
-  let strokes = "—";
-  if (asset.ext === "svg") {
-    const widths: string[] = asset.strokeWidths ? JSON.parse(asset.strokeWidths) : [];
-    const paths = asset.pathsCount ?? 0;
-    if (widths.length > 0) {
-      strokes = `${widths.join(", ")} · ${paths} path${paths === 1 ? "" : "s"}`;
-    } else if (paths > 0) {
-      strokes = `${paths} path${paths === 1 ? "" : "s"}`;
-    }
-  }
-
-  const modifiedDate = new Date(asset.mtime).toISOString();
-  const modified = `${relativeTime(modifiedDate)}${asset.author ? ` · ${asset.author}` : ""}`;
+  const copy = async (kind: "path" | "sha1", text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(kind);
+    setTimeout(() => setCopied(null), 1200);
+  };
 
   return (
-    <Section title="Metadata">
-      <MetaRow k="Path" v={asset.relPath} mono copy={asset.relPath} />
-      <MetaRow k="Dimensions" v={dims} />
-      <MetaRow k="Filesize" v={filesize} />
-      <MetaRow k="Content hash">
-        <span className="truncate font-mono text-xs text-text" title={sha1Title}>
-          {sha1}
+    <div className="flex flex-col gap-2 border-b border-border px-3 py-3">
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span
+          className="min-w-0 flex-1 truncate font-mono text-xs text-text-2"
+          title={asset.relPath}
+        >
+          {asset.relPath}
         </span>
-      </MetaRow>
-      <MetaRow k="Category" v={asset.category} pill />
-      {asset.ext === "svg" ? <MetaRow k="Has fill" v={fill} /> : null}
-      {asset.ext === "svg" ? <MetaRow k="Strokes" v={strokes} /> : null}
-      <MetaRow k="Modified" v={modified} />
-    </Section>
+        <button
+          type="button"
+          onClick={() => copy("path", asset.relPath)}
+          aria-label="Copy path"
+          className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-xs text-text-3 transition-colors hover:bg-hover hover:text-text"
+        >
+          {copied === "path" ? (
+            <span className="font-mono text-3xs text-ok">✓</span>
+          ) : (
+            <Copy size={11} strokeWidth={1.5} />
+          )}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-x-3 gap-y-1.5">
+        <Stat label="Dimensions" value={dims} />
+        <Stat label="Filesize" value={formatBytes(asset.size)} />
+        <Stat label="Modified" value={modifiedRel} sub={asset.author ?? undefined} />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-3xs font-medium uppercase tracking-wider text-text-2">
+          {asset.category}
+        </span>
+        <button
+          type="button"
+          onClick={() => copy("sha1", asset.sha1)}
+          title={copied === "sha1" ? "Copied" : asset.sha1}
+          className="inline-flex items-center gap-1 rounded-xs font-mono text-3xs text-text-3 transition-colors hover:text-text-2"
+        >
+          sha1 {copied === "sha1" ? "copied" : sha1Short}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="text-3xs font-medium uppercase tracking-wider text-text-3">{label}</span>
+      <span
+        className="truncate font-mono text-xs text-text"
+        title={sub ? `${value} · ${sub}` : value}
+      >
+        {value}
+      </span>
+      {sub ? (
+        <span className="truncate font-mono text-3xs text-text-3" title={sub}>
+          by {sub}
+        </span>
+      ) : null}
+    </div>
   );
 }

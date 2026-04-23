@@ -8,6 +8,7 @@ import { useReindex } from "@/lib/queries/reindex";
 import { useExplorerStore } from "@/lib/store";
 import {
   Box,
+  ChevronLeft,
   ClipboardList,
   Eye,
   EyeOff,
@@ -42,6 +43,8 @@ export function CommandPalette({ source }: Props) {
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
   const setUnusedOnly = useExplorerStore((s) => s.setUnusedOnly);
   const focusSearch = useExplorerStore((s) => s.focusSearch);
+  const toggleSidebar = useExplorerStore((s) => s.toggleSidebar);
+  const sidebarCollapsed = useExplorerStore((s) => s.sidebarCollapsed);
   const clearPlan = useExplorerStore((s) => s.clearPlan);
   const planCount = useExplorerStore((s) => s.draftPlan?.actions.length ?? 0);
   const reindex = useReindex(source?.id ?? null);
@@ -141,6 +144,15 @@ export function CommandPalette({ source }: Props) {
       enabled: !!source,
     },
     {
+      id: "display:toggle-sidebar",
+      label: sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar",
+      combo: "mod+b",
+      icon: <ChevronLeft size={13} strokeWidth={1.5} />,
+      group: "Display",
+      onRun: run(toggleSidebar),
+      enabled: true,
+    },
+    {
       id: "plan:clear",
       label: "Clear cleanup plan",
       icon: <Trash2 size={13} strokeWidth={1.5} />,
@@ -156,7 +168,10 @@ export function CommandPalette({ source }: Props) {
   if (typeof document === "undefined" || !open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 animate-[fade-in_120ms_ease-out]" role="presentation">
+    <div
+      className="fixed inset-0 z-50 animate-[fade-in_120ms_var(--ease-out-quart)]"
+      role="presentation"
+    >
       <button
         type="button"
         aria-label="Close command palette"
@@ -167,7 +182,7 @@ export function CommandPalette({ source }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
-        className="absolute left-1/2 top-[18%] w-[min(560px,92vw)] -translate-x-1/2 animate-[scale-in_140ms_ease-out] overflow-hidden rounded-md border border-border bg-surface shadow-[0_24px_60px_-24px_rgba(20,20,30,0.35)]"
+        className="absolute left-1/2 top-[18%] w-[min(560px,92vw)] -translate-x-1/2 animate-[scale-in_180ms_var(--ease-out-expo)] overflow-hidden rounded-md border border-border bg-surface shadow-[0_24px_60px_-24px_rgba(20,20,30,0.35)]"
       >
         <Command label="Command palette" shouldFilter>
           <div className="flex items-center gap-2 border-b border-border px-3">

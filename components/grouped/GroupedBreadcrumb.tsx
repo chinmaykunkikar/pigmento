@@ -1,6 +1,7 @@
 "use client";
 
 import type { GroupSort } from "@/lib/db/queries/groups";
+import { FolderScopeChip } from "../primitives/FolderScopeChip";
 
 type Props = {
   sourceLabel: string;
@@ -24,6 +25,8 @@ export function GroupedBreadcrumb({
         <span className="text-text-4"> / </span>
         <span className="text-text">clusters</span>
       </span>
+
+      <FolderScopeChip />
 
       <div className="flex-1" />
 

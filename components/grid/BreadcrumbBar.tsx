@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import { formatBytes } from "@/lib/time";
+import { SortMenu } from "./SortMenu";
 
 type Props = {
   sourceLabel: string;
@@ -61,9 +62,7 @@ export function BreadcrumbBar({
         {assetCount.toLocaleString()} {filtered ? "matches" : "assets"} · {formatBytes(totalBytes)}
       </span>
       <span className="h-3 w-px bg-border" />
-      <span className="text-xs text-text-3">
-        Sort: <span className="text-text">Name ↑</span>
-      </span>
+      <SortMenu />
     </div>
   );
 }

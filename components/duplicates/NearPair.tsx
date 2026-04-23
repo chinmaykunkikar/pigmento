@@ -62,8 +62,8 @@ export function NearPair({ pair, sourceId, sourceLabel }: Props) {
   };
 
   return (
-    <div className="overflow-hidden rounded-sm border border-border bg-surface">
-      <div className="grid grid-cols-[1fr_180px_1fr] items-stretch">
+    <div className="@container overflow-hidden rounded-sm border border-border bg-surface">
+      <div className="grid grid-cols-1 items-stretch @md:grid-cols-[1fr_180px_1fr]">
         <NearSide side={pair.a} canonical />
 
         <div className="flex flex-col items-center justify-center gap-1.5 border-x border-border bg-sunken px-2.5 py-3">

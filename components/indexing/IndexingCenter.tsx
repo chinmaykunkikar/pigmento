@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { IndexerRun } from "@/lib/queries/indexer-status";
+import { ScrollArea } from "../primitives/ScrollArea";
 import { LogTerminal } from "./LogTerminal";
 import { StageRow } from "./StageRow";
 
@@ -28,7 +29,7 @@ export function IndexingCenter({ run }: Props) {
         </span>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <ScrollArea className="flex-1">
         <div className="mx-auto max-w-160 px-4 py-4">
           <div className="mb-3 font-sans text-base font-semibold text-text">Indexing pipeline</div>
           <div className="overflow-hidden rounded-sm border border-border bg-surface">
@@ -38,7 +39,7 @@ export function IndexingCenter({ run }: Props) {
           </div>
           <LogTerminal run={run} />
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

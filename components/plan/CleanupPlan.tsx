@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { computeStats } from "@/lib/plan/schema";
 import { useExplorerStore } from "@/lib/store";
 import { ChevronRight, Trash2 } from "../icons";
+import { ScrollArea } from "../primitives/ScrollArea";
 import { DispatchTab } from "./DispatchTab";
 import { ExportTab } from "./ExportTab";
 import { PlanItemCard } from "./PlanItemCard";
@@ -73,7 +74,7 @@ export function CleanupPlan({ sourceLabel }: Props) {
         ) : null}
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <ScrollArea className="flex-1">
         <div className="mx-auto flex max-w-200 flex-col gap-3 px-4 py-4">
           {plan ? (
             <input
@@ -107,7 +108,7 @@ export function CleanupPlan({ sourceLabel }: Props) {
             </div>
           ) : null}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

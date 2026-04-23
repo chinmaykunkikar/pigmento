@@ -1,6 +1,31 @@
-import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, like, or, type SQL } from "drizzle-orm";
 import type { Db } from "../client";
 import { assets, clusterMembers, clusters, usages } from "../schema";
+
+function folderClause(folder: string | undefined): SQL | undefined {
+  if (!folder) return undefined;
+  const escaped = folder.replace(/[\\%_]/g, (c) => `\\${c}`);
+  return or(eq(assets.dir, folder), like(assets.dir, `${escaped}/%`));
+}
+
+function folderScopedClusterIds(
+  db: Db,
+  sourceId: number,
+  kind: "hash" | "phash",
+  folder: string | undefined,
+): Set<number> | null {
+  const fc = folderClause(folder);
+  if (!fc) return null;
+  const rows = db
+    .select({ id: clusterMembers.clusterId })
+    .from(clusterMembers)
+    .innerJoin(clusters, eq(clusters.id, clusterMembers.clusterId))
+    .innerJoin(assets, eq(assets.id, clusterMembers.assetId))
+    .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, kind), fc))
+    .groupBy(clusterMembers.clusterId)
+    .all();
+  return new Set(rows.map((r) => r.id));
+}
 
 export type ExactMember = {
   assetId: number;
@@ -58,7 +83,11 @@ export type NearDuplicates = {
 
 const NEAR_HISTOGRAM_BINS = 16;
 
-export function listExactDuplicates(db: Db, sourceId: number): ExactDuplicates {
+export function listExactDuplicates(db: Db, sourceId: number, folder?: string): ExactDuplicates {
+  const scopedIds = folderScopedClusterIds(db, sourceId, "hash", folder);
+  if (scopedIds && scopedIds.size === 0) {
+    return { groups: [], totalGroups: 0, totalFiles: 0, reclaimableBytes: 0 };
+  }
   const clusterRows = db
     .select({
       id: clusters.id,
@@ -66,7 +95,13 @@ export function listExactDuplicates(db: Db, sourceId: number): ExactDuplicates {
       size: clusters.size,
     })
     .from(clusters)
-    .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, "hash")))
+    .where(
+      and(
+        eq(clusters.sourceId, sourceId),
+        eq(clusters.kind, "hash"),
+        scopedIds ? inArray(clusters.id, Array.from(scopedIds)) : undefined,
+      ),
+    )
     .orderBy(desc(clusters.size), asc(clusters.key))
     .all();
 
@@ -162,7 +197,11 @@ function confidenceFor(h: number): NearPair["confidence"] {
   return "low";
 }
 
-export function listNearPairs(db: Db, sourceId: number): NearDuplicates {
+export function listNearPairs(db: Db, sourceId: number, folder?: string): NearDuplicates {
+  const scopedIds = folderScopedClusterIds(db, sourceId, "phash", folder);
+  if (scopedIds && scopedIds.size === 0) {
+    return { pairs: [], histogram: new Array(NEAR_HISTOGRAM_BINS).fill(0), maxHamming: 0 };
+  }
   const clusterRows = db
     .select({
       id: clusters.id,
@@ -170,7 +209,13 @@ export function listNearPairs(db: Db, sourceId: number): NearDuplicates {
       size: clusters.size,
     })
     .from(clusters)
-    .where(and(eq(clusters.sourceId, sourceId), eq(clusters.kind, "phash")))
+    .where(
+      and(
+        eq(clusters.sourceId, sourceId),
+        eq(clusters.kind, "phash"),
+        scopedIds ? inArray(clusters.id, Array.from(scopedIds)) : undefined,
+      ),
+    )
     .orderBy(desc(clusters.size))
     .all();
 

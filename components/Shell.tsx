@@ -11,6 +11,7 @@ import { DuplicatesView } from "./duplicates/DuplicatesView";
 import { EmptyState } from "./empty/EmptyState";
 import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
+import { FolderEmptyState } from "./grid/FolderEmptyState";
 import { GroupedView } from "./grouped/GroupedView";
 import { IndexingCenter } from "./indexing/IndexingCenter";
 import { CleanupPlan } from "./plan/CleanupPlan";
@@ -31,6 +32,7 @@ export function Shell() {
   const extFilter = useExplorerStore((s) => s.extFilter);
   const sizeBucket = useExplorerStore((s) => s.sizeBucket);
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
+  const gridSort = useExplorerStore((s) => s.gridSort);
   const debouncedSearch = useDebounce(search, 200);
   const indexerRun = useIndexerStatus();
 
@@ -54,6 +56,7 @@ export function Shell() {
     exts: extFilter,
     size: sizeBucket,
     unusedOnly,
+    sort: gridSort,
   });
   const assets = folder.data ?? [];
 
@@ -104,44 +107,61 @@ export function Shell() {
           />
           {indexerRun && indexerRun.sourceId === selectedSource.id ? (
             <IndexingCenter run={indexerRun} />
-          ) : view === "grouped" ? (
-            <div className="relative flex min-h-0 flex-1 overflow-hidden">
-              <GroupedView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
-              <DetailDrawer />
-            </div>
-          ) : view === "duplicates" ? (
-            <div className="relative flex min-h-0 flex-1 overflow-hidden">
-              <DuplicatesView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
-              <DetailDrawer />
-            </div>
-          ) : view === "plan" ? (
-            <CleanupPlan sourceLabel={selectedSource.label} />
           ) : (
-            <>
-              <BreadcrumbBar
-                sourceLabel={selectedSource.label}
-                folderPath={effectivePath}
-                assetCount={assets.length}
-                totalBytes={totalBytes}
-                filtered={
-                  debouncedSearch.length > 0 ||
-                  extFilter.length > 0 ||
-                  sizeBucket !== null ||
-                  unusedOnly
-                }
-                onSelect={(p) => setSelectedFolder(p)}
-              />
-              <div className="relative flex min-h-0 flex-1 overflow-hidden">
-                {folder.isLoading ? (
-                  <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
-                    Loading folder…
-                  </div>
-                ) : (
-                  <AssetGrid assets={assets} />
-                )}
-                <DetailDrawer />
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div
+                className={view === "grid" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
+                aria-hidden={view !== "grid"}
+              >
+                <BreadcrumbBar
+                  sourceLabel={selectedSource.label}
+                  folderPath={effectivePath}
+                  assetCount={assets.length}
+                  totalBytes={totalBytes}
+                  filtered={
+                    debouncedSearch.length > 0 ||
+                    extFilter.length > 0 ||
+                    sizeBucket !== null ||
+                    unusedOnly
+                  }
+                  onSelect={(p) => setSelectedFolder(p)}
+                />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  {folder.isLoading ? (
+                    <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
+                      Loading folder…
+                    </div>
+                  ) : assets.length === 0 ? (
+                    <FolderEmptyState
+                      sourceId={selectedSource.id}
+                      folderPath={effectivePath}
+                      filterActive={
+                        debouncedSearch.length > 0 ||
+                        extFilter.length > 0 ||
+                        sizeBucket !== null ||
+                        unusedOnly
+                      }
+                    />
+                  ) : (
+                    <AssetGrid assets={assets} />
+                  )}
+                </div>
               </div>
-            </>
+              <div
+                className={view === "grouped" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
+                aria-hidden={view !== "grouped"}
+              >
+                <GroupedView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+              </div>
+              <div
+                className={view === "duplicates" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
+                aria-hidden={view !== "duplicates"}
+              >
+                <DuplicatesView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+              </div>
+              {view === "plan" ? <CleanupPlan sourceLabel={selectedSource.label} /> : null}
+              <DetailDrawer />
+            </div>
           )}
         </div>
       </div>

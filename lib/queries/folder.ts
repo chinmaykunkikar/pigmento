@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { AssetSummary } from "../db/queries/folders";
+import type { GridSort } from "../store";
 import { apiGet } from "./client";
 import { qk } from "./keys";
 
@@ -12,6 +13,7 @@ export type FolderParams = {
   exts?: string[];
   size?: "s" | "m" | "l" | null;
   unusedOnly?: boolean;
+  sort?: GridSort;
 };
 
 function cacheKey(p: FolderParams): string {
@@ -22,6 +24,7 @@ function cacheKey(p: FolderParams): string {
     (p.exts ?? []).join("+"),
     p.size ?? "",
     p.unusedOnly ? "1" : "0",
+    p.sort ?? "",
   ];
   return parts.join(":");
 }
@@ -36,6 +39,7 @@ export function useFolder(p: FolderParams) {
       if (p.exts && p.exts.length > 0) params.set("exts", p.exts.join(","));
       if (p.size) params.set("size", p.size);
       if (p.unusedOnly) params.set("unusedOnly", "1");
+      if (p.sort) params.set("sort", p.sort);
       return apiGet<AssetSummary[]>(`/api/folders?${params.toString()}`);
     },
     enabled: p.sourceId !== null,

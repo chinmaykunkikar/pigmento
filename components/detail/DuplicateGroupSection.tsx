@@ -12,6 +12,7 @@ type Props = {
   nearDuplicates: NearDuplicate[];
   nameSiblings: NameSibling[];
   currentAssetId: number;
+  currentAssetName: string;
 };
 
 export function DuplicateGroupSection({
@@ -19,6 +20,7 @@ export function DuplicateGroupSection({
   nearDuplicates,
   nameSiblings,
   currentAssetId,
+  currentAssetName,
 }: Props) {
   const hashClusters = clusters.filter((c) => c.kind === "hash");
   const hasAny = hashClusters.length > 0 || nearDuplicates.length > 0 || nameSiblings.length > 0;
@@ -27,10 +29,19 @@ export function DuplicateGroupSection({
   return (
     <div className="border-b border-border">
       {hashClusters.map((c) => (
-        <HashBlock key={c.id} cluster={c} currentAssetId={currentAssetId} />
+        <HashBlock
+          key={c.id}
+          cluster={c}
+          currentAssetId={currentAssetId}
+          currentAssetName={currentAssetName}
+        />
       ))}
-      {nearDuplicates.length > 0 ? <NearBlock items={nearDuplicates} /> : null}
-      {nameSiblings.length > 0 ? <NameBlock items={nameSiblings} /> : null}
+      {nearDuplicates.length > 0 ? (
+        <NearBlock items={nearDuplicates} currentAssetName={currentAssetName} />
+      ) : null}
+      {nameSiblings.length > 0 ? (
+        <NameBlock items={nameSiblings} currentAssetName={currentAssetName} />
+      ) : null}
     </div>
   );
 }
@@ -38,9 +49,11 @@ export function DuplicateGroupSection({
 function HashBlock({
   cluster,
   currentAssetId,
+  currentAssetName,
 }: {
   cluster: ClusterDetail;
   currentAssetId: number;
+  currentAssetName: string;
 }) {
   const openAsset = useExplorerStore((s) => s.openAsset);
   const visible = cluster.members.slice(0, MAX_VISIBLE);
@@ -65,7 +78,7 @@ function HashBlock({
               type="button"
               key={m.assetId}
               disabled={isCurrent}
-              onClick={() => openAsset(m.assetId)}
+              onClick={() => openAsset(m.assetId, currentAssetName)}
               className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-2 border-b border-divider py-1 text-left transition-colors last:border-b-0 hover:bg-hover disabled:cursor-default disabled:opacity-60 disabled:hover:bg-transparent"
             >
               <span
@@ -102,7 +115,13 @@ function HashBlock({
   );
 }
 
-function NameBlock({ items }: { items: NameSibling[] }) {
+function NameBlock({
+  items,
+  currentAssetName,
+}: {
+  items: NameSibling[];
+  currentAssetName: string;
+}) {
   const openAsset = useExplorerStore((s) => s.openAsset);
   const visible = items.slice(0, MAX_VISIBLE);
   const hidden = Math.max(0, items.length - visible.length);
@@ -123,7 +142,7 @@ function NameBlock({ items }: { items: NameSibling[] }) {
           <button
             type="button"
             key={m.assetId}
-            onClick={() => openAsset(m.assetId)}
+            onClick={() => openAsset(m.assetId, currentAssetName)}
             className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-divider py-1 text-left transition-colors last:border-b-0 hover:bg-hover"
           >
             <span
@@ -149,7 +168,13 @@ function NameBlock({ items }: { items: NameSibling[] }) {
   );
 }
 
-function NearBlock({ items }: { items: NearDuplicate[] }) {
+function NearBlock({
+  items,
+  currentAssetName,
+}: {
+  items: NearDuplicate[];
+  currentAssetName: string;
+}) {
   const openAsset = useExplorerStore((s) => s.openAsset);
   const visible = items.slice(0, MAX_VISIBLE);
   const hidden = Math.max(0, items.length - visible.length);
@@ -170,7 +195,7 @@ function NearBlock({ items }: { items: NearDuplicate[] }) {
           <button
             type="button"
             key={m.assetId}
-            onClick={() => openAsset(m.assetId)}
+            onClick={() => openAsset(m.assetId, currentAssetName)}
             className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-divider py-1 text-left transition-colors last:border-b-0 hover:bg-hover"
           >
             <span className="rounded-xs bg-warn-bg px-1 py-px font-mono text-3xs font-semibold text-warn">

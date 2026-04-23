@@ -7,10 +7,37 @@ export type SizeBucket = "s" | "m" | "l";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];
 
+export type GridSort =
+  | "name-asc"
+  | "name-desc"
+  | "size-asc"
+  | "size-desc"
+  | "mtime-desc"
+  | "mtime-asc";
+export const GRID_SORT_LABELS: Record<GridSort, string> = {
+  "name-asc": "Name A–Z",
+  "name-desc": "Name Z–A",
+  "size-asc": "Size small → large",
+  "size-desc": "Size large → small",
+  "mtime-desc": "Modified newest",
+  "mtime-asc": "Modified oldest",
+};
+export const GRID_SORT_SHORT: Record<GridSort, string> = {
+  "name-asc": "Name ↑",
+  "name-desc": "Name ↓",
+  "size-asc": "Size ↑",
+  "size-desc": "Size ↓",
+  "mtime-desc": "Modified ↓",
+  "mtime-asc": "Modified ↑",
+};
+
+export type AssetHistoryEntry = { id: number; name: string };
+
 export type ExplorerState = {
   selectedSourceId: number | null;
   selectedFolder: string | null;
   selectedAssetId: number | null;
+  assetHistory: AssetHistoryEntry[];
   view: View;
   drawerOpen: boolean;
   boundingBoxes: boolean;
@@ -22,7 +49,8 @@ export type ExplorerState = {
 
   setSelectedSource: (id: number | null) => void;
   setSelectedFolder: (path: string | null) => void;
-  openAsset: (id: number) => void;
+  openAsset: (id: number, prevName?: string) => void;
+  goBackAsset: () => void;
   closeDrawer: () => void;
   setView: (view: View) => void;
   setDrawerOpen: (open: boolean) => void;
@@ -33,6 +61,8 @@ export type ExplorerState = {
   toggleExtFilter: (ext: ExtFilter) => void;
   setSizeBucket: (b: SizeBucket | null) => void;
   clearFilters: () => void;
+  gridSort: GridSort;
+  setGridSort: (s: GridSort) => void;
 
   draftPlan: Plan | null;
   ensureDraftPlan: (sourceId: number, sourceLabel: string) => Plan;
@@ -46,6 +76,9 @@ export type ExplorerState = {
   togglePalette: () => void;
   searchFocusNonce: number;
   focusSearch: () => void;
+
+  sidebarCollapsed: boolean;
+  toggleSidebar: () => void;
 };
 
 export const useExplorerStore = create<ExplorerState>()(
@@ -54,6 +87,7 @@ export const useExplorerStore = create<ExplorerState>()(
       selectedSourceId: null,
       selectedFolder: null,
       selectedAssetId: null,
+      assetHistory: [],
       view: "grid",
       drawerOpen: false,
       boundingBoxes: false,
@@ -65,8 +99,38 @@ export const useExplorerStore = create<ExplorerState>()(
 
       setSelectedSource: (id) => set({ selectedSourceId: id }),
       setSelectedFolder: (path) => set({ selectedFolder: path }),
-      openAsset: (id) => set({ selectedAssetId: id, drawerOpen: true }),
-      closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null }),
+      openAsset: (id, prevName) =>
+        set((s) => {
+          if (s.selectedAssetId === id) return { selectedAssetId: id, drawerOpen: true };
+          if (prevName === undefined) {
+            return { selectedAssetId: id, drawerOpen: true, assetHistory: [] };
+          }
+          const existingIdx = s.assetHistory.findIndex((e) => e.id === id);
+          if (existingIdx !== -1) {
+            return {
+              selectedAssetId: id,
+              drawerOpen: true,
+              assetHistory: s.assetHistory.slice(0, existingIdx),
+            };
+          }
+          const history =
+            s.selectedAssetId !== null
+              ? [...s.assetHistory, { id: s.selectedAssetId, name: prevName }]
+              : s.assetHistory;
+          const trimmed = history.length > 10 ? history.slice(history.length - 10) : history;
+          return { selectedAssetId: id, drawerOpen: true, assetHistory: trimmed };
+        }),
+      goBackAsset: () =>
+        set((s) => {
+          const last = s.assetHistory[s.assetHistory.length - 1];
+          if (!last) return s;
+          return {
+            selectedAssetId: last.id,
+            drawerOpen: true,
+            assetHistory: s.assetHistory.slice(0, -1),
+          };
+        }),
+      closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null, assetHistory: [] }),
       setView: (view) => set({ view }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
       setBoundingBoxes: (boundingBoxes) => set({ boundingBoxes }),
@@ -81,6 +145,8 @@ export const useExplorerStore = create<ExplorerState>()(
         })),
       setSizeBucket: (sizeBucket) => set({ sizeBucket }),
       clearFilters: () => set({ search: "", extFilter: [], sizeBucket: null, unusedOnly: false }),
+      gridSort: "name-asc" as GridSort,
+      setGridSort: (gridSort) => set({ gridSort }),
 
       draftPlan: null,
       ensureDraftPlan: (sourceId: number, sourceLabel: string): Plan => {
@@ -148,6 +214,9 @@ export const useExplorerStore = create<ExplorerState>()(
       togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
       searchFocusNonce: 0,
       focusSearch: () => set((s) => ({ searchFocusNonce: s.searchFocusNonce + 1 })),
+
+      sidebarCollapsed: false,
+      toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     }),
     {
       name: "pixeldex:ui",
@@ -169,7 +238,9 @@ export const useExplorerStore = create<ExplorerState>()(
         styleClass: state.styleClass,
         extFilter: state.extFilter,
         sizeBucket: state.sizeBucket,
+        gridSort: state.gridSort,
         draftPlan: state.draftPlan,
+        sidebarCollapsed: state.sidebarCollapsed,
       }),
     },
   ),

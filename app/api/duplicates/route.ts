@@ -6,14 +6,16 @@ import { listExactDuplicates, listNearPairs } from "@/lib/db/queries/duplicates"
 const Query = z.object({
   sourceId: z.coerce.number().int().positive(),
   mode: z.enum(["exact", "near"]),
+  folder: z.string().optional(),
 });
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const parsed = Query.safeParse(Object.fromEntries(url.searchParams));
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "invalid query", 400);
-  const { sourceId, mode } = parsed.data;
+  const { sourceId, mode, folder } = parsed.data;
+  const f = folder && folder.length > 0 ? folder : undefined;
   const db = getDb();
-  if (mode === "exact") return ok(listExactDuplicates(db, sourceId));
-  return ok(listNearPairs(db, sourceId));
+  if (mode === "exact") return ok(listExactDuplicates(db, sourceId, f));
+  return ok(listNearPairs(db, sourceId, f));
 }

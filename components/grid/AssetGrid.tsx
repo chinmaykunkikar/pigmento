@@ -1,9 +1,10 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { AssetSummary } from "@/lib/db/queries/folders";
 import { useExplorerStore } from "@/lib/store";
+import { ScrollArea } from "../primitives/ScrollArea";
 import { AssetTile } from "./AssetTile";
 
 type Props = { assets: AssetSummary[] };
@@ -19,13 +20,14 @@ export function AssetGrid({ assets }: Props) {
   const selectedAssetId = useExplorerStore((s) => s.selectedAssetId);
   const openAsset = useExplorerStore((s) => s.openAsset);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = parentRef.current;
     if (!el) return;
     const measure = () => {
       const w = el.clientWidth;
+      if (w <= 0) return;
       const c = Math.max(1, Math.floor((w + GAP) / (TILE_MIN_WIDTH + GAP)));
-      setCols(c);
+      setCols((prev) => (prev === c ? prev : c));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -43,15 +45,11 @@ export function AssetGrid({ assets }: Props) {
   });
 
   if (assets.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
-        No assets in this folder
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div ref={parentRef} className="flex-1 overflow-auto bg-bg">
+    <ScrollArea ref={parentRef} className="flex-1 bg-bg">
       <div
         style={{
           height: virtualizer.getTotalSize(),
@@ -86,6 +84,6 @@ export function AssetGrid({ assets }: Props) {
           );
         })}
       </div>
-    </div>
+    </ScrollArea>
   );
 }

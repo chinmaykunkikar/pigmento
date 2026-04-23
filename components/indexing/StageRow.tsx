@@ -13,14 +13,15 @@ export function StageRow({ stage, isFirst }: Props) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2.5 px-3 py-2.5",
+        "flex items-center gap-2.5 px-3 py-2.5 transition-colors duration-200 ease-[var(--ease-out-quart)]",
+        status === "active" && "bg-accent-bg/40",
         isFirst ? "" : "border-t border-divider",
       )}
     >
       <StatusDot status={status} />
       <span
         className={cn(
-          "flex-1 font-sans text-sm font-medium",
+          "flex-1 font-sans text-sm font-medium transition-colors duration-200 ease-[var(--ease-out-quart)]",
           status === "pending" ? "text-text-3" : "text-text",
         )}
       >
@@ -49,19 +50,26 @@ function fmtMs(ms: number): string {
 function StatusDot({ status }: { status: StageState["status"] }) {
   if (status === "done") {
     return (
-      <span className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-ok text-white">
+      <span
+        key="done"
+        className="flex h-3.5 w-3.5 flex-shrink-0 animate-[stage-pop_260ms_var(--ease-out-expo)] items-center justify-center rounded-full bg-ok text-white"
+      >
         <Check size={9} strokeWidth={2.5} />
       </span>
     );
   }
   if (status === "active") {
     return (
-      <span className="relative h-3.5 w-3.5 flex-shrink-0">
+      <span key="active" className="relative h-3.5 w-3.5 flex-shrink-0">
+        <span className="absolute inset-0 animate-[ping-ring_1400ms_var(--ease-out-quart)_infinite] rounded-full bg-accent/20" />
         <span className="absolute inset-0 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       </span>
     );
   }
   return (
-    <span className="h-3.5 w-3.5 flex-shrink-0 rounded-full border border-border-2 bg-surface" />
+    <span
+      key="pending"
+      className="h-3.5 w-3.5 flex-shrink-0 rounded-full border border-border-2 bg-surface"
+    />
   );
 }
