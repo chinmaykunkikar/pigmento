@@ -4,9 +4,9 @@ import { useExactDuplicates } from "@/lib/queries/duplicates";
 import { formatBytes } from "@/lib/time";
 import { DupGroup } from "./DupGroup";
 
-type Props = { sourceId: number };
+type Props = { sourceId: number; sourceLabel: string };
 
-export function ExactTab({ sourceId }: Props) {
+export function ExactTab({ sourceId, sourceLabel }: Props) {
   const q = useExactDuplicates(sourceId);
 
   if (q.isLoading) {
@@ -67,7 +67,13 @@ export function ExactTab({ sourceId }: Props) {
 
       <div className="flex flex-col gap-2 px-4 pb-4 pt-3">
         {data.groups.map((g, i) => (
-          <DupGroup key={g.id} group={g} defaultOpen={i === 0} />
+          <DupGroup
+            key={g.id}
+            group={g}
+            defaultOpen={i === 0}
+            sourceId={sourceId}
+            sourceLabel={sourceLabel}
+          />
         ))}
       </div>
     </>

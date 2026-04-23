@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import type { ExactGroup } from "@/lib/db/queries/duplicates";
+import type { MergeExactAction } from "@/lib/plan/schema";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
 import { ChevronDown, ChevronRight } from "../icons";
+import { AddToPlanButton } from "../plan/AddToPlanButton";
 
 const CHECKER = {
   backgroundImage:
@@ -15,20 +17,58 @@ const CHECKER = {
   backgroundColor: "var(--color-checker-a)",
 };
 
-type Props = { group: ExactGroup; defaultOpen: boolean };
+type Props = {
+  group: ExactGroup;
+  defaultOpen: boolean;
+  sourceId: number;
+  sourceLabel: string;
+};
 
-export function DupGroup({ group, defaultOpen }: Props) {
+export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const openAsset = useExplorerStore((s) => s.openAsset);
   const shortHash = `${group.key.slice(0, 10)}…`;
 
+  const action: MergeExactAction = {
+    id: `merge-exact:${group.id}`,
+    kind: "merge-exact",
+    createdAt: Date.now(),
+    hashKey: group.key,
+    keep: {
+      assetId: group.canonicalId,
+      relPath:
+        group.members.find((m) => m.assetId === group.canonicalId)?.relPath ?? group.canonicalName,
+      name: group.canonicalName,
+      size: group.perFileSize,
+      usageCount: group.members.find((m) => m.assetId === group.canonicalId)?.usageCount ?? 0,
+    },
+    drop: group.members
+      .filter((m) => m.assetId !== group.canonicalId)
+      .map((m) => ({
+        assetId: m.assetId,
+        relPath: m.relPath,
+        name: m.name,
+        size: m.size,
+        usageCount: m.usageCount,
+      })),
+  };
+
   return (
     <div className="overflow-hidden rounded-sm border border-border bg-surface">
-      <button
-        type="button"
+      {/* biome-ignore lint/a11y/useSemanticElements: native button would nest the Add-to-plan button */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }
+        }}
         className={cn(
-          "flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-hover",
+          "flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent",
           open && "border-b border-border",
         )}
       >
@@ -70,16 +110,14 @@ export function DupGroup({ group, defaultOpen }: Props) {
           </div>
         </div>
 
-        <span className="inline-flex h-6 flex-shrink-0 items-center rounded-sm border border-border-2 bg-surface px-2 font-mono text-xs font-medium text-text">
-          Review
-        </span>
+        <AddToPlanButton action={action} sourceId={sourceId} sourceLabel={sourceLabel} size="sm" />
 
         {open ? (
           <ChevronDown size={12} strokeWidth={1.75} className="flex-shrink-0 text-text-3" />
         ) : (
           <ChevronRight size={12} strokeWidth={1.75} className="flex-shrink-0 text-text-3" />
         )}
-      </button>
+      </div>
 
       {open ? (
         <div>

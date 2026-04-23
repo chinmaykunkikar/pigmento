@@ -41,7 +41,7 @@ export function GroupedView({ sourceId, sourceLabel }: Props) {
         ) : (
           <div>
             {page.groups.map((g) => (
-              <ClusterRow key={g.id} group={g} />
+              <ClusterRow key={g.id} group={g} sourceId={sourceId} sourceLabel={sourceLabel} />
             ))}
           </div>
         )}

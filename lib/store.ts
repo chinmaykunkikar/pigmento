@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { Plan, PlanAction } from "./plan/schema";
 
-export type View = "grid" | "grouped" | "duplicates";
+export type View = "grid" | "grouped" | "duplicates" | "plan";
 export type SizeBucket = "s" | "m" | "l";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];
@@ -32,11 +33,18 @@ export type ExplorerState = {
   toggleExtFilter: (ext: ExtFilter) => void;
   setSizeBucket: (b: SizeBucket | null) => void;
   clearFilters: () => void;
+
+  draftPlan: Plan | null;
+  ensureDraftPlan: (sourceId: number, sourceLabel: string) => Plan;
+  addPlanAction: (action: PlanAction, sourceId: number, sourceLabel: string) => void;
+  removePlanAction: (actionId: string) => void;
+  renamePlan: (name: string) => void;
+  clearPlan: () => void;
 };
 
 export const useExplorerStore = create<ExplorerState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       selectedSourceId: null,
       selectedFolder: null,
       selectedAssetId: null,
@@ -67,6 +75,67 @@ export const useExplorerStore = create<ExplorerState>()(
         })),
       setSizeBucket: (sizeBucket) => set({ sizeBucket }),
       clearFilters: () => set({ search: "", extFilter: [], sizeBucket: null, unusedOnly: false }),
+
+      draftPlan: null,
+      ensureDraftPlan: (sourceId: number, sourceLabel: string): Plan => {
+        const existing = get().draftPlan;
+        if (existing && existing.sourceId === sourceId) return existing;
+        const now = Date.now();
+        const next: Plan = {
+          version: "pixeldex/plan v1",
+          id: `plan-${now.toString(36)}`,
+          name: `Cleanup for ${sourceLabel}`,
+          sourceId,
+          sourceLabel,
+          createdAt: now,
+          updatedAt: now,
+          actions: [],
+        };
+        set({ draftPlan: next });
+        return next;
+      },
+      addPlanAction: (action: PlanAction, sourceId: number, sourceLabel: string) => {
+        const now = Date.now();
+        const cur = get().draftPlan;
+        const base: Plan =
+          cur && cur.sourceId === sourceId
+            ? cur
+            : {
+                version: "pixeldex/plan v1",
+                id: `plan-${now.toString(36)}`,
+                name: `Cleanup for ${sourceLabel}`,
+                sourceId,
+                sourceLabel,
+                createdAt: now,
+                updatedAt: now,
+                actions: [],
+              };
+        const exists = base.actions.some((a) => a.id === action.id);
+        set({
+          draftPlan: {
+            ...base,
+            updatedAt: now,
+            actions: exists ? base.actions : [...base.actions, action],
+          },
+        });
+      },
+      removePlanAction: (actionId: string) =>
+        set((s) => {
+          if (!s.draftPlan) return s;
+          return {
+            draftPlan: {
+              ...s.draftPlan,
+              updatedAt: Date.now(),
+              actions: s.draftPlan.actions.filter((a) => a.id !== actionId),
+            },
+          };
+        }),
+      renamePlan: (name: string) =>
+        set((s) => {
+          if (!s.draftPlan) return s;
+          return { draftPlan: { ...s.draftPlan, name, updatedAt: Date.now() } };
+        }),
+      clearPlan: () => set({ draftPlan: null }),
     }),
     {
       name: "pixeldex:ui",
@@ -88,6 +157,7 @@ export const useExplorerStore = create<ExplorerState>()(
         styleClass: state.styleClass,
         extFilter: state.extFilter,
         sizeBucket: state.sizeBucket,
+        draftPlan: state.draftPlan,
       }),
     },
   ),

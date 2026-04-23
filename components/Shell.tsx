@@ -13,6 +13,7 @@ import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
 import { GroupedView } from "./grouped/GroupedView";
 import { IndexingCenter } from "./indexing/IndexingCenter";
+import { CleanupPlan } from "./plan/CleanupPlan";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 import { Toolbar } from "./Toolbar";
@@ -108,9 +109,11 @@ export function Shell() {
             </div>
           ) : view === "duplicates" ? (
             <div className="relative flex min-h-0 flex-1 overflow-hidden">
-              <DuplicatesView sourceId={selectedSource.id} />
+              <DuplicatesView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               <DetailDrawer />
             </div>
+          ) : view === "plan" ? (
+            <CleanupPlan sourceLabel={selectedSource.label} />
           ) : (
             <>
               <BreadcrumbBar

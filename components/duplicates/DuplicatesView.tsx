@@ -8,9 +8,9 @@ import { NearTab } from "./NearTab";
 
 type Mode = "exact" | "near";
 
-type Props = { sourceId: number };
+type Props = { sourceId: number; sourceLabel: string };
 
-export function DuplicatesView({ sourceId }: Props) {
+export function DuplicatesView({ sourceId, sourceLabel }: Props) {
   const [mode, setMode] = useState<Mode>("exact");
   const exact = useExactDuplicates(sourceId);
   const near = useNearDuplicates(sourceId);
@@ -46,7 +46,11 @@ export function DuplicatesView({ sourceId }: Props) {
         )}
       </div>
 
-      {mode === "exact" ? <ExactTab sourceId={sourceId} /> : <NearTab sourceId={sourceId} />}
+      {mode === "exact" ? (
+        <ExactTab sourceId={sourceId} sourceLabel={sourceLabel} />
+      ) : (
+        <NearTab sourceId={sourceId} sourceLabel={sourceLabel} />
+      )}
     </div>
   );
 }

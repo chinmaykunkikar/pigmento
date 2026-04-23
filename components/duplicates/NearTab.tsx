@@ -6,7 +6,7 @@ import { useNearDuplicates } from "@/lib/queries/duplicates";
 import { HammingHistogram } from "./HammingHistogram";
 import { NearPair } from "./NearPair";
 
-type Props = { sourceId: number };
+type Props = { sourceId: number; sourceLabel: string };
 
 type Bucket = {
   name: string;
@@ -18,7 +18,7 @@ const DEFAULT_THRESHOLD = 14;
 const MIN_THRESHOLD = 0;
 const MAX_THRESHOLD = 16;
 
-export function NearTab({ sourceId }: Props) {
+export function NearTab({ sourceId, sourceLabel }: Props) {
   const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
   const q = useNearDuplicates(sourceId);
 
@@ -116,7 +116,12 @@ export function NearTab({ sourceId }: Props) {
               </div>
               <div className="flex flex-col gap-2">
                 {b.pairs.map((p) => (
-                  <NearPair key={`${p.clusterId}-${p.b.assetId}`} pair={p} />
+                  <NearPair
+                    key={`${p.clusterId}-${p.b.assetId}`}
+                    pair={p}
+                    sourceId={sourceId}
+                    sourceLabel={sourceLabel}
+                  />
                 ))}
               </div>
             </div>

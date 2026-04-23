@@ -2,8 +2,10 @@
 
 import { cn } from "@/lib/cn";
 import type { NearPairSide, NearPair as NearPairT } from "@/lib/db/queries/duplicates";
+import type { MergeClusterAction } from "@/lib/plan/schema";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
+import { AddToPlanButton } from "../plan/AddToPlanButton";
 
 const CHECKER = {
   backgroundImage:
@@ -15,9 +17,9 @@ const CHECKER = {
 
 const HASH_BITS = 64;
 
-type Props = { pair: NearPairT };
+type Props = { pair: NearPairT; sourceId: number; sourceLabel: string };
 
-export function NearPair({ pair }: Props) {
+export function NearPair({ pair, sourceId, sourceLabel }: Props) {
   const similarity = Math.round((1 - pair.hamming / HASH_BITS) * 100);
   const barColor =
     pair.confidence === "high"
@@ -33,6 +35,31 @@ export function NearPair({ pair }: Props) {
         : "bg-sunken-2 text-text-3";
 
   const diff = computeDiff(pair.a, pair.b);
+
+  const action: MergeClusterAction = {
+    id: `merge-near:${pair.clusterId}:${pair.a.assetId}-${pair.b.assetId}`,
+    kind: "merge-cluster",
+    createdAt: Date.now(),
+    clusterId: pair.clusterId,
+    clusterKey: pair.a.name,
+    clusterKind: "phash",
+    keep: {
+      assetId: pair.a.assetId,
+      relPath: pair.a.relPath,
+      name: pair.a.name,
+      size: pair.a.size,
+      usageCount: pair.a.usageCount,
+    },
+    drop: [
+      {
+        assetId: pair.b.assetId,
+        relPath: pair.b.relPath,
+        name: pair.b.name,
+        size: pair.b.size,
+        usageCount: pair.b.usageCount,
+      },
+    ],
+  };
 
   return (
     <div className="overflow-hidden rounded-sm border border-border bg-surface">
@@ -68,14 +95,7 @@ export function NearPair({ pair }: Props) {
         <div className="flex-1" />
         <DiffBtn label="Side-by-side" />
         <DiffBtn label="Overlay" />
-        <DiffBtn label="Keep both" />
-        <button
-          type="button"
-          disabled
-          className="cursor-not-allowed rounded-[2px] border-none bg-text px-2.5 py-0.5 font-sans text-xs font-medium text-surface opacity-60"
-        >
-          Merge into A
-        </button>
+        <AddToPlanButton action={action} sourceId={sourceId} sourceLabel={sourceLabel} size="sm" />
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  ClipboardList,
   Copy,
   Download,
   ExternalLink,

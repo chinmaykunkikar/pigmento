@@ -11,7 +11,7 @@ import {
   type View,
 } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
-import { Box, Layers, LayoutGrid, RefreshCw, Search, SquareStack, X } from "./icons";
+import { Box, ClipboardList, Layers, LayoutGrid, RefreshCw, Search, SquareStack, X } from "./icons";
 import { Chip, ChipGroup } from "./primitives/Chip";
 import { IconBtn } from "./primitives/IconBtn";
 import { TypePill } from "./primitives/Pill";
@@ -51,6 +51,11 @@ export function Toolbar({ source, indexerProgress }: Props) {
   const sizeBucket = useExplorerStore((s) => s.sizeBucket);
   const setSizeBucket = useExplorerStore((s) => s.setSizeBucket);
   const reindex = useReindex(source?.id ?? null);
+  const planCount = useExplorerStore((s) =>
+    s.draftPlan && s.draftPlan.sourceId === (source?.id ?? -1) ? s.draftPlan.actions.length : 0,
+  );
+
+  const planBadge = () => (planCount > 0 ? `Plan · ${planCount}` : "Plan");
 
   const filterActive =
     search.length > 0 || extFilter.length > 0 || sizeBucket !== null || unusedOnly;
@@ -136,6 +141,11 @@ export function Toolbar({ source, indexerProgress }: Props) {
             value: "duplicates",
             icon: <SquareStack size={13} strokeWidth={1.5} />,
             label: "Duplicates",
+          },
+          {
+            value: "plan",
+            icon: <ClipboardList size={13} strokeWidth={1.5} />,
+            label: planBadge(),
           },
         ]}
       />
