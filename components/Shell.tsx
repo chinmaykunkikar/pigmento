@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useFolder } from "@/lib/queries/folder";
+import { useIndexerStatus } from "@/lib/queries/indexer-status";
 import { useSources } from "@/lib/queries/sources";
 import { useExplorerStore } from "@/lib/store";
 import { DetailDrawer } from "./detail/DetailDrawer";
@@ -11,6 +12,7 @@ import { EmptyState } from "./empty/EmptyState";
 import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
 import { GroupedView } from "./grouped/GroupedView";
+import { IndexingCenter } from "./indexing/IndexingCenter";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 import { Toolbar } from "./Toolbar";
@@ -28,6 +30,7 @@ export function Shell() {
   const sizeBucket = useExplorerStore((s) => s.sizeBucket);
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
   const debouncedSearch = useDebounce(search, 200);
+  const indexerRun = useIndexerStatus();
 
   const list = sources.data ?? [];
   const selectedSource = useMemo(
@@ -66,7 +69,11 @@ export function Shell() {
     return (
       <div className="flex h-screen flex-col">
         <WindowChrome title="PixelDex" />
-        <EmptyState onAdded={(id) => setSelectedSource(id)} />
+        {indexerRun ? (
+          <IndexingCenter run={indexerRun} />
+        ) : (
+          <EmptyState onAdded={(id) => setSelectedSource(id)} />
+        )}
       </div>
     );
   }
@@ -86,8 +93,15 @@ export function Shell() {
           onSelectFolder={(p) => setSelectedFolder(p)}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <Toolbar source={selectedSource} />
-          {view === "grouped" ? (
+          <Toolbar
+            source={selectedSource}
+            indexerProgress={
+              indexerRun && indexerRun.sourceId === selectedSource.id ? indexerRun.progress : null
+            }
+          />
+          {indexerRun && indexerRun.sourceId === selectedSource.id ? (
+            <IndexingCenter run={indexerRun} />
+          ) : view === "grouped" ? (
             <div className="relative flex min-h-0 flex-1 overflow-hidden">
               <GroupedView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               <DetailDrawer />

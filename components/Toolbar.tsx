@@ -20,6 +20,7 @@ import { Toggle } from "./primitives/Toggle";
 
 type Props = {
   source: SourceWithMeta | null;
+  indexerProgress: number | null;
 };
 
 const SIZE_BUCKETS: { value: SizeBucket; label: string }[] = [
@@ -36,7 +37,7 @@ const EXT_LABELS: Record<ExtFilter, string> = {
   gif: "GIF",
 };
 
-export function Toolbar({ source }: Props) {
+export function Toolbar({ source, indexerProgress }: Props) {
   const view = useExplorerStore((s) => s.view);
   const setView = useExplorerStore((s) => s.setView);
   const boundingBoxes = useExplorerStore((s) => s.boundingBoxes);
@@ -168,6 +169,15 @@ export function Toolbar({ source }: Props) {
         />
         {reindex.isPending ? "Indexing…" : "Re-index"}
       </button>
+
+      {indexerProgress !== null ? (
+        <div className="-bottom-px pointer-events-none absolute right-0 left-0 h-0.5 bg-sunken">
+          <div
+            className="h-full bg-accent transition-[width] duration-400"
+            style={{ width: `${Math.min(100, Math.max(0, indexerProgress))}%` }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

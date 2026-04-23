@@ -1,6 +1,7 @@
 export {
   Archive,
   Box,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
