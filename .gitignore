@@ -9,3 +9,7 @@ data/
 .DS_Store
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Local skill directories
+/.agents/skills/
+/.claude/skills/
