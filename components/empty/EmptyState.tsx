@@ -24,7 +24,7 @@ export function EmptyState({ onAdded }: Props) {
       </div>
 
       <div className="max-w-110">
-        <div className="mb-1.5 text-xl font-semibold tracking-tight text-text">
+        <div className="mb-1.5 text-lg font-medium tracking-tight text-text">
           No sources indexed
         </div>
         <div className="text-sm leading-relaxed text-text-2">

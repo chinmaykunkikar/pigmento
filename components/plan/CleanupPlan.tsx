@@ -38,11 +38,6 @@ export function CleanupPlan({ sourceLabel }: Props) {
         <span className="font-mono text-xs text-text-3">Actions</span>
         <ChevronRight size={12} strokeWidth={1.75} className="text-text-4" />
         <span className="font-sans text-sm font-semibold text-text">Cleanup plan</span>
-        <div className="flex-1" />
-        <span className="inline-flex items-center gap-1.5 font-mono text-xs text-ok">
-          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ok" />
-          agent ready
-        </span>
       </div>
 
       <div className="flex h-9 flex-shrink-0 items-center gap-1 border-b border-border bg-surface px-4">
@@ -119,7 +114,7 @@ function DropPrompt({ empty, sourceLabel }: { empty: boolean; sourceLabel: strin
       <div className="font-sans text-sm text-text-2">
         {empty ? `Add actions for ${sourceLabel}` : "Add another action"}
       </div>
-      <div className="mt-1 font-mono text-xs text-text-3">
+      <div className="mt-1 font-mono text-xs text-text-3 [text-wrap:pretty]">
         Open Duplicates or Grouped and click{" "}
         <span className="rounded-xs bg-sunken px-1 py-px">Add to plan</span> on any cluster or pair.
       </div>

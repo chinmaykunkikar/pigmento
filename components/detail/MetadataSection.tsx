@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/cn";
 import type { Asset } from "@/lib/db/schema";
 import { formatBytes, relativeTime } from "@/lib/time";
-import { Copy } from "../icons";
+import { Check, Copy } from "../icons";
 
 type Props = { asset: Asset };
 
@@ -33,13 +34,9 @@ export function MetadataSection({ asset }: Props) {
           type="button"
           onClick={() => copy("path", asset.relPath)}
           aria-label="Copy path"
-          className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-xs text-text-3 transition-colors hover:bg-hover hover:text-text"
+          className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-xs text-text-3 transition-colors hover:bg-hover hover:text-text after:absolute after:-inset-2 after:content-['']"
         >
-          {copied === "path" ? (
-            <span className="font-mono text-3xs text-ok">✓</span>
-          ) : (
-            <Copy size={11} strokeWidth={1.5} />
-          )}
+          <IconSwap swapped={copied === "path"} />
         </button>
       </div>
 
@@ -66,12 +63,35 @@ export function MetadataSection({ asset }: Props) {
   );
 }
 
+function IconSwap({ swapped }: { swapped: boolean }) {
+  return (
+    <span className="relative inline-flex h-3 w-3 items-center justify-center">
+      <Copy
+        size={11}
+        strokeWidth={1.5}
+        className={cn(
+          "absolute transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+          swapped ? "opacity-0" : "opacity-100",
+        )}
+      />
+      <Check
+        size={11}
+        strokeWidth={2}
+        className={cn(
+          "absolute text-ok transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
+          swapped ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </span>
+  );
+}
+
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <span className="text-3xs font-medium uppercase tracking-wider text-text-3">{label}</span>
       <span
-        className="truncate font-mono text-xs text-text"
+        className="truncate font-mono text-xs text-text tabular-nums"
         title={sub ? `${value} · ${sub}` : value}
       >
         {value}

@@ -28,14 +28,9 @@ export function SourceSwitcher({ sources, selectedId, onSelect }: Props) {
             className="flex h-[30px] w-full cursor-pointer items-center gap-2 rounded-sm border border-border bg-sunken px-2.5 text-left hover:bg-hover"
           >
             <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="truncate text-xs font-medium leading-tight text-text">
-                {selected.label}
-              </div>
-              <div className="mt-px truncate font-mono text-2xs leading-tight text-text-3">
-                {sources.length === 1 ? "1 source" : `${sources.length} sources`}
-              </div>
-            </div>
+            <span className="min-w-0 flex-1 truncate text-xs font-medium text-text">
+              {selected.label}
+            </span>
             <ChevronDown size={10} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
           </button>
         </DropdownMenu.Trigger>
@@ -44,7 +39,7 @@ export function SourceSwitcher({ sources, selectedId, onSelect }: Props) {
           <DropdownMenu.Content
             sideOffset={4}
             align="start"
-            className="z-40 min-w-60 rounded-sm border border-border bg-surface p-1 shadow-lg"
+            className="z-40 min-w-60 rounded-lg border border-border bg-surface p-1 data-[state=open]:animate-[fade-in_120ms_var(--ease-out-quart)]"
           >
             {sources.map((s) => (
               <DropdownMenu.Item

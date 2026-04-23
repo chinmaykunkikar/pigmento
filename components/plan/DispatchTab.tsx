@@ -9,6 +9,7 @@ import {
   type DispatchResult,
   useDispatchPlan,
 } from "@/lib/queries/dispatch";
+import { Button } from "../primitives/Button";
 
 type Props = { plan: Plan };
 
@@ -123,15 +124,15 @@ export function DispatchTab({ plan }: Props) {
           {plan.actions.length} action{plan.actions.length === 1 ? "" : "s"} queued
         </span>
         <div className="flex-1" />
-        <button
-          type="button"
+        <Button
+          variant="primary"
           disabled={!canSend || !!readyMsg}
           onClick={() => dispatch.mutate({ plan, mode, harness })}
-          className="inline-flex h-8 items-center gap-2 rounded-sm border border-accent bg-accent px-3 font-sans text-sm font-medium text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-8 gap-2 px-3"
         >
           Send plan to agent
           <span className="font-mono text-2xs opacity-80">⌘↵</span>
-        </button>
+        </Button>
       </div>
 
       {readyMsg ? (

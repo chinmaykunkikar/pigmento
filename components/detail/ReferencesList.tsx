@@ -35,19 +35,19 @@ export function ReferencesList({ assetId, totalCount }: Props) {
         <span className="text-2xs font-semibold uppercase tracking-wider text-text-3">
           References
         </span>
-        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
+        <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2 tabular-nums">
           {totalCount}
         </span>
         {commentedCount > 0 ? (
           <span
             title="Some references are inside comments"
-            className="rounded-xs bg-warn-bg px-1.5 py-px font-mono text-2xs font-medium text-warn"
+            className="rounded-xs bg-warn-bg px-1.5 py-px font-mono text-2xs font-medium text-warn tabular-nums"
           >
             {commentedCount} commented
           </span>
         ) : null}
         <div className="flex-1" />
-        <span className="font-mono text-2xs text-text-3">
+        <span className="font-mono text-2xs text-text-3 tabular-nums">
           {uniqueFiles} file{uniqueFiles === 1 ? "" : "s"}
         </span>
       </div>

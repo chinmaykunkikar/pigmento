@@ -33,7 +33,7 @@ export function SortMenu() {
         <Dropdown.Content
           align="end"
           sideOffset={4}
-          className="z-50 min-w-[180px] overflow-hidden rounded-sm border border-border bg-surface p-0.5 shadow-[0_12px_32px_-12px_rgba(20,20,30,0.2)] data-[state=open]:animate-[fade-in_120ms_var(--ease-out-quart)]"
+          className="z-50 min-w-[180px] overflow-hidden rounded-sm border border-border bg-surface p-0.5 data-[state=open]:animate-[fade-in_120ms_var(--ease-out-quart)]"
         >
           {ORDER.map((s) => (
             <Dropdown.Item

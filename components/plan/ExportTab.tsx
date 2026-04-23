@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { type ExportFormat, planSchemaFooter, serializePlan } from "@/lib/plan/export";
 import type { Plan } from "@/lib/plan/schema";
 import { Copy, Download } from "../icons";
+import { Button } from "../primitives/Button";
 
 type Props = { plan: Plan };
 
@@ -68,14 +69,10 @@ export function ExportTab({ plan }: Props) {
           <Copy size={12} strokeWidth={1.75} />
           {copied ? "Copied" : "Copy"}
         </button>
-        <button
-          type="button"
-          onClick={download}
-          className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-accent bg-accent px-2.5 font-sans text-xs font-medium text-white transition-colors hover:brightness-110"
-        >
+        <Button variant="primary" onClick={download} className="text-xs">
           <Download size={12} strokeWidth={1.75} />
           Download
-        </button>
+        </Button>
       </div>
 
       <pre className="overflow-auto rounded-sm bg-text p-3 font-mono text-2xs leading-relaxed text-[#e8e6e2]">

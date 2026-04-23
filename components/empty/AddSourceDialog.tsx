@@ -46,8 +46,8 @@ export function AddSourceDialog({ open, onOpenChange, onAdded }: Props) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-overlay" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-110 -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-surface shadow-lg">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-overlay data-[state=open]:animate-[dialog-overlay-in_220ms_var(--ease-out-quart)] data-[state=closed]:animate-[dialog-overlay-out_160ms_var(--ease-out-quart)]" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-110 rounded-md border border-border bg-surface shadow-[0_24px_48px_-24px_rgba(20,20,30,0.25)] [transform:translate(-50%,-50%)] data-[state=open]:animate-[dialog-content-in_220ms_var(--ease-out-quart)] data-[state=closed]:animate-[dialog-content-out_160ms_var(--ease-out-quart)]">
           <div className="flex h-9 items-center justify-between border-b border-border px-3">
             <Dialog.Title className="text-sm font-semibold text-text">
               Add local source

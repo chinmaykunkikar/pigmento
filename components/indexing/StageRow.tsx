@@ -21,7 +21,7 @@ export function StageRow({ stage, isFirst }: Props) {
       <StatusDot status={status} />
       <span
         className={cn(
-          "flex-1 font-sans text-sm font-medium transition-colors duration-200 ease-[var(--ease-out-quart)]",
+          "flex-1 font-sans text-sm transition-colors duration-200 ease-[var(--ease-out-quart)]",
           status === "pending" ? "text-text-3" : "text-text",
         )}
       >

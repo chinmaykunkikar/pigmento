@@ -182,7 +182,7 @@ export function CommandPalette({ source }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
-        className="absolute left-1/2 top-[18%] w-[min(560px,92vw)] -translate-x-1/2 animate-[scale-in_180ms_var(--ease-out-expo)] overflow-hidden rounded-md border border-border bg-surface shadow-[0_24px_60px_-24px_rgba(20,20,30,0.35)]"
+        className="absolute left-1/2 top-[18%] w-[min(560px,92vw)] overflow-hidden rounded-md border border-border bg-surface [transform:translateX(-50%)] animate-[scale-in_180ms_var(--ease-out-expo)]"
       >
         <Command label="Command palette" shouldFilter>
           <div className="flex items-center gap-2 border-b border-border px-3">

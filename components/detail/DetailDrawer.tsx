@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { parsePixelSuffix, pixelSizeFromPath } from "@/lib/indexer/variants";
 import { useAsset } from "@/lib/queries/asset";
 import { useExplorerStore } from "@/lib/store";
-import { ArrowLeft, TriangleAlert, X } from "../icons";
+import { ArrowLeft, X } from "../icons";
 import { IconBtn } from "../primitives/IconBtn";
 import { ScrollArea } from "../primitives/ScrollArea";
 import { ActionsGrid } from "./ActionsGrid";
@@ -32,6 +32,7 @@ export function DetailDrawer() {
       if (!target) return;
       if (asideRef.current?.contains(target)) return;
       if (target.closest?.("[data-asset-tile]")) return;
+      if (target.closest?.("[data-radix-popper-content-wrapper]")) return;
       closeDrawer();
     }
     document.addEventListener("mousedown", onDown);
@@ -51,11 +52,6 @@ export function DetailDrawer() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
   }, []);
-
-  const inDupGroup =
-    (q.data?.clusters.some((c) => c.kind === "hash") ?? false) ||
-    (q.data?.nearDuplicates.length ?? 0) > 0 ||
-    (q.data?.nameSiblings.length ?? 0) > 0;
 
   const currentSize = q.data
     ? (parsePixelSuffix(q.data.asset.stem)?.size ?? pixelSizeFromPath(q.data.asset.dir))
@@ -88,15 +84,6 @@ export function DetailDrawer() {
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-text">
           {q.data?.asset.name ?? "—"}
         </span>
-        {inDupGroup ? (
-          <span
-            title="Part of a duplicate cluster"
-            className="inline-flex flex-shrink-0 items-center gap-1 rounded-xs bg-warn-bg px-1.5 py-px font-mono text-2xs font-semibold text-warn"
-          >
-            <TriangleAlert size={9} strokeWidth={2} />
-            IN DUP GROUP
-          </span>
-        ) : null}
         <IconBtn label="Close" onClick={closeDrawer}>
           <X size={14} strokeWidth={1.5} />
         </IconBtn>
