@@ -44,7 +44,10 @@ export const planAction = z.discriminatedUnion("kind", [
 
 export const planSchema = z.object({
   version: z.literal(planFormatVersion),
-  id: z.string().min(1),
+  id: z
+    .string()
+    .min(1)
+    .regex(/^[a-zA-Z0-9_-]+$/, "plan id must be slug-safe"),
   name: z.string().min(1),
   sourceId: z.number().int().positive(),
   sourceLabel: z.string().min(1),

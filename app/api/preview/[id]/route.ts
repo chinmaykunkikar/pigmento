@@ -31,12 +31,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const contentType = MIME[asset.ext] ?? "application/octet-stream";
   const stream = Readable.toWeb(createReadStream(asset.absPath)) as ReadableStream<Uint8Array>;
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": contentType,
-      "Content-Length": String(st.size),
-      "Cache-Control": "public, max-age=3600",
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Content-Length": String(st.size),
+    "Cache-Control": "public, max-age=3600",
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (asset.ext === "svg") {
+    headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
+  }
+
+  return new Response(stream, { headers });
 }

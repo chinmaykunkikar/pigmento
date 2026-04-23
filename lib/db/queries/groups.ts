@@ -1,11 +1,12 @@
-import { and, asc, count, desc, eq, inArray, like, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, or, type SQL, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { assets, clusterMembers, clusters, usages } from "../schema";
 
 function folderClause(folder: string | undefined): SQL | undefined {
   if (!folder) return undefined;
   const escaped = folder.replace(/[\\%_]/g, (c) => `\\${c}`);
-  return or(eq(assets.dir, folder), like(assets.dir, `${escaped}/%`));
+  const pattern = `${escaped}/%`;
+  return or(eq(assets.dir, folder), sql`${assets.dir} LIKE ${pattern} ESCAPE '\\'`);
 }
 
 export type GroupSort = "size" | "alpha";

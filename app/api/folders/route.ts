@@ -3,7 +3,7 @@ import { fail, ok } from "@/lib/api/response";
 import { getDb } from "@/lib/db/client";
 import { type GridSort, type SizeBucket, searchAssets } from "@/lib/db/queries/folders";
 
-const ALLOWED_EXTS = ["svg", "png", "jpg", "jpeg", "webp", "gif"] as const;
+const ALLOWED_EXTS = ["svg", "png", "jpg", "webp", "gif"] as const;
 
 const SORTS: readonly GridSort[] = [
   "name-asc",

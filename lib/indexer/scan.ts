@@ -21,8 +21,9 @@ export async function scan(
     const absPath = e.path;
     const relPath = relative(root, absPath);
     const name = basename(absPath);
-    const ext = extname(name).slice(1).toLowerCase();
-    const stem = ext ? name.slice(0, -(ext.length + 1)) : name;
+    const rawExt = extname(name).slice(1).toLowerCase();
+    const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+    const stem = rawExt ? name.slice(0, -(rawExt.length + 1)) : name;
     const dir = dirname(relPath);
     if (!e.stats) {
       throw new Error(`fast-glob returned no stats for ${absPath}`);

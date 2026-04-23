@@ -14,9 +14,9 @@ export function rebuildClusters(
   hash: HashCluster[],
   phash: PhashCluster[],
 ): ClusterCounts {
-  db.delete(clusters).where(eq(clusters.sourceId, sourceId)).run();
-
   db.transaction((tx) => {
+    tx.delete(clusters).where(eq(clusters.sourceId, sourceId)).run();
+
     for (const c of name) {
       const [row] = tx
         .insert(clusters)
