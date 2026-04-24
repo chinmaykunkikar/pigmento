@@ -187,13 +187,21 @@ export function Shell() {
                 className={view === "clusters" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
                 aria-hidden={view !== "clusters"}
               >
-                <ClustersView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+                <ClustersView
+                  sourceId={selectedSource.id}
+                  sourceLabel={selectedSource.label}
+                  lastIndexedAt={selectedSource.lastIndexedAt}
+                />
               </div>
               <div
                 className={view === "match" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
                 aria-hidden={view !== "match"}
               >
-                <MatchView sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+                <MatchView
+                  sourceId={selectedSource.id}
+                  sourceLabel={selectedSource.label}
+                  lastIndexedAt={selectedSource.lastIndexedAt}
+                />
               </div>
               <ActionBar sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               <DetailDrawer />

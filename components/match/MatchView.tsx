@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isAllowedExt } from "@/lib/match/ext";
 import { useMatch } from "@/lib/queries/match";
+import { useReindex } from "@/lib/queries/reindex";
 import { useExplorerStore } from "@/lib/store";
+import { RefreshCw, ScanSearch } from "../icons";
+import { Button } from "../primitives/Button";
 import { ErrorState } from "../primitives/ErrorState";
 import { Bucket } from "./Bucket";
 import { DropCard } from "./DropCard";
@@ -14,9 +17,9 @@ import { SignaturePanel } from "./SignaturePanel";
 const NEAR_THRESHOLD_DEFAULT = 12;
 const NEAR_THRESHOLD_MAX = 20;
 
-type Props = { sourceId: number; sourceLabel: string };
+type Props = { sourceId: number; sourceLabel: string; lastIndexedAt: string | null };
 
-export function MatchView({ sourceId, sourceLabel }: Props) {
+export function MatchView({ sourceId, sourceLabel, lastIndexedAt }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<string | null>(null);
@@ -84,6 +87,7 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
     e.preventDefault();
   };
 
+  const reindex = useReindex(sourceId);
   const clipEnabled = match.data?.clipEnabled ?? false;
   const buckets = useBuckets(match.data?.buckets, threshold);
   const total =
@@ -91,6 +95,10 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
     buckets.near.length +
     buckets.name.length +
     (clipEnabled ? buckets.semantic.length : 0);
+
+  if (!lastIndexedAt) {
+    return <FirstVisitHint onReindex={() => reindex.mutate({})} pending={reindex.isPending} />;
+  }
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: drop target spans the view, not a button
@@ -423,6 +431,27 @@ function LoadingHint() {
   return (
     <div className="flex h-full items-center justify-center p-8">
       <p className="font-mono text-sm text-text-3">Computing signature and matching…</p>
+    </div>
+  );
+}
+
+function FirstVisitHint({ onReindex, pending }: { onReindex: () => void; pending: boolean }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-bg p-10 text-center">
+      <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-sunken">
+        <ScanSearch size={14} strokeWidth={1.5} className="text-text-3" />
+      </span>
+      <div className="max-w-110">
+        <div className="mb-1 font-sans text-md font-medium text-text">Nothing to match against</div>
+        <div className="font-sans text-sm leading-relaxed text-text-2">
+          Match looks for exact, near, and name-cluster matches in your indexed assets. Run an index
+          first, then drop any image here to find matches.
+        </div>
+      </div>
+      <Button variant="primary" className="h-8 px-3.5" disabled={pending} onClick={onReindex}>
+        <RefreshCw size={12} strokeWidth={1.5} className={pending ? "animate-spin" : undefined} />
+        {pending ? "Indexing…" : "Run index"}
+      </Button>
     </div>
   );
 }

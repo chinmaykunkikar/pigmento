@@ -12,7 +12,7 @@ import {
   type View,
 } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
-import { ClipboardList, Layers, LayoutGrid, RefreshCw, ScanSearch, Search, X } from "./icons";
+import { ClipboardList, Home, Layers, LayoutGrid, RefreshCw, ScanSearch, Search, X } from "./icons";
 import { Chip } from "./primitives/Chip";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
@@ -160,9 +160,10 @@ export function Toolbar({ source, indexerProgress }: Props) {
       <div className="flex-1" />
 
       <Segmented<View>
-        value={view === "overview" ? "grid" : view}
+        value={view}
         onChange={(v) => setView(v)}
         items={[
+          { value: "overview", icon: <Home size={12} strokeWidth={1.5} />, label: "Overview" },
           { value: "grid", icon: <LayoutGrid size={12} strokeWidth={1.5} />, label: "Grid" },
           {
             value: "clusters",

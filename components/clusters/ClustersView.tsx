@@ -4,24 +4,28 @@ import { useState } from "react";
 import type { GroupSort } from "@/lib/db/queries/groups";
 import { useExactDuplicates, useNearDuplicates } from "@/lib/queries/duplicates";
 import { useGroups } from "@/lib/queries/groups";
+import { useReindex } from "@/lib/queries/reindex";
 import { useExplorerStore } from "@/lib/store";
 import { DupTab } from "../duplicates/DupTab";
 import { ExactTab } from "../duplicates/ExactTab";
 import { NearTab } from "../duplicates/NearTab";
 import { ClusterRow } from "../grouped/ClusterRow";
+import { Layers, RefreshCw } from "../icons";
+import { Button } from "../primitives/Button";
 import { ErrorState } from "../primitives/ErrorState";
 import { FolderScopeChip } from "../primitives/FolderScopeChip";
 import { ScrollArea } from "../primitives/ScrollArea";
 
 type Mode = "exact" | "near" | "name";
 
-type Props = { sourceId: number; sourceLabel: string };
+type Props = { sourceId: number; sourceLabel: string; lastIndexedAt: string | null };
 
-export function ClustersView({ sourceId, sourceLabel }: Props) {
+export function ClustersView({ sourceId, sourceLabel, lastIndexedAt }: Props) {
   const [mode, setMode] = useState<Mode>("exact");
   const [nameSort, setNameSort] = useState<GroupSort>("size");
   const selectedFolder = useExplorerStore((s) => s.selectedFolder);
   const folder = selectedFolder ?? undefined;
+  const reindex = useReindex(sourceId);
 
   const exact = useExactDuplicates(sourceId, folder);
   const near = useNearDuplicates(sourceId, folder);
@@ -30,6 +34,10 @@ export function ClustersView({ sourceId, sourceLabel }: Props) {
   const exactCount = exact.data?.totalGroups ?? 0;
   const nearCount = near.data?.pairs.length ?? 0;
   const nameCount = name.data?.total ?? 0;
+
+  if (!lastIndexedAt) {
+    return <FirstVisitHint onReindex={() => reindex.mutate({})} pending={reindex.isPending} />;
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-bg">
@@ -169,6 +177,27 @@ function NameTab({
       {page.groups.map((g) => (
         <ClusterRow key={g.id} group={g} sourceId={sourceId} sourceLabel={sourceLabel} />
       ))}
+    </div>
+  );
+}
+
+function FirstVisitHint({ onReindex, pending }: { onReindex: () => void; pending: boolean }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-bg p-10 text-center">
+      <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-sunken">
+        <Layers size={14} strokeWidth={1.5} className="text-text-3" />
+      </span>
+      <div className="max-w-110">
+        <div className="mb-1 font-sans text-md font-medium text-text">No clusters yet</div>
+        <div className="font-sans text-sm leading-relaxed text-text-2">
+          Clusters group visually similar assets by hash, perceptual hash, and shared canonical
+          names. Run an index to populate them.
+        </div>
+      </div>
+      <Button variant="primary" className="h-8 px-3.5" disabled={pending} onClick={onReindex}>
+        <RefreshCw size={12} strokeWidth={1.5} className={pending ? "animate-spin" : undefined} />
+        {pending ? "Indexing…" : "Run index"}
+      </Button>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import {
   type DispatchResult,
   useDispatchPlan,
 } from "@/lib/queries/dispatch";
+import { useReindex } from "@/lib/queries/reindex";
+import { RefreshCw } from "../icons";
 import { Button } from "../primitives/Button";
 import { ErrorState } from "../primitives/ErrorState";
 import { DispatchLogViewer } from "./DispatchLogViewer";
@@ -150,7 +152,12 @@ export function DispatchTab({ plan }: Props) {
       ) : null}
 
       {dispatch.data ? (
-        <DispatchResultCard data={dispatch.data} harness={harness} mode={mode} />
+        <DispatchResultCard
+          data={dispatch.data}
+          harness={harness}
+          mode={mode}
+          sourceId={plan.sourceId}
+        />
       ) : null}
       {dispatch.error ? (
         <ErrorState
@@ -176,11 +183,15 @@ function DispatchResultCard({
   data,
   harness,
   mode,
+  sourceId,
 }: {
   data: DispatchResult;
   harness: DispatchHarness;
   mode: DispatchMode;
+  sourceId: number;
 }) {
+  const reindex = useReindex(sourceId);
+  const mutatesWorkingTree = mode !== "dry-run";
   return (
     <div className="flex flex-col gap-3">
       <div className="animate-[slide-down-in_260ms_var(--ease-out-quart)] rounded-sm border border-border border-l-(length:--border-status) border-l-ok bg-surface">
@@ -199,8 +210,29 @@ function DispatchResultCard({
             </li>
           ))}
         </ul>
-        <div className="border-t border-divider bg-sunken px-3 py-2 font-mono text-2xs text-text-3">
-          Next: <span className="text-text">{data.hint}</span>
+        <div className="flex items-center gap-2 border-t border-divider bg-sunken px-3 py-2 font-mono text-2xs text-text-3">
+          <span>
+            Next: <span className="text-text">{data.hint}</span>
+          </span>
+          {mutatesWorkingTree ? (
+            <>
+              <div className="flex-1" />
+              <Button
+                variant="ghost"
+                className="h-6 px-2 text-2xs"
+                disabled={reindex.isPending}
+                onClick={() => reindex.mutate({})}
+                title="Re-index to pick up changes made by the agent"
+              >
+                <RefreshCw
+                  size={10}
+                  strokeWidth={1.5}
+                  className={reindex.isPending ? "animate-spin" : undefined}
+                />
+                {reindex.isPending ? "Re-indexing…" : "Re-index to refresh"}
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
 
