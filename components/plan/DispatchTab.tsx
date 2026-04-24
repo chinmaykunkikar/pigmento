@@ -10,6 +10,7 @@ import {
   useDispatchPlan,
 } from "@/lib/queries/dispatch";
 import { Button } from "../primitives/Button";
+import { ErrorState } from "../primitives/ErrorState";
 import { DispatchLogViewer } from "./DispatchLogViewer";
 
 type Props = { plan: Plan };
@@ -152,9 +153,11 @@ export function DispatchTab({ plan }: Props) {
         <DispatchResultCard data={dispatch.data} harness={harness} mode={mode} />
       ) : null}
       {dispatch.error ? (
-        <div className="rounded-sm border border-border border-l-[3px] border-l-danger bg-danger-bg px-3 py-2 font-mono text-xs text-danger">
-          {dispatch.error.message}
-        </div>
+        <ErrorState
+          error={dispatch.error}
+          title="Dispatch failed"
+          onRetry={() => dispatch.mutate({ plan, mode, harness })}
+        />
       ) : null}
     </div>
   );

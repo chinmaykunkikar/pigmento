@@ -2,6 +2,7 @@
 
 import { useExactDuplicates } from "@/lib/queries/duplicates";
 import { formatBytes } from "@/lib/time";
+import { ErrorState } from "../primitives/ErrorState";
 import { DupGroup } from "./DupGroup";
 
 type Props = { sourceId: number; sourceLabel: string };
@@ -18,8 +19,12 @@ export function ExactTab({ sourceId, sourceLabel }: Props) {
   }
   if (q.isError) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-danger">
-        {(q.error as Error).message}
+      <div className="m-4">
+        <ErrorState
+          error={q.error}
+          title="Couldn't load exact duplicates"
+          onRetry={() => q.refetch()}
+        />
       </div>
     );
   }

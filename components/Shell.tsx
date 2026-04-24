@@ -17,6 +17,7 @@ import { IndexingCenter } from "./indexing/IndexingCenter";
 import { MatchView } from "./match/MatchView";
 import { PostIndexOverview } from "./overview/PostIndexOverview";
 import { PlanDrawer } from "./plan/PlanDrawer";
+import { ErrorState } from "./primitives/ErrorState";
 import { ShortcutLayer } from "./ShortcutLayer";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
@@ -70,6 +71,20 @@ export function Shell() {
     return (
       <div className="flex h-screen items-center justify-center bg-bg text-sm text-text-3">
         Loading…
+      </div>
+    );
+  }
+
+  if (sources.isError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-bg p-8">
+        <div className="w-full max-w-140">
+          <ErrorState
+            error={sources.error}
+            title="Couldn't load sources"
+            onRetry={() => sources.refetch()}
+          />
+        </div>
       </div>
     );
   }
@@ -143,6 +158,14 @@ export function Shell() {
                   {folder.isLoading ? (
                     <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
                       Loading folder…
+                    </div>
+                  ) : folder.isError ? (
+                    <div className="m-4">
+                      <ErrorState
+                        error={folder.error}
+                        title="Couldn't load folder"
+                        onRetry={() => folder.refetch()}
+                      />
                     </div>
                   ) : assets.length === 0 ? (
                     <FolderEmptyState

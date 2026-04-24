@@ -73,6 +73,8 @@ export function DispatchLogViewer({ jobId, harness, mode }: Props) {
       <div
         ref={bodyRef}
         className="max-h-75 overflow-auto bg-sunken px-3 py-2 font-mono text-2xs leading-relaxed"
+        aria-live="polite"
+        aria-atomic="false"
       >
         {stream.events.length === 0 ? (
           <p className="text-text-3">Waiting for output…</p>

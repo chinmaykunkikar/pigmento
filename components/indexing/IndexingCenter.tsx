@@ -32,7 +32,11 @@ export function IndexingCenter({ run }: Props) {
       <ScrollArea className="flex-1">
         <div className="mx-auto max-w-160 px-4 py-4">
           <div className="mb-3 font-sans text-base font-semibold text-text">Indexing pipeline</div>
-          <div className="overflow-hidden rounded-sm border border-border bg-surface">
+          <div
+            className="overflow-hidden rounded-sm border border-border bg-surface"
+            aria-live="polite"
+            aria-atomic="false"
+          >
             {run.stages.map((s, i) => (
               <StageRow key={s.key} stage={s} isFirst={i === 0} />
             ))}

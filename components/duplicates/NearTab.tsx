@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { NearPair as NearPairT } from "@/lib/db/queries/duplicates";
 import { useNearDuplicates } from "@/lib/queries/duplicates";
+import { ErrorState } from "../primitives/ErrorState";
 import { HammingHistogram } from "./HammingHistogram";
 import { NearPair } from "./NearPair";
 
@@ -49,8 +50,12 @@ export function NearTab({ sourceId, sourceLabel }: Props) {
   }
   if (q.isError) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-danger">
-        {(q.error as Error).message}
+      <div className="m-4">
+        <ErrorState
+          error={q.error}
+          title="Couldn't load near duplicates"
+          onRetry={() => q.refetch()}
+        />
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { isAllowedExt } from "@/lib/match/ext";
 import { useMatch } from "@/lib/queries/match";
 import { useExplorerStore } from "@/lib/store";
+import { ErrorState } from "../primitives/ErrorState";
 import { Bucket } from "./Bucket";
 import { DropCard } from "./DropCard";
 import { ResultRow, type ResultRowData } from "./ResultRow";
@@ -133,7 +134,13 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
           ) : match.isPending ? (
             <LoadingHint />
           ) : match.error ? (
-            <ErrorHint message={match.error.message} />
+            <div className="m-4">
+              <ErrorState
+                error={match.error}
+                title="Match lookup failed"
+                onRetry={() => file && match.mutate({ file, sourceId })}
+              />
+            </div>
           ) : match.data ? (
             <BucketList
               buckets={buckets}
@@ -416,14 +423,6 @@ function LoadingHint() {
   return (
     <div className="flex h-full items-center justify-center p-8">
       <p className="font-mono text-sm text-text-3">Computing signature and matching…</p>
-    </div>
-  );
-}
-
-function ErrorHint({ message }: { message: string }) {
-  return (
-    <div className="m-4 rounded-sm border border-border border-l-[3px] border-l-danger bg-danger-bg px-3 py-2 font-mono text-xs text-danger">
-      {message}
     </div>
   );
 }

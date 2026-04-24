@@ -50,13 +50,7 @@ export function EmptyState({ onAdded }: Props) {
 
       <div className="mt-4 flex gap-7 font-mono text-xs text-text-3">
         <span>
-          <Kbd>⌘</Kbd> <Kbd>O</Kbd> add source
-        </span>
-        <span>
           <Kbd>⌘</Kbd> <Kbd>K</Kbd> command palette
-        </span>
-        <span>
-          <Kbd>⌘</Kbd> <Kbd>,</Kbd> preferences
         </span>
       </div>
 

@@ -6,6 +6,7 @@ import { useOverviewCounts } from "@/lib/queries/overview";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes, relativeTime } from "@/lib/time";
 import { ArrowRight, Layers, LayoutGrid, ScanSearch, SquareStack, TriangleAlert } from "../icons";
+import { ErrorState } from "../primitives/ErrorState";
 import { ScrollArea } from "../primitives/ScrollArea";
 
 type Props = {
@@ -52,9 +53,11 @@ export function PostIndexOverview({ sourceId, sourceLabel, lastIndexedAt }: Prop
         {q.isLoading ? (
           <div className="py-10 text-center font-mono text-xs text-text-3">Computing overview…</div>
         ) : q.isError ? (
-          <div className="py-10 text-center font-mono text-xs text-danger">
-            {(q.error as Error).message}
-          </div>
+          <ErrorState
+            error={q.error}
+            title="Couldn't compute overview"
+            onRetry={() => q.refetch()}
+          />
         ) : !q.data || q.data.totalAssets === 0 ? (
           <div className="py-10 text-center font-mono text-xs text-text-3">
             No assets indexed yet. Re-index this source to populate the overview.

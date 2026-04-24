@@ -9,6 +9,7 @@ import { DupTab } from "../duplicates/DupTab";
 import { ExactTab } from "../duplicates/ExactTab";
 import { NearTab } from "../duplicates/NearTab";
 import { ClusterRow } from "../grouped/ClusterRow";
+import { ErrorState } from "../primitives/ErrorState";
 import { FolderScopeChip } from "../primitives/FolderScopeChip";
 import { ScrollArea } from "../primitives/ScrollArea";
 
@@ -143,8 +144,12 @@ function NameTab({
   }
   if (query.isError) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-danger">
-        {(query.error as Error).message}
+      <div className="m-4">
+        <ErrorState
+          error={query.error}
+          title="Couldn't load name clusters"
+          onRetry={() => query.refetch()}
+        />
       </div>
     );
   }
