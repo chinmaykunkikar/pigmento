@@ -59,7 +59,7 @@ export function ActionsGrid({ asset, onRename }: Props) {
               />
               <Check
                 size={12}
-                strokeWidth={2.25}
+                strokeWidth={1.75}
                 className={cn(
                   "absolute transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
                   justCopied ? "opacity-100" : "opacity-0",
@@ -68,7 +68,7 @@ export function ActionsGrid({ asset, onRename }: Props) {
             </span>
             <span className="flex-1 text-left">{triggerLabel}</span>
             <ChevronDown
-              size={11}
+              size={12}
               strokeWidth={1.75}
               className={cn(justCopied ? "text-ok/60" : "text-text-3")}
             />
@@ -84,7 +84,7 @@ export function ActionsGrid({ asset, onRename }: Props) {
               onSelect={() => copy("path", asset.relPath)}
               className="flex h-7 items-center gap-2 rounded-xs px-2 font-sans text-xs text-text outline-none data-[highlighted]:bg-accent-bg data-[highlighted]:text-accent-text"
             >
-              <Copy size={11} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
+              <Copy size={12} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
               <span className="flex-1">Copy path</span>
               <KbdHint keys={formatCombo("mod+c")} />
             </Dropdown.Item>
@@ -92,7 +92,7 @@ export function ActionsGrid({ asset, onRename }: Props) {
               onSelect={() => copy("import", importStatement)}
               className="flex h-7 items-center gap-2 rounded-xs px-2 font-sans text-xs text-text outline-none data-[highlighted]:bg-accent-bg data-[highlighted]:text-accent-text"
             >
-              <Copy size={11} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
+              <Copy size={12} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
               <span className="flex-1">Copy import</span>
               <KbdHint keys={formatCombo("mod+shift+c")} />
             </Dropdown.Item>
@@ -101,7 +101,7 @@ export function ActionsGrid({ asset, onRename }: Props) {
               onSelect={onRename}
               className="flex h-7 items-center gap-2 rounded-xs px-2 font-sans text-xs text-text outline-none data-[highlighted]:bg-accent-bg data-[highlighted]:text-accent-text"
             >
-              <Pencil size={11} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
+              <Pencil size={12} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
               <span className="flex-1">Rename…</span>
             </Dropdown.Item>
           </Dropdown.Content>

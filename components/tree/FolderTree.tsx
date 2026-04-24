@@ -178,9 +178,9 @@ function Row({
         )}
       >
         {isOpen && hasKids ? (
-          <FolderOpen size={13} strokeWidth={1.5} />
+          <FolderOpen size={12} strokeWidth={1.5} />
         ) : (
-          <Folder size={13} strokeWidth={1.5} />
+          <Folder size={12} strokeWidth={1.5} />
         )}
       </span>
       <span

@@ -34,7 +34,7 @@ export function FolderEmptyState({ sourceId, folderPath, filterActive }: Props) 
         hint="Nothing here matches your current filters."
         action={{
           label: "Clear filters",
-          icon: <X size={11} strokeWidth={2} />,
+          icon: <X size={12} strokeWidth={1.75} />,
           onClick: clearFilters,
         }}
       />
@@ -60,7 +60,7 @@ export function FolderEmptyState({ sourceId, folderPath, filterActive }: Props) 
               className="group flex items-center gap-2 rounded-sm border border-border bg-surface px-2.5 py-1.5 text-left transition-colors hover:border-border-2 hover:bg-hover"
             >
               <Folder
-                size={13}
+                size={12}
                 strokeWidth={1.5}
                 className="flex-shrink-0 text-text-3 group-hover:text-text-2"
               />
@@ -74,7 +74,7 @@ export function FolderEmptyState({ sourceId, folderPath, filterActive }: Props) 
                 {s.count.toLocaleString()}
               </span>
               <ChevronRight
-                size={11}
+                size={12}
                 strokeWidth={1.75}
                 className="flex-shrink-0 text-text-4 group-hover:text-text-3"
               />
@@ -94,7 +94,7 @@ export function FolderEmptyState({ sourceId, folderPath, filterActive }: Props) 
         folderPath
           ? {
               label: "Back to source root",
-              icon: <ChevronRight size={11} strokeWidth={2} className="rotate-180" />,
+              icon: <ChevronRight size={12} strokeWidth={1.75} className="rotate-180" />,
               onClick: () => setSelectedFolder(""),
             }
           : undefined

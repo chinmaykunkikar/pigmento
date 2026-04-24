@@ -85,7 +85,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
             search ? "border-accent/30" : "border-border",
           )}
         >
-          <Search size={13} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
+          <Search size={12} strokeWidth={1.5} className="flex-shrink-0 text-text-3" />
           <input
             ref={searchRef}
             placeholder={filtersApply ? "Search assets, paths, hashes…" : "Search applies to Grid"}
@@ -151,7 +151,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
             className="inline-flex h-7 shrink-0 items-center gap-1 whitespace-nowrap rounded-sm px-2 font-mono text-xs text-text-3 transition-colors hover:bg-hover hover:text-text-2"
             title="Clear all filters"
           >
-            <X size={11} strokeWidth={1.75} />
+            <X size={12} strokeWidth={1.75} />
             clear
           </button>
         ) : null}
@@ -163,15 +163,15 @@ export function Toolbar({ source, indexerProgress }: Props) {
         value={view === "overview" ? "grid" : view}
         onChange={(v) => setView(v)}
         items={[
-          { value: "grid", icon: <LayoutGrid size={13} strokeWidth={1.5} />, label: "Grid" },
+          { value: "grid", icon: <LayoutGrid size={12} strokeWidth={1.5} />, label: "Grid" },
           {
             value: "clusters",
-            icon: <Layers size={13} strokeWidth={1.5} />,
+            icon: <Layers size={12} strokeWidth={1.5} />,
             label: "Clusters",
           },
           {
             value: "match",
-            icon: <ScanSearch size={13} strokeWidth={1.5} />,
+            icon: <ScanSearch size={12} strokeWidth={1.5} />,
             label: "Match",
           },
         ]}
@@ -240,7 +240,7 @@ function PlanTrigger({ label, active }: { label: string; active: boolean }) {
       )}
       title={open ? "Hide cleanup plan" : "Open cleanup plan"}
     >
-      <ClipboardList size={13} strokeWidth={1.5} />
+      <ClipboardList size={12} strokeWidth={1.5} />
       {label}
     </button>
   );

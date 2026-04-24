@@ -78,7 +78,11 @@ export function AssetGrid({ assets }: Props) {
 
   return (
     <ScrollArea ref={parentRef} className="flex-1 bg-bg">
+      {/* biome-ignore lint/a11y/useSemanticElements: virtualized grid can't be <table> */}
       <div
+        role="grid"
+        aria-rowcount={rowCount}
+        aria-colcount={cols}
         style={{
           height: virtualizer.getTotalSize(),
           width: "100%",
@@ -89,8 +93,12 @@ export function AssetGrid({ assets }: Props) {
           const start = vr.index * cols;
           const rowAssets = assets.slice(start, start + cols);
           return (
+            // biome-ignore lint/a11y/useSemanticElements: virtualized row can't be <tr>
+            // biome-ignore lint/a11y/useFocusableInteractive: row is structural, cells are focusable
             <div
               key={vr.key}
+              role="row"
+              aria-rowindex={vr.index + 1}
               className="absolute left-0 top-0 grid w-full"
               style={{
                 transform: `translateY(${vr.start}px)`,
@@ -99,7 +107,7 @@ export function AssetGrid({ assets }: Props) {
                 gap: GAP,
               }}
             >
-              {rowAssets.map((a) => (
+              {rowAssets.map((a, i) => (
                 <AssetTile
                   key={a.id}
                   asset={a}
@@ -107,6 +115,7 @@ export function AssetGrid({ assets }: Props) {
                   selected={a.id === selectedAssetId}
                   inCart={cartSet.has(a.id)}
                   cartActive={cartActive}
+                  ariaColIndex={i + 1}
                   onClick={handleTileClick(a.id)}
                   onToggleCart={handleToggle(a.id)}
                 />

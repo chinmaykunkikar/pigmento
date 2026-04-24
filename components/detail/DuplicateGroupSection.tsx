@@ -63,7 +63,7 @@ function HashBlock({
     <div>
       <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
         <span className="inline-flex items-center gap-1 text-danger">
-          <TriangleAlert size={11} strokeWidth={1.75} />
+          <TriangleAlert size={12} strokeWidth={1.75} />
           <span className="text-2xs font-semibold uppercase tracking-wider">Exact duplicates</span>
         </span>
         <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
@@ -130,7 +130,7 @@ function NameBlock({
     <div>
       <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
         <span className="inline-flex items-center gap-1 text-text-2">
-          <Tag size={11} strokeWidth={1.75} />
+          <Tag size={12} strokeWidth={1.75} />
           <span className="text-2xs font-semibold uppercase tracking-wider">Name family</span>
         </span>
         <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">
@@ -183,7 +183,7 @@ function NearBlock({
     <div>
       <div className="flex items-center gap-2 px-3 pb-1.5 pt-2.5">
         <span className="inline-flex items-center gap-1 text-warn">
-          <TriangleAlert size={11} strokeWidth={1.75} />
+          <TriangleAlert size={12} strokeWidth={1.75} />
           <span className="text-2xs font-semibold uppercase tracking-wider">Near duplicates</span>
         </span>
         <span className="rounded-xs bg-sunken px-1.5 py-px font-mono text-2xs font-medium text-text-2">

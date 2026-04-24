@@ -25,7 +25,7 @@ export function SourceSwitcher({ sources, selectedId, onSelect }: Props) {
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            className="flex h-[30px] w-full cursor-pointer items-center gap-2 rounded-sm border border-border bg-sunken px-2.5 text-left hover:bg-hover"
+            className="flex h-7 w-full cursor-pointer items-center gap-2 rounded-sm border border-border bg-sunken px-2.5 text-left hover:bg-hover"
           >
             <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
             <span className="min-w-0 flex-1 truncate text-xs font-medium text-text">

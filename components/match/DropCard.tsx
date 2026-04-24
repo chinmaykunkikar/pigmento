@@ -36,7 +36,7 @@ export function DropCard({ file, signature, isPending, onClear, onPick }: Props)
             "hover:border-accent hover:bg-accent-bg/40",
           )}
         >
-          <Upload size={16} strokeWidth={1.5} className="text-text-3" />
+          <Upload size={14} strokeWidth={1.5} className="text-text-3" />
           <div className="flex flex-col gap-0.5">
             <span className="font-sans text-sm text-text">Drop a file here</span>
             <span className="font-mono text-2xs text-text-3">
@@ -109,14 +109,14 @@ export function DropCard({ file, signature, isPending, onClear, onPick }: Props)
             onClick={onClear}
             className="inline-flex h-6 flex-1 items-center justify-center gap-1 rounded-xs border border-border-2 bg-surface font-sans text-xs font-medium text-text-2 transition-colors hover:bg-hover"
           >
-            <X size={11} strokeWidth={1.75} />
+            <X size={12} strokeWidth={1.75} />
             Clear
           </button>
         </div>
       </div>
 
       <div className="flex items-center gap-1.5 font-mono text-2xs text-text-3">
-        <Upload size={11} strokeWidth={1.5} />
+        <Upload size={12} strokeWidth={1.5} />
         <span>Drop another file · paste ⌘V</span>
       </div>
     </div>

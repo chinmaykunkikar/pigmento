@@ -51,7 +51,7 @@ export function ErrorState({ error, title, onRetry, retryLabel = "Retry", classN
             <Button variant="ghost" className="h-7" onClick={onCopy}>
               {copied ? (
                 <>
-                  <Check size={12} strokeWidth={2} />
+                  <Check size={12} strokeWidth={1.75} />
                   Copied
                 </>
               ) : (

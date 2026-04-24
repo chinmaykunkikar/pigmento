@@ -1,13 +1,5 @@
 "use client";
 
-const CHECKER = {
-  backgroundImage:
-    "linear-gradient(45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(-45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-checker-b) 75%), linear-gradient(-45deg, transparent 75%, var(--color-checker-b) 75%)",
-  backgroundSize: "20px 20px",
-  backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0",
-  backgroundColor: "var(--color-checker-a)",
-};
-
 type Props = {
   id: number;
   name: string;
@@ -18,10 +10,7 @@ type Props = {
 export function AssetPreview({ id, name, width, height }: Props) {
   const label = width && height ? `${width} × ${height}` : null;
   return (
-    <div
-      className="relative flex h-50 items-center justify-center overflow-hidden rounded-sm border border-border"
-      style={CHECKER}
-    >
+    <div className="bg-checker relative flex h-50 items-center justify-center overflow-hidden rounded-sm border border-border [--checker-size:20px]">
       {/** biome-ignore lint/performance/noImgElement: preview stream */}
       <img
         src={`/api/preview/${id}`}

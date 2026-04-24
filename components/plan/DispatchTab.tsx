@@ -138,7 +138,7 @@ export function DispatchTab({ plan }: Props) {
       </div>
 
       {readyMsg ? (
-        <div className="rounded-sm border border-border border-l-[3px] border-l-warn bg-warn-bg px-3 py-2 font-mono text-xs text-warn">
+        <div className="rounded-sm border border-border border-l-(length:--border-status) border-l-warn bg-warn-bg px-3 py-2 font-mono text-xs text-warn">
           {readyMsg}
         </div>
       ) : null}
@@ -183,7 +183,7 @@ function DispatchResultCard({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="animate-[slide-down-in_260ms_var(--ease-out-quart)] rounded-sm border border-border border-l-[3px] border-l-ok bg-surface">
+      <div className="animate-[slide-down-in_260ms_var(--ease-out-quart)] rounded-sm border border-border border-l-(length:--border-status) border-l-ok bg-surface">
         <div className="flex items-center gap-2 border-b border-divider px-3 py-2">
           <span className="rounded-xs bg-ok-bg px-1.5 py-0.5 font-mono text-3xs font-semibold uppercase tracking-wider text-ok">
             Written

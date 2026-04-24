@@ -24,7 +24,7 @@ export function HammingHistogram({ bins, threshold }: Props) {
             <div
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length histogram
               key={i}
-              className={cn("flex-1 rounded-[1px]", active ? "bg-accent" : "bg-border-2")}
+              className={cn("flex-1 rounded-xs", active ? "bg-accent" : "bg-border-2")}
               style={{ height: `${h}px`, opacity }}
               title={`Δ${i}: ${v}`}
             />

@@ -79,7 +79,7 @@ export function DetailDrawer() {
             title={`Back to ${prevEntry.name}`}
             className="inline-flex h-6 min-w-0 shrink-0 max-w-35 items-center gap-1 rounded-xs border border-border bg-surface px-1.5 font-mono text-2xs text-text-2 transition-colors hover:bg-hover hover:text-text"
           >
-            <ArrowLeft size={11} strokeWidth={1.75} className="flex-shrink-0" />
+            <ArrowLeft size={12} strokeWidth={1.75} className="flex-shrink-0" />
             <span className="truncate">{prevEntry.name}</span>
           </button>
         ) : null}

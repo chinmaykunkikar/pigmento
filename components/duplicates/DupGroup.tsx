@@ -10,14 +10,6 @@ import { ChevronDown, ChevronRight } from "../icons";
 import { AddToPlanButton } from "../plan/AddToPlanButton";
 import { SelectCheckbox } from "../primitives/SelectCheckbox";
 
-const CHECKER = {
-  backgroundImage:
-    "linear-gradient(45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(-45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-checker-b) 75%), linear-gradient(-45deg, transparent 75%, var(--color-checker-b) 75%)",
-  backgroundSize: "10px 10px",
-  backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0",
-  backgroundColor: "var(--color-checker-a)",
-};
-
 type Props = {
   group: ExactGroup;
   defaultOpen: boolean;
@@ -104,10 +96,7 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
           label={allInCart ? "Deselect all copies" : "Select all copies"}
         />
 
-        <div
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xs border border-border"
-          style={CHECKER}
-        >
+        <div className="bg-checker flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xs border border-border [--checker-size:10px]">
           {/** biome-ignore lint/performance/noImgElement: local preview */}
           <img
             src={`/api/preview/${group.canonicalId}`}

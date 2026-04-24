@@ -22,7 +22,7 @@ export function PlanItemCard({ action, onRemove }: Props) {
           aria-label="Remove action"
           className="flex-shrink-0 rounded-xs p-0.5 text-text-3 transition-colors hover:bg-hover hover:text-text-2"
         >
-          <X size={13} strokeWidth={1.75} />
+          <X size={12} strokeWidth={1.75} />
         </button>
       </div>
 

@@ -111,7 +111,7 @@ export function MatchView({ sourceId, sourceLabel }: Props) {
           onPick={onPick}
         />
         {rejectReason ? (
-          <div className="border-l-[3px] border-l-warn bg-warn-bg px-4 py-2 font-mono text-xs text-warn">
+          <div className="border-l-(length:--border-status) border-l-warn bg-warn-bg px-4 py-2 font-mono text-xs text-warn">
             {rejectReason}
           </div>
         ) : null}

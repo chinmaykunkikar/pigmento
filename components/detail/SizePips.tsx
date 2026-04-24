@@ -24,7 +24,7 @@ export function SizePips({ currentSize, variants }: Props) {
             onClick={() => openAsset(v.assetId)}
             aria-pressed={isActive}
             className={cn(
-              "h-[26px] min-w-[38px] rounded-xs border px-2 font-mono text-xs font-medium transition-colors",
+              "h-6.5 min-w-[38px] rounded-xs border px-2 font-mono text-xs font-medium transition-colors",
               isActive
                 ? "border-text bg-text text-surface"
                 : "border-border-2 bg-surface text-text-2 hover:bg-hover",

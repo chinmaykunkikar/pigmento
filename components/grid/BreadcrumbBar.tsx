@@ -89,7 +89,7 @@ export function BreadcrumbBar({
             : `Select all ${assetCount.toLocaleString()} assets in this view`
         }
       >
-        <Check size={10} strokeWidth={2} />
+        <Check size={10} strokeWidth={1.75} />
         {allVisibleInCart
           ? `Deselect all (${selectedInView.toLocaleString()})`
           : `Select all${selectedInView > 0 ? ` · ${selectedInView.toLocaleString()} of ${assetCount.toLocaleString()}` : ""}`}
@@ -102,7 +102,7 @@ export function BreadcrumbBar({
         className="inline-flex h-6 items-center gap-1 rounded-xs px-1.5 font-mono text-2xs text-text-3 transition-colors hover:bg-hover hover:text-text-2 disabled:cursor-not-allowed disabled:opacity-50"
         title="Clear full selection"
       >
-        <X size={10} strokeWidth={2} />
+        <X size={10} strokeWidth={1.75} />
         Clear{hasCart ? ` (${cartIds.length.toLocaleString()})` : ""}
       </button>
 

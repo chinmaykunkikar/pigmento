@@ -5,14 +5,6 @@ import { cn } from "@/lib/cn";
 import type { GroupMember } from "@/lib/db/queries/groups";
 import { SelectCheckbox } from "../primitives/SelectCheckbox";
 
-const CHECKER = {
-  backgroundImage:
-    "linear-gradient(45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(-45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-checker-b) 75%), linear-gradient(-45deg, transparent 75%, var(--color-checker-b) 75%)",
-  backgroundSize: "10px 10px",
-  backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0",
-  backgroundColor: "var(--color-checker-a)",
-};
-
 const SELECTED_SHADOW = "var(--shadow-variant-selected)";
 
 type Props = {
@@ -46,7 +38,7 @@ export function VariantTile({
       )}
       title={member.name}
     >
-      <div className="absolute inset-0" style={CHECKER} />
+      <div className="bg-checker absolute inset-0 [--checker-size:10px]" />
       <div
         className={cn(
           "absolute left-1 top-1 z-10 transition-opacity duration-150",

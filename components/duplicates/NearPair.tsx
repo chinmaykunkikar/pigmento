@@ -7,14 +7,6 @@ import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
 import { AddToPlanButton } from "../plan/AddToPlanButton";
 
-const CHECKER = {
-  backgroundImage:
-    "linear-gradient(45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(-45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-checker-b) 75%), linear-gradient(-45deg, transparent 75%, var(--color-checker-b) 75%)",
-  backgroundSize: "10px 10px",
-  backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0",
-  backgroundColor: "var(--color-checker-a)",
-};
-
 const HASH_BITS = 64;
 
 type Props = { pair: NearPairT; sourceId: number; sourceLabel: string };
@@ -68,17 +60,17 @@ export function NearPair({ pair, sourceId, sourceLabel }: Props) {
 
         <div className="flex flex-col items-center justify-center gap-1.5 border-x border-border bg-sunken px-2.5 py-3">
           <div className="font-mono text-2xs tracking-wider text-text-3">HAMMING</div>
-          <div className="font-mono text-[28px] font-semibold leading-none text-text tabular-nums">
+          <div className="font-mono text-2xl font-semibold leading-none text-text tabular-nums">
             {pair.hamming}
           </div>
           <div className="font-mono text-2xs text-text-3">/ 64 bits</div>
-          <div className="mt-1 h-[3px] w-30 overflow-hidden rounded-[2px] bg-border-2">
+          <div className="mt-1 h-[3px] w-30 overflow-hidden rounded-xs bg-border-2">
             <div className="h-full" style={{ width: `${similarity}%`, background: barColor }} />
           </div>
           <div className="font-mono text-2xs text-text-2 tabular-nums">{similarity}% similar</div>
           <span
             className={cn(
-              "mt-0.5 rounded-[2px] px-1.5 py-px font-mono text-3xs font-semibold uppercase tracking-wider",
+              "mt-0.5 rounded-xs px-1.5 py-px font-mono text-3xs font-semibold uppercase tracking-wider",
               chipColor,
             )}
           >
@@ -112,10 +104,7 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
       onClick={() => openAsset(side.assetId)}
       className="flex min-w-0 items-start gap-3 p-3 text-left transition-colors hover:bg-hover"
     >
-      <div
-        className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-[2px] border border-border"
-        style={CHECKER}
-      >
+      <div className="bg-checker flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xs border border-border [--checker-size:10px]">
         {/** biome-ignore lint/performance/noImgElement: local preview */}
         <img
           src={`/api/preview/${side.assetId}`}
@@ -129,7 +118,7 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
         <div className="mb-1 flex items-center gap-1.5">
           <span
             className={cn(
-              "rounded-[2px] px-1.5 py-px font-mono text-3xs font-semibold tracking-wider",
+              "rounded-xs px-1.5 py-px font-mono text-3xs font-semibold tracking-wider",
               canonical ? "bg-accent-bg text-accent-text" : "bg-sunken text-text-3",
             )}
           >
@@ -156,7 +145,7 @@ function DiffBtn({ label }: { label: string }) {
     <button
       type="button"
       disabled
-      className="cursor-not-allowed rounded-[2px] border border-border bg-surface px-2 py-0.5 font-sans text-xs text-text-2 opacity-70"
+      className="cursor-not-allowed rounded-xs border border-border bg-surface px-2 py-0.5 font-sans text-xs text-text-2 opacity-70"
     >
       {label}
     </button>

@@ -17,7 +17,7 @@ export function EmptyState({ onAdded }: Props) {
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: static decorative grid
             key={i}
-            className="rounded-[1px] bg-surface"
+            className="rounded-xs bg-surface"
             style={{ opacity: 0.3 + (i % 3) * 0.15 }}
           />
         ))}

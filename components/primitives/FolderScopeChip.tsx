@@ -21,7 +21,7 @@ export function FolderScopeChip() {
         aria-label="Clear folder scope"
         className="flex h-3.5 w-3.5 items-center justify-center rounded-xs text-text-3 transition-colors hover:bg-hover hover:text-text"
       >
-        <X size={10} strokeWidth={2} />
+        <X size={10} strokeWidth={1.75} />
       </button>
     </span>
   );

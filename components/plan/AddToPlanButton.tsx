@@ -59,12 +59,12 @@ export function AddToPlanButton({ action, sourceId, sourceLabel, size = "md", cl
       ) : null}
       {queued ? (
         <>
-          <Check size={11} strokeWidth={2} />
+          <Check size={12} strokeWidth={1.75} />
           In plan
         </>
       ) : (
         <>
-          <Plus size={11} strokeWidth={2} />
+          <Plus size={12} strokeWidth={1.75} />
           Add to plan
         </>
       )}

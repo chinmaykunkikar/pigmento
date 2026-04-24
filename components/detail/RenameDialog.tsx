@@ -312,7 +312,7 @@ function StatusStrip({
     <div className="m-3 space-y-1.5">
       {conflicts.length === 0 && warnings.length === 0 ? (
         <div className="flex items-center gap-2 rounded-sm border border-ok/30 bg-ok-bg px-2.5 py-1.5 text-xs text-ok">
-          <Check size={12} strokeWidth={2} className="flex-shrink-0" />
+          <Check size={12} strokeWidth={1.75} className="flex-shrink-0" />
           Ready to rename &middot; {affectedCount} reference
           {affectedCount === 1 ? "" : "s"} will be updated
         </div>
@@ -402,7 +402,7 @@ function ReferencesSection({
                   excluded ? "border-border bg-surface" : "border-accent bg-accent",
                 )}
               >
-                {excluded ? null : <Check size={10} strokeWidth={2.5} className="text-white" />}
+                {excluded ? null : <Check size={10} strokeWidth={1.75} className="text-white" />}
               </span>
               <span className="min-w-0 flex-1 truncate" title={u.relPath}>
                 {u.relPath}

@@ -67,7 +67,7 @@ function IconSwap({ swapped }: { swapped: boolean }) {
   return (
     <span className="relative inline-flex h-3 w-3 items-center justify-center">
       <Copy
-        size={11}
+        size={12}
         strokeWidth={1.5}
         className={cn(
           "absolute transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
@@ -75,8 +75,8 @@ function IconSwap({ swapped }: { swapped: boolean }) {
         )}
       />
       <Check
-        size={11}
-        strokeWidth={2}
+        size={12}
+        strokeWidth={1.75}
         className={cn(
           "absolute text-ok transition-opacity duration-200 ease-[cubic-bezier(0.2,0,0,1)]",
           swapped ? "opacity-100" : "opacity-0",

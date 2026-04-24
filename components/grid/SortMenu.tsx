@@ -26,7 +26,7 @@ export function SortMenu() {
           className="inline-flex h-6 items-center gap-1 rounded-xs px-1.5 font-mono text-xs text-text-3 transition-colors hover:bg-hover hover:text-text aria-expanded:bg-hover aria-expanded:text-text"
         >
           Sort: <span className="text-text">{GRID_SORT_SHORT[gridSort]}</span>
-          <ChevronDown size={11} strokeWidth={1.75} className="text-text-3" />
+          <ChevronDown size={12} strokeWidth={1.75} className="text-text-3" />
         </button>
       </Dropdown.Trigger>
       <Dropdown.Portal>
@@ -45,7 +45,7 @@ export function SortMenu() {
               )}
             >
               <span className="flex h-3 w-3 flex-shrink-0 items-center justify-center">
-                {gridSort === s ? <Check size={11} strokeWidth={2} /> : null}
+                {gridSort === s ? <Check size={12} strokeWidth={1.75} /> : null}
               </span>
               <span className="flex-1">{GRID_SORT_LABELS[s]}</span>
             </Dropdown.Item>

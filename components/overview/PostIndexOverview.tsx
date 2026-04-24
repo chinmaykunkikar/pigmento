@@ -91,7 +91,7 @@ export function PostIndexOverview({ sourceId, sourceLabel, lastIndexedAt }: Prop
                 </div>
                 <span className="flex flex-shrink-0 items-center gap-1 font-sans text-xs text-text-3 transition-colors group-hover/ov-row:text-accent">
                   {r.cta}
-                  <ArrowRight size={11} strokeWidth={1.75} />
+                  <ArrowRight size={12} strokeWidth={1.75} />
                 </span>
               </button>
             ))}

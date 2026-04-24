@@ -39,7 +39,7 @@ export function SelectCheckbox({ checked, onToggle, label, className, size = "md
         className,
       )}
     >
-      <Check size={size === "sm" ? 9 : 11} strokeWidth={3} />
+      <Check size={size === "sm" ? 9 : 11} strokeWidth={1.75} />
     </span>
   );
 }

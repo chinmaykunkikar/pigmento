@@ -81,7 +81,7 @@ export function ActionBar({ sourceId, sourceLabel }: Props) {
         className="inline-flex h-8 items-center gap-1.5 rounded-sm px-2 font-mono text-sm text-text-3 transition-colors hover:bg-hover hover:text-text-2"
         title="Clear selection (Esc)"
       >
-        <X size={13} strokeWidth={1.75} />
+        <X size={12} strokeWidth={1.75} />
         Clear
       </button>
       <button
@@ -98,12 +98,12 @@ export function ActionBar({ sourceId, sourceLabel }: Props) {
       >
         {lastAdded ? (
           <>
-            <Check size={13} strokeWidth={2} />
+            <Check size={12} strokeWidth={1.75} />
             Added to plan
           </>
         ) : (
           <>
-            <ClipboardList size={13} strokeWidth={1.75} />
+            <ClipboardList size={12} strokeWidth={1.75} />
             {add.isPending ? "Adding…" : "Add to plan"}
           </>
         )}

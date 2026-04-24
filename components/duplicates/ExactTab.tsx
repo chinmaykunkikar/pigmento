@@ -43,7 +43,7 @@ export function ExactTab({ sourceId, sourceLabel }: Props) {
 
   return (
     <>
-      <div className="mx-4 mt-3 flex items-center gap-3.5 rounded-sm border border-l-[3px] border-border border-l-accent bg-sunken px-3.5 py-2.5">
+      <div className="mx-4 mt-3 flex items-center gap-3.5 rounded-sm border border-l-(length:--border-status) border-border border-l-accent bg-sunken px-3.5 py-2.5">
         <div className="font-mono text-xl font-semibold text-text tabular-nums">
           {formatBytes(data.reclaimableBytes)}
         </div>
@@ -57,14 +57,14 @@ export function ExactTab({ sourceId, sourceLabel }: Props) {
         <button
           type="button"
           disabled
-          className="inline-flex h-[26px] cursor-not-allowed items-center rounded-sm border-none bg-accent px-2.5 text-sm font-medium text-surface opacity-60"
+          className="inline-flex h-6.5 cursor-not-allowed items-center rounded-sm border-none bg-accent px-2.5 text-sm font-medium text-surface opacity-60"
         >
           Preview migration
         </button>
         <button
           type="button"
           disabled
-          className="inline-flex h-[26px] cursor-not-allowed items-center rounded-sm border border-border-2 bg-surface px-2.5 text-sm font-medium text-text opacity-60"
+          className="inline-flex h-6.5 cursor-not-allowed items-center rounded-sm border border-border-2 bg-surface px-2.5 text-sm font-medium text-text opacity-60"
         >
           Export report
         </button>

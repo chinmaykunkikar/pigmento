@@ -5,15 +5,8 @@ import { cn } from "@/lib/cn";
 import type { AssetSummary } from "@/lib/db/queries/folders";
 import { truncateMid } from "@/lib/text";
 import { formatBytes } from "@/lib/time";
+import { Check } from "../icons";
 import { SelectCheckbox } from "../primitives/SelectCheckbox";
-
-const CHECKER = {
-  backgroundImage:
-    "linear-gradient(45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(-45deg, var(--color-checker-b) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-checker-b) 75%), linear-gradient(-45deg, transparent 75%, var(--color-checker-b) 75%)",
-  backgroundSize: "12px 12px",
-  backgroundPosition: "0 0, 0 6px, 6px -6px, -6px 0",
-  backgroundColor: "var(--color-checker-a)",
-};
 
 const SELECTED_SHADOW = "var(--shadow-tile-selected)";
 
@@ -23,6 +16,7 @@ type Props = {
   showBoundingBox?: boolean;
   inCart: boolean;
   cartActive: boolean;
+  ariaColIndex?: number;
   onClick: (e: MouseEvent) => void;
   onToggleCart: () => void;
 };
@@ -33,12 +27,17 @@ export function AssetTile({
   showBoundingBox,
   inCart,
   cartActive,
+  ariaColIndex,
   onClick,
   onToggleCart,
 }: Props) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: button-as-gridcell keeps click semantics; virtualized grid can't use <td>
     <button
       type="button"
+      role="gridcell"
+      aria-selected={selected ?? false}
+      aria-colindex={ariaColIndex}
       data-asset-tile="true"
       onClick={onClick}
       style={selected ? { boxShadow: SELECTED_SHADOW } : undefined}
@@ -50,7 +49,7 @@ export function AssetTile({
         inCart && "border-accent/40",
       )}
     >
-      <div className="relative flex min-h-25 flex-1 items-center justify-center" style={CHECKER}>
+      <div className="bg-checker relative flex min-h-25 flex-1 items-center justify-center">
         <div
           className={cn(
             "absolute left-1.5 top-1.5 z-10 transition-opacity duration-150",
@@ -61,6 +60,14 @@ export function AssetTile({
         >
           <SelectCheckbox checked={inCart} onToggle={onToggleCart} label={asset.name} />
         </div>
+        {selected ? (
+          <span
+            aria-hidden
+            className="absolute right-1.5 top-1.5 z-10 flex h-4 w-4 items-center justify-center rounded-xs bg-accent text-white"
+          >
+            <Check size={10} strokeWidth={1.75} />
+          </span>
+        ) : null}
         {/** biome-ignore lint/performance/noImgElement: local preview stream, Next Image requires config */}
         <img
           src={`/api/preview/${asset.id}`}

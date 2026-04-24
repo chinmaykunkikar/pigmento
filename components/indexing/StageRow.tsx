@@ -54,7 +54,7 @@ function StatusDot({ status }: { status: StageState["status"] }) {
         key="done"
         className="flex h-3.5 w-3.5 flex-shrink-0 animate-[stage-pop_260ms_var(--ease-out-expo)] items-center justify-center rounded-full bg-ok text-white"
       >
-        <Check size={9} strokeWidth={2.5} />
+        <Check size={9} strokeWidth={1.75} />
       </span>
     );
   }
