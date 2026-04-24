@@ -31,7 +31,7 @@ export function Segmented<V extends string>({ value, items, onChange }: Props<V>
             )}
           >
             {it.icon}
-            {it.label}
+            <span className="max-lg:sr-only">{it.label}</span>
           </button>
         );
       })}

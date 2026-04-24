@@ -111,7 +111,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
 
         <div
           aria-disabled={!filtersApply}
-          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none"
+          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
         >
           {EXT_FILTERS.map((ext) => (
             <TypePill
@@ -125,7 +125,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
 
         <div
           aria-disabled={!filtersApply}
-          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none"
+          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
         >
           {SIZE_BUCKETS.map((b) => (
             <Chip
@@ -137,12 +137,14 @@ export function Toolbar({ source, indexerProgress }: Props) {
           ))}
         </div>
 
-        <Toggle
-          label="Unused only"
-          on={unusedOnly}
-          onClick={() => setUnusedOnly(!unusedOnly)}
-          disabled={!filtersApply}
-        />
+        <div className="max-lg:hidden">
+          <Toggle
+            label="Unused only"
+            on={unusedOnly}
+            onClick={() => setUnusedOnly(!unusedOnly)}
+            disabled={!filtersApply}
+          />
+        </div>
 
         {filterActive && filtersApply ? (
           <button
@@ -202,7 +204,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
           <>
             Re-index
             {source ? (
-              <span className="font-mono text-xs text-text-3 tabular-nums">
+              <span className="font-mono text-xs text-text-3 tabular-nums max-lg:hidden">
                 · {relativeTime(source.lastIndexedAt ?? source.createdAt)}
               </span>
             ) : null}

@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import type { Source } from "@/lib/db/schema";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useTree } from "@/lib/queries/tree";
 import { useExplorerStore } from "@/lib/store";
 import { ChevronLeft, ChevronRight, Folder } from "./icons";
@@ -28,16 +29,22 @@ export function Sidebar({
   const tree = useTree(selectedSourceId);
   const collapsed = useExplorerStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useExplorerStore((s) => s.toggleSidebar);
+  const viewportForcesCollapse = useMediaQuery("(max-width: 1023.98px)");
+  const effectiveCollapsed = collapsed || viewportForcesCollapse;
 
-  if (collapsed) {
+  if (effectiveCollapsed) {
+    const expandDisabled = viewportForcesCollapse;
     return (
       <aside className="flex w-9 flex-shrink-0 flex-col items-center border-r border-border bg-surface py-2">
         <button
           type="button"
-          onClick={toggleSidebar}
+          onClick={expandDisabled ? undefined : toggleSidebar}
+          disabled={expandDisabled}
           aria-label="Expand sidebar"
-          title="Expand sidebar (⌘B)"
-          className="flex h-7 w-7 items-center justify-center rounded-sm text-text-3 transition-colors hover:bg-hover hover:text-text"
+          title={
+            expandDisabled ? "Viewport too narrow for expanded sidebar" : "Expand sidebar (⌘B)"
+          }
+          className="flex h-7 w-7 items-center justify-center rounded-sm text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
         >
           <ChevronRight size={14} strokeWidth={1.75} />
         </button>
@@ -45,7 +52,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => {
-            toggleSidebar();
+            if (!expandDisabled) toggleSidebar();
             onSelectFolder("");
           }}
           aria-label="Open folder tree"

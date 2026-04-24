@@ -14,7 +14,9 @@ import { AssetGrid } from "./grid/AssetGrid";
 import { BreadcrumbBar } from "./grid/BreadcrumbBar";
 import { FolderEmptyState } from "./grid/FolderEmptyState";
 import { IndexingCenter } from "./indexing/IndexingCenter";
+import { IndexingStrip } from "./indexing/IndexingStrip";
 import { MatchView } from "./match/MatchView";
+import { NarrowViewportBanner } from "./NarrowViewportBanner";
 import { PostIndexOverview } from "./overview/PostIndexOverview";
 import { PlanDrawer } from "./plan/PlanDrawer";
 import { ErrorState } from "./primitives/ErrorState";
@@ -92,6 +94,7 @@ export function Shell() {
   if (list.length === 0 || !selectedSource) {
     return (
       <div className="flex h-screen flex-col">
+        <NarrowViewportBanner />
         {indexerRun ? (
           <IndexingCenter run={indexerRun} />
         ) : (
@@ -104,6 +107,7 @@ export function Shell() {
 
   return (
     <div className="flex h-screen flex-col">
+      <NarrowViewportBanner />
       <div className="flex min-h-0 flex-1">
         <Sidebar
           sources={list}
@@ -122,7 +126,9 @@ export function Shell() {
               indexerRun && indexerRun.sourceId === selectedSource.id ? indexerRun.progress : null
             }
           />
-          {indexerRun && indexerRun.sourceId === selectedSource.id ? (
+          {indexerRun &&
+          indexerRun.sourceId === selectedSource.id &&
+          !selectedSource.lastIndexedAt ? (
             <IndexingCenter run={indexerRun} />
           ) : (
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -206,6 +212,9 @@ export function Shell() {
               <ActionBar sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
               <DetailDrawer />
               <PlanDrawer sourceLabel={selectedSource.label} />
+              {indexerRun && indexerRun.sourceId === selectedSource.id ? (
+                <IndexingStrip run={indexerRun} />
+              ) : null}
             </div>
           )}
         </div>
