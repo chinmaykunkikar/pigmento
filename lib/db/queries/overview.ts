@@ -11,6 +11,7 @@ export type OverviewCounts = {
   nameClusters: number;
   unusedAssets: number;
   unusedBytes: number;
+  availableExts: string[];
 };
 
 export function getOverviewCounts(db: Db, sourceId: number): OverviewCounts {
@@ -52,6 +53,12 @@ export function getOverviewCounts(db: Db, sourceId: number): OverviewCounts {
     )
     .all()[0];
 
+  const extRows = db
+    .selectDistinct({ ext: assets.ext })
+    .from(assets)
+    .where(eq(assets.sourceId, sourceId))
+    .all();
+
   const exactReclaim = db
     .select({
       bytes: sql<number>`COALESCE(SUM((${clusters.size} - 1) * (
@@ -78,5 +85,8 @@ export function getOverviewCounts(db: Db, sourceId: number): OverviewCounts {
     nameClusters: Number(name?.n ?? 0),
     unusedAssets: Number(unusedRow?.n ?? 0),
     unusedBytes: Number(unusedRow?.bytes ?? 0),
+    availableExts: extRows
+      .map((r) => r.ext.toLowerCase().replace(/^\./, ""))
+      .filter((e): e is string => e.length > 0),
   };
 }

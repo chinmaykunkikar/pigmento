@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/cn";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
+import { useOverviewCounts } from "@/lib/queries/overview";
 import { useReindex } from "@/lib/queries/reindex";
 import {
   EXT_FILTERS,
@@ -30,6 +31,10 @@ const SIZE_BUCKETS: { value: SizeBucket; label: string }[] = [
   { value: "l", label: "L" },
 ];
 
+// Size filters are intentionally hidden from the toolbar until the UX is finalized.
+// Keep the SIZE_BUCKETS constant and the render block below; do not delete in cleanup passes.
+const SHOW_SIZE_FILTERS = false;
+
 const EXT_LABELS: Record<ExtFilter, string> = {
   svg: "SVG",
   png: "PNG",
@@ -50,6 +55,13 @@ export function Toolbar({ source, indexerProgress }: Props) {
   const sizeBucket = useExplorerStore((s) => s.sizeBucket);
   const setSizeBucket = useExplorerStore((s) => s.setSizeBucket);
   const reindex = useReindex(source?.id ?? null);
+  const overview = useOverviewCounts(source?.id ?? null);
+  const visibleExtFilters = useMemo<ExtFilter[]>(() => {
+    const available = overview.data?.availableExts;
+    if (!available) return [];
+    const set = new Set(available);
+    return EXT_FILTERS.filter((ext) => set.has(ext));
+  }, [overview.data]);
   const planCount = useExplorerStore((s) =>
     s.draftPlan && s.draftPlan.sourceId === (source?.id ?? -1) ? s.draftPlan.actions.length : 0,
   );
@@ -109,33 +121,37 @@ export function Toolbar({ source, indexerProgress }: Props) {
           )}
         </div>
 
-        <div
-          aria-disabled={!filtersApply}
-          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
-        >
-          {EXT_FILTERS.map((ext) => (
-            <TypePill
-              key={ext}
-              label={EXT_LABELS[ext]}
-              active={extFilter.includes(ext)}
-              onClick={() => toggleExtFilter(ext)}
-            />
-          ))}
-        </div>
+        {visibleExtFilters.length > 0 ? (
+          <div
+            aria-disabled={!filtersApply}
+            className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
+          >
+            {visibleExtFilters.map((ext) => (
+              <TypePill
+                key={ext}
+                label={EXT_LABELS[ext]}
+                active={extFilter.includes(ext)}
+                onClick={() => toggleExtFilter(ext)}
+              />
+            ))}
+          </div>
+        ) : null}
 
-        <div
-          aria-disabled={!filtersApply}
-          className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
-        >
-          {SIZE_BUCKETS.map((b) => (
-            <Chip
-              key={b.value}
-              label={b.label}
-              active={sizeBucket === b.value}
-              onClick={() => setSizeBucket(sizeBucket === b.value ? null : b.value)}
-            />
-          ))}
-        </div>
+        {SHOW_SIZE_FILTERS ? (
+          <div
+            aria-disabled={!filtersApply}
+            className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
+          >
+            {SIZE_BUCKETS.map((b) => (
+              <Chip
+                key={b.value}
+                label={b.label}
+                active={sizeBucket === b.value}
+                onClick={() => setSizeBucket(sizeBucket === b.value ? null : b.value)}
+              />
+            ))}
+          </div>
+        ) : null}
 
         <div className="max-lg:hidden">
           <Toggle
