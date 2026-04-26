@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
-  <rect x="0" y="0" width="24" height="24" rx="3" fill="#f4f2ec"/>
-  <path d="M5 4 L13 12 L5 20" stroke="#15171a" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+  <style>
+    .stroke { stroke: #15171a; }
+    @media (prefers-color-scheme: dark) {
+      .stroke { stroke: #e8e6df; }
+    }
+  </style>
+  <path class="stroke" d="M5 4 L13 12 L5 20" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
   <rect x="16" y="14" width="4" height="4" fill="#b8492a"/>
 </svg>
