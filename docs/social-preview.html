@@ -70,13 +70,14 @@
     max-width: 620px; font-weight: 450;
   }
 
-  /* Preview illustration — single column, centered horizontally, anchored
-     from a fixed top so it bleeds off the bottom edge. No bottom safe
-     area. URL pill on Twitter sits over the bleed; that's intentional. */
+  /* Preview illustration — sits below the text block, positioned so the
+     second tile row visibly clips at the canvas bottom. Side padding is
+     intentionally smaller than the text safe zone — preview is decorative,
+     edge-clipping it doesn't lose meaning. */
   .preview {
     position: absolute;
-    left: 200px; right: 200px;
-    top: 400px;
+    left: 140px; right: 140px;
+    top: 380px;
     z-index: 1;
     display: flex; flex-direction: column; gap: 10px;
   }
