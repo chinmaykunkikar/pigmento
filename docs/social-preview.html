@@ -9,12 +9,16 @@
 <style>
   :root {
     --pitch:    #0e1013;
+    --pitchMid: #16181c;
+    --pitchHi:  #1e2126;
     --grid:     #1c1f24;
     --rule:     #2a2d33;
     --ink:      #e8e6df;
     --ink2:     #9a9c97;
     --ink3:     #5a5c58;
     --rust:     #b8492a;
+    --citron:   #e8ec3a;
+    --citronInk:#1a1c00;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -34,38 +38,87 @@
     background-size: 24px 24px; opacity: 0.9;
   }
 
-  /* Centered single-column safe zone — survives even aggressive 5:4 mobile
-     crops. Inner safe area: ~720px x 470px centered. */
-  .safe {
+  /* Text block — sits in upper half, comfortably inside the mobile crop safe zone */
+  .text {
     position: absolute;
-    top: 80px; bottom: 80px;
+    top: 50px;
     left: 240px; right: 240px;
     display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 36px; z-index: 1;
+    align-items: center;
+    gap: 22px; z-index: 2;
     text-align: center;
   }
 
-  .wordmark { display: flex; align-items: center; gap: 16px; }
+  .wordmark { display: flex; align-items: center; gap: 14px; }
   .wordmark svg { display: block; }
   .wordmark .name {
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 44px; font-weight: 600;
+    font-size: 36px; font-weight: 600;
     letter-spacing: -1.2px; color: var(--ink); line-height: 1;
   }
 
   .headline {
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 76px; font-weight: 600;
-    letter-spacing: -2.2px; line-height: 1.0; color: var(--ink);
+    font-size: 60px; font-weight: 600;
+    letter-spacing: -1.8px; line-height: 1.0; color: var(--ink);
   }
   .headline .dot { color: var(--rust); }
 
   .subhead {
-    font-size: 22px; color: var(--ink2); line-height: 1.5;
-    max-width: 720px; font-weight: 450;
+    font-size: 17px; color: var(--ink2); line-height: 1.55;
+    max-width: 620px; font-weight: 450;
   }
 
+  /* App preview illustration — anchored from top, bleeds off bottom edge.
+     The grid-card has no fixed height; rows fill it and the last row visibly
+     extends past the canvas bottom. */
+  .preview {
+    position: absolute;
+    left: 200px; right: 200px;
+    top: 390px;
+    z-index: 1;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .toolbar {
+    display: flex; gap: 6px; padding: 8px 12px;
+    background: var(--pitchMid); border: 1px solid var(--rule); border-radius: 4px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px; color: var(--ink2);
+  }
+  .toolbar span {
+    padding: 5px 10px; border-radius: 3px; color: var(--ink3);
+  }
+  .toolbar .active { background: var(--rust); color: #fff; font-weight: 600; }
+
+  .grid-card {
+    background: var(--pitchMid); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .grid-header {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12px; color: var(--ink2);
+  }
+  .grid-header .muted { color: var(--ink3); }
+
+  .tiles {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+  }
+  .tile {
+    background: var(--pitchHi); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 10px; position: relative;
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tile.dim { opacity: 0.65; }
+  .tile .tag {
+    position: absolute; top: 4px; right: 4px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 1px 5px; border-radius: 2px; line-height: 1.5;
+    background: var(--citron); color: var(--citronInk);
+  }
 </style>
 </head>
 <body>
@@ -73,9 +126,10 @@
 <div class="canvas">
   <div class="dotgrid"></div>
 
-  <div class="safe">
+  <!-- TEXT (upper half, safe area) -->
+  <div class="text">
     <div class="wordmark">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
         <path d="M5 4 L13 12 L5 20" stroke="#e8e6df" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
         <rect x="16" y="14" width="4" height="4" fill="#b8492a"/>
       </svg>
@@ -85,6 +139,80 @@
     <div class="headline">every image<br/>in your repo<span class="dot">.</span></div>
 
     <div class="subhead">Browse, group and clean up icons and images across a codebase. Hand the dirty work to a coding agent.</div>
+  </div>
+
+  <!-- ILLUSTRATION (overflowing off the bottom — decorative) -->
+  <div class="preview">
+    <div class="toolbar">
+      <span class="active">grid</span>
+      <span>clusters</span>
+      <span>match</span>
+      <span>plan · 1</span>
+    </div>
+
+    <div class="grid-card">
+      <div class="grid-header">icons / action <span class="muted">· 64 assets · 8 clusters</span></div>
+
+      <div class="tiles">
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+          <div class="tag">×3</div>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+          <div class="tag">×3</div>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+          <div class="tag">×3</div>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+          <div class="tag">×3</div>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 13L10 18L19 7" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+          <div class="tag">×2</div>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 13L10 18L19 7" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+          <div class="tag">×2</div>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6" stroke="#e8e6df" stroke-width="2.5"/><path d="M15 15L20 20" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24"><g fill="#e8e6df"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></g></svg>
+        </div>
+
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#b8492a"><path d="M12 20L4 12a4 4 0 0 1 8-2 4 4 0 0 1 8 2z"/></svg>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#e8ec3a"><path d="M12 3L14 9L20 9L15 13L17 19L12 16L7 19L9 13L4 9L10 9Z"/></svg>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="transform: rotate(-90deg)"><path d="M5 12H19M13 6L19 12L13 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+        </div>
+        <div class="tile">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="transform: rotate(90deg)"><path d="M5 12H19M13 6L19 12L13 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+          <div class="tag">×3</div>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+          <div class="tag">×3</div>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24"><g fill="#e8e6df"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></g></svg>
+        </div>
+        <div class="tile dim">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6" stroke="#e8e6df" stroke-width="2.5"/><path d="M15 15L20 20" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
