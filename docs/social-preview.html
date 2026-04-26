@@ -9,17 +9,12 @@
 <style>
   :root {
     --pitch:    #0e1013;
-    --pitchMid: #16181c;
-    --pitchHi:  #1e2126;
     --grid:     #1c1f24;
     --rule:     #2a2d33;
     --ink:      #e8e6df;
     --ink2:     #9a9c97;
     --ink3:     #5a5c58;
     --rust:     #b8492a;
-    --citron:   #e8ec3a;
-    --citronInk:#1a1c00;
-    --moss:     #3f6b3b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -28,7 +23,6 @@
     font-family: "Inter", system-ui, sans-serif;
     color: var(--ink);
   }
-  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
 
   .canvas {
     position: relative; width: 1200px; height: 630px;
@@ -40,125 +34,38 @@
     background-size: 24px 24px; opacity: 0.9;
   }
 
-  /* Safe area: 75px top, 120px sides (mobile crop), 120px bottom (URL pill) */
+  /* Centered single-column safe zone — survives even aggressive 5:4 mobile
+     crops. Inner safe area: ~720px x 470px centered. */
   .safe {
     position: absolute;
-    top: 75px; left: 120px; right: 120px; bottom: 120px;
-    display: grid; grid-template-columns: 1.05fr 1fr;
+    top: 80px; bottom: 80px;
+    left: 240px; right: 240px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     gap: 36px; z-index: 1;
+    text-align: center;
   }
 
-  /* ── Left column ─────────────────────────────────────────────────────── */
-  .left { display: flex; flex-direction: column; gap: 36px; }
-
-  .wordmark { display: flex; align-items: center; gap: 14px; }
+  .wordmark { display: flex; align-items: center; gap: 16px; }
   .wordmark svg { display: block; }
   .wordmark .name {
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 38px; font-weight: 600;
+    font-size: 44px; font-weight: 600;
     letter-spacing: -1.2px; color: var(--ink); line-height: 1;
   }
 
   .headline {
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 50px; font-weight: 600;
-    letter-spacing: -1.6px; line-height: 1.02; color: var(--ink);
+    font-size: 76px; font-weight: 600;
+    letter-spacing: -2.2px; line-height: 1.0; color: var(--ink);
   }
   .headline .dot { color: var(--rust); }
 
   .subhead {
-    font-size: 17px; color: var(--ink2); line-height: 1.55; max-width: 420px;
-    margin-top: 16px;
+    font-size: 22px; color: var(--ink2); line-height: 1.5;
+    max-width: 720px; font-weight: 450;
   }
 
-  /* ── Right column ────────────────────────────────────────────────────── */
-  .right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-
-  .toolbar {
-    display: flex; gap: 6px; padding: 8px 12px;
-    background: var(--pitchMid); border: 1px solid var(--rule); border-radius: 4px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 11px; color: var(--ink2);
-  }
-  .toolbar span {
-    padding: 5px 10px; border-radius: 3px; color: var(--ink3);
-  }
-  .toolbar .active { background: var(--rust); color: #fff; font-weight: 600; }
-
-  .grid-card {
-    background: var(--pitchMid); border: 1px solid var(--rule); border-radius: 4px;
-    padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 12px;
-    min-height: 0;
-  }
-  .grid-header {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 11.5px; color: var(--ink2);
-  }
-  .grid-header .muted { color: var(--ink3); }
-
-  .tiles {
-    display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
-  }
-  .tile {
-    background: var(--pitchHi); border: 1px solid var(--rule);
-    border-radius: 3px; padding: 8px; position: relative;
-    display: flex; flex-direction: column; gap: 5px;
-    aspect-ratio: 1;
-  }
-  .tile.dim { opacity: 0.65; }
-  .tile .glyph {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-  }
-  .tile .tag {
-    position: absolute; top: 4px; right: 4px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
-    padding: 1px 5px; border-radius: 2px; line-height: 1.5;
-    background: var(--citron); color: var(--citronInk);
-  }
-  .tile .tag.unused {
-    left: 4px; right: auto; background: var(--rust); color: #fff;
-  }
-
-  .clusters { display: flex; flex-direction: column; gap: 5px; }
-  .cluster {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--pitchHi); border: 1px solid var(--rule);
-    border-radius: 3px; padding: 7px 10px;
-  }
-  .cluster .glyphs { display: flex; gap: 4px; }
-  .cluster .glyphs .g {
-    width: 22px; height: 22px; background: var(--grid);
-    border-radius: 2px; border: 1px solid var(--rule);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .cluster .glyphs .g:nth-child(2) { opacity: 0.55; }
-  .cluster .glyphs .g:nth-child(3) { opacity: 0.55; }
-  .cluster .label {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 11px; color: var(--ink2); flex: 1;
-  }
-  .cluster .ctag {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
-    padding: 1px 5px; border-radius: 2px;
-    background: var(--citron); color: var(--citronInk);
-  }
-  .cluster .ctag.rust { background: var(--rust); color: #fff; }
-
-  .status {
-    display: flex; align-items: center; gap: 10px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 11px; color: var(--ink3);
-    padding: 8px 12px; background: var(--pitchMid);
-    border: 1px solid var(--rule); border-radius: 4px;
-  }
-  .status .citron { color: var(--citron); }
-  .status .right-side { margin-left: auto; display: flex; align-items: center; gap: 5px; }
-  .status .dot {
-    width: 6px; height: 6px; border-radius: 99px; background: var(--moss);
-    display: inline-block;
-  }
 </style>
 </head>
 <body>
@@ -167,127 +74,17 @@
   <div class="dotgrid"></div>
 
   <div class="safe">
-    <!-- LEFT -->
-    <div class="left">
-      <div class="wordmark">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
-          <path d="M5 4 L13 12 L5 20" stroke="#e8e6df" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
-          <rect x="16" y="14" width="4" height="4" fill="#b8492a"/>
-        </svg>
-        <span class="name">pika</span>
-      </div>
-
-      <div>
-        <div class="headline">every image<br/>in your repo<span class="dot">.</span></div>
-        <div class="subhead">Browse, group and clean up icons and images across a codebase. Hand the dirty work to a coding agent.</div>
-      </div>
+    <div class="wordmark">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
+        <path d="M5 4 L13 12 L5 20" stroke="#e8e6df" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+        <rect x="16" y="14" width="4" height="4" fill="#b8492a"/>
+      </svg>
+      <span class="name">pika</span>
     </div>
 
-    <!-- RIGHT -->
-    <div class="right">
-      <div class="toolbar mono">
-        <span class="active">grid</span>
-        <span>clusters</span>
-        <span>match</span>
-        <span>plan · 1</span>
-      </div>
+    <div class="headline">every image<br/>in your repo<span class="dot">.</span></div>
 
-      <div class="grid-card">
-        <div class="grid-header">icons / action <span class="muted">· 64 assets · 8 clusters</span></div>
-
-        <div class="tiles">
-          <!-- row 1 -->
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            <div class="tag">×3</div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            <div class="tag">×3</div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-            <div class="tag">×3</div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-            <div class="tag">×3</div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 13L10 18L19 7" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            <div class="tag">×2</div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 13L10 18L19 7" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            <div class="tag">×2</div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6" stroke="#e8e6df" stroke-width="2.5"/><path d="M15 15L20 20" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24"><g fill="#e8e6df"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></g></svg></div>
-          </div>
-
-          <!-- row 2 -->
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="#b8492a"><path d="M12 20L4 12a4 4 0 0 1 8-2 4 4 0 0 1 8 2z"/></svg></div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="#e8ec3a"><path d="M12 3L14 9L20 9L15 13L17 19L12 16L7 19L9 13L4 9L10 9Z"/></svg></div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="transform: rotate(-90deg)"><path d="M5 12H19M13 6L19 12L13 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-          </div>
-          <div class="tile">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="transform: rotate(90deg)"><path d="M5 12H19M13 6L19 12L13 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            <div class="tag">×3</div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-            <div class="tag">×3</div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24"><g fill="#e8e6df"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></g></svg></div>
-          </div>
-          <div class="tile dim">
-            <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6" stroke="#e8e6df" stroke-width="2.5"/><path d="M15 15L20 20" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            <div class="tag unused">0 refs</div>
-          </div>
-        </div>
-
-        <div class="clusters">
-          <div class="cluster">
-            <div class="glyphs">
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 5V19M5 12H19" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            </div>
-            <div class="label">plus · add · plus-primary</div>
-            <div class="ctag">×3 cluster</div>
-          </div>
-          <div class="cluster">
-            <div class="glyphs">
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/></svg></div>
-            </div>
-            <div class="label">chevron · caret · arrow-right</div>
-            <div class="ctag">×3 cluster</div>
-          </div>
-          <div class="cluster">
-            <div class="glyphs">
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13L10 18L19 7" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-              <div class="g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13L10 18L19 7" stroke="#e8e6df" stroke-width="2.5" stroke-linecap="square"/></svg></div>
-            </div>
-            <div class="label">check · tick</div>
-            <div class="ctag rust">×2 cluster</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="subhead">Browse, group and clean up icons and images across a codebase. Hand the dirty work to a coding agent.</div>
   </div>
 </div>
 
