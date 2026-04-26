@@ -1,5 +1,5 @@
 <p>
-  <img src="./docs/social-preview.png" alt="pika · every image in your repo, in one place" />
+  <img src="./docs/hero.png" alt="pika · every image in your repo, in one place" />
 </p>
 
 # pika
