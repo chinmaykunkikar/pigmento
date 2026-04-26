@@ -1,6 +1,8 @@
 <p>
-  <img src="./docs/banner.svg" alt="pika" height="96" />
+  <img src="./docs/social-preview.png" alt="pika · every image in your repo, in one place" />
 </p>
+
+# pika
 
 > Every image in your repo, in one place.
 

@@ -34,7 +34,7 @@ Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets 
 
 1. **Tokens first, brackets last.** Before writing any class that names a colour, size, font, or radius, check whether the token already exists in `@theme`. If it's in `tokens.jsx` but not in `@theme`, fix that first. Bracket-arbitrary values (`text-[10px]`, `max-w-[360px]`) are reserved for genuinely off-scale one-offs and require a reason.
 2. **Chrome whispers, data speaks.** Fixed surface heights, hairline borders, mono for structure, sans for narrative. Never add decoration that competes with the content grid, the reference list, or the duplicate table.
-3. **The accent rule is inviolable.** `--color-accent` appears only on selection, single primary action, and focus. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy.
+3. **The accent rule is inviolable.** `--color-accent` (rust `#b8492a`) appears only on selection, single primary action, the dot in the mark, and focus. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy.
 4. **Precomputed, never lazy.** Every UI query reads from indexed DB shape. If a view needs a number that isn't in the schema yet, extend the indexer first — don't compute-at-request-time. This shows up visually as no spinners past initial load.
 5. **Information density beats prettiness.** Users spend hours in this interface. The right answer is almost always *fit more on screen without sacrificing legibility* — tighter rows, mono-aligned numerics, hairline dividers — not pad-and-card it into a marketing screenshot.
 
@@ -88,21 +88,21 @@ Do NOT add: Base Web, styled-components, emotion, styletron, CSS Modules, Vanill
 
 @theme {
   /* colors — generate bg-*, text-*, border-* utilities */
-  --color-bg:          #fbfbfa;
-  --color-surface:     #ffffff;
-  --color-sunken:      #f5f4f2;
-  --color-sunken-2:    #eceae5;
-  --color-hover:       #f0efec;
-  --color-text:        #1a1a19;
-  --color-text-2:      #54524e;
-  --color-text-3:      #8a8782;
+  --color-bg:          #f4f2ec;
+  --color-surface:     #fbfaf6;
+  --color-sunken:      #ecebe6;
+  --color-sunken-2:    #e3e1db;
+  --color-hover:       #ecebe6;
+  --color-text:        #15171a;
+  --color-text-2:      #4a4d52;
+  --color-text-3:      #8a8d92;
   --color-text-4:      #b3b0a9;
-  --color-border:      #e8e6e2;
-  --color-border-2:    #d8d5cf;
-  --color-divider:     #efede9;
-  --color-accent:      #3b6cd8;
-  --color-accent-bg:   #eef3fe;
-  --color-accent-text: #2a53b0;
+  --color-border:      #e3e1db;
+  --color-border-2:    #cfcdc6;
+  --color-divider:     #ecebe6;
+  --color-accent:      #b8492a;
+  --color-accent-bg:   #f7e8df;
+  --color-accent-text: #8a3520;
   --color-warn:        #b48a00;
   --color-warn-bg:     #fbf5e6;
   --color-danger:      #b03a2e;
@@ -190,7 +190,7 @@ Never override. If a design looks cramped, the design is wrong and we escalate, 
 
 ### The accent rule
 
-`--color-accent` (`#3b6cd8`) appears ONLY on:
+`--color-accent` (`#b8492a`, rust) appears ONLY on:
 1. Currently selected items (tile outline, tree row left bar, tab underline)
 2. Primary action buttons (one per screen)
 3. Focus rings

@@ -38,21 +38,21 @@ What pika is **not**:
 
 | Token | Hex | Use |
 |---|---|---|
-| `--color-bg` | `#fbfbfa` | Page background |
-| `--color-surface` | `#ffffff` | Primary content surfaces (toolbar, cards, drawers) |
-| `--color-sunken` | `#f5f4f2` | Recessed surfaces (search input, filter trays) |
-| `--color-sunken-2` | `#eceae5` | Deeper recess (pressed state) |
-| `--color-hover` | `#f0efec` | Row/button hover |
-| `--color-text` | `#1a1a19` | Primary text |
-| `--color-text-2` | `#54524e` | Secondary text |
-| `--color-text-3` | `#8a8782` | Meta, mono text, captions |
+| `--color-bg` | `#f4f2ec` | Page background (warm paper) |
+| `--color-surface` | `#fbfaf6` | Primary content surfaces (toolbar, cards, drawers) |
+| `--color-sunken` | `#ecebe6` | Recessed surfaces (search input, filter trays) |
+| `--color-sunken-2` | `#e3e1db` | Deeper recess (pressed state) |
+| `--color-hover` | `#ecebe6` | Row/button hover |
+| `--color-text` | `#15171a` | Primary text |
+| `--color-text-2` | `#4a4d52` | Secondary text |
+| `--color-text-3` | `#8a8d92` | Meta, mono text, captions |
 | `--color-text-4` | `#b3b0a9` | Tertiary / disabled |
-| `--color-border` | `#e8e6e2` | Hairline dividers |
-| `--color-border-2` | `#d8d5cf` | Emphasized hairline (selected row, input focus) |
-| `--color-divider` | `#efede9` | In-surface dividers (inside a card) |
-| `--color-accent` | `#3b6cd8` | Selection, primary action, focus |
-| `--color-accent-bg` | `#eef3fe` | Accent surface (selected row bg) |
-| `--color-accent-text` | `#2a53b0` | Accent text (on accent-bg) |
+| `--color-border` | `#e3e1db` | Hairline dividers |
+| `--color-border-2` | `#cfcdc6` | Emphasized hairline (selected row, input focus) |
+| `--color-divider` | `#ecebe6` | In-surface dividers (inside a card) |
+| `--color-accent` | `#b8492a` | Selection, primary action, focus, mark dot (rust) |
+| `--color-accent-bg` | `#f7e8df` | Accent surface (selected row bg) |
+| `--color-accent-text` | `#8a3520` | Accent text (on accent-bg) |
 | `--color-warn` | `#b48a00` | Warnings, non-blocking issues |
 | `--color-warn-bg` | `#fbf5e6` | Warning surface |
 | `--color-danger` | `#b03a2e` | Errors, destructive |
@@ -154,7 +154,7 @@ If a design wants something off this scale, escalate before padding.
 
 ## 5. The accent rule
 
-`--color-accent` (`#3b6cd8`) appears ONLY on:
+`--color-accent` (`#b8492a`, rust) appears ONLY on:
 1. Currently selected items (tile outline, tree row left bar, tab underline, segmented-control active, radio dot)
 2. The single primary action on any given screen
 3. Focus rings (`focus-visible:ring-1 ring-accent/40`)

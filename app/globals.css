@@ -1,24 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #fbfbfa;
-  --color-surface: #ffffff;
-  --color-sunken: #f5f4f2;
-  --color-sunken-2: #eceae5;
-  --color-hover: #f0efec;
+  /* Surfaces — warm paper neutrals from the pika brand spec. */
+  --color-bg: #f4f2ec;
+  --color-surface: #fbfaf6;
+  --color-sunken: #ecebe6;
+  --color-sunken-2: #e3e1db;
+  --color-hover: #ecebe6;
 
-  --color-text: #1a1a19;
-  --color-text-2: #54524e;
-  --color-text-3: #8a8782;
+  --color-text: #15171a;
+  --color-text-2: #4a4d52;
+  --color-text-3: #8a8d92;
   --color-text-4: #b3b0a9;
 
-  --color-border: #e8e6e2;
-  --color-border-2: #d8d5cf;
-  --color-divider: #efede9;
+  --color-border: #e3e1db;
+  --color-border-2: #cfcdc6;
+  --color-divider: #ecebe6;
 
-  --color-accent: #3b6cd8;
-  --color-accent-bg: #eef3fe;
-  --color-accent-text: #2a53b0;
+  /* Primary accent — rust. Used for selection, primary actions, focus rings,
+     and the dot in the pika mark. The chevron stroke is always ink. */
+  --color-accent: #b8492a;
+  --color-accent-bg: #f7e8df;
+  --color-accent-text: #8a3520;
 
   --color-warn: #b48a00;
   --color-warn-bg: #fbf5e6;
@@ -34,11 +37,9 @@
 
   --color-overlay: rgba(20, 20, 30, 0.2);
 
-  /* Pika brand tokens — used only by the mark, wordmark, brand surfaces, and
-     loading indicators. Product chrome continues to use --color-accent (indigo)
-     for selection and primary actions. */
-  --color-pika-rust: #b8492a;
-  --color-pika-rust-ink: #ffffff;
+  /* Brand-only surfaces — the pitch ground, the citron tag chip, and the
+     paper card. Product chrome uses the regular tokens above; these are
+     reserved for hero lockups, terminal mockups, and stickers. */
   --color-pika-paper: #f4f2ec;
   --color-pika-pitch: #0e1013;
   --color-pika-pitch-ink: #e8e6df;
@@ -99,9 +100,9 @@
   --shadow-drawer: -12px 0 32px -16px rgba(20, 20, 30, 0.18);
   --shadow-floating: 0 1px 2px rgba(20, 20, 30, 0.06), 0 8px 24px -12px rgba(20, 20, 30, 0.22);
   --shadow-tile-selected: inset 0 0 0 2px var(--color-accent), 0 1px 0 var(--color-border),
-    0 12px 24px -10px rgba(59, 108, 216, 0.35);
+    0 12px 24px -10px rgba(184, 73, 42, 0.35);
   --shadow-variant-selected: inset 0 0 0 2px var(--color-accent),
-    0 8px 20px -10px rgba(59, 108, 216, 0.4);
+    0 8px 20px -10px rgba(184, 73, 42, 0.4);
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);

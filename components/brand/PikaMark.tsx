@@ -22,7 +22,7 @@ export function PikaMark({
   title,
 }: PikaMarkProps) {
   const stroke = color ?? "currentColor";
-  const dot = dotColor ?? "var(--color-pika-rust)";
+  const dot = dotColor ?? "var(--color-accent)";
   const bg = squareBg ?? "var(--color-pika-paper)";
 
   return (
