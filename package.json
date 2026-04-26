@@ -1,8 +1,10 @@
 {
   "name": "pika",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "description": "Local-first asset cleanup for codebases. Find duplicates, see references, hand cleanup to a coding agent.",
   "scripts": {
     "dev": "next dev -p 9900",
     "build": "next build",
