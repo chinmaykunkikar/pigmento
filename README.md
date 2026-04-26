@@ -16,7 +16,7 @@ Local-first. Runs on your machine. Nothing is uploaded.
 local-first · macos · linux · windows · MIT
 ```
 
-![Pika overview](./docs/screenshots/overview.png)
+![Pika · folder tree, asset grid, and detail drawer side by side](./docs/screenshots/grid.png)
 
 ---
 
