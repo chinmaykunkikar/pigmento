@@ -210,7 +210,7 @@ export const useExplorerStore = create<ExplorerState>()(
         if (existing && existing.sourceId === sourceId) return existing;
         const now = Date.now();
         const next: Plan = {
-          version: "pixeldex/plan v1",
+          version: "pika/plan v1",
           id: `plan-${now.toString(36)}`,
           name: `Cleanup for ${sourceLabel}`,
           sourceId,
@@ -229,7 +229,7 @@ export const useExplorerStore = create<ExplorerState>()(
           cur && cur.sourceId === sourceId
             ? cur
             : {
-                version: "pixeldex/plan v1",
+                version: "pika/plan v1",
                 id: `plan-${now.toString(36)}`,
                 name: `Cleanup for ${sourceLabel}`,
                 sourceId,
@@ -279,7 +279,7 @@ export const useExplorerStore = create<ExplorerState>()(
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     }),
     {
-      name: "pixeldex:ui",
+      name: "pika:ui",
       version: 1,
       migrate: (persistedState, version) => {
         if (version < 1 && persistedState && typeof persistedState === "object") {

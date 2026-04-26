@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { X } from "./icons";
 
-const DISMISS_KEY = "pixeldex:narrow-banner-dismissed";
+const DISMISS_KEY = "pika:narrow-banner-dismissed";
 
 export function NarrowViewportBanner() {
   const isNarrow = useMediaQuery("(max-width: 1023.98px)");
@@ -25,7 +25,7 @@ export function NarrowViewportBanner() {
   return (
     <div className="flex h-7 flex-shrink-0 items-center gap-2 border-b border-warn/30 bg-warn-bg px-4 font-mono text-xs text-warn">
       <span className="flex-1 truncate">
-        PixelDex is a desktop tool. Some views may be cramped below 1024px.
+        pika is a desktop tool. Some views may be cramped below 1024px.
       </span>
       <button
         type="button"

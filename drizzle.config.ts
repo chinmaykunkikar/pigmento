@@ -5,7 +5,7 @@ export default defineConfig({
   out: "./lib/db/migrations",
   dialect: "sqlite",
   dbCredentials: {
-    url: "./data/pixeldex.db",
+    url: "./data/pika.db",
   },
   verbose: true,
   strict: true,

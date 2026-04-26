@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { IndexerRun } from "@/lib/queries/indexer-status";
+import { PikaMark } from "../brand/PikaMark";
 
 type Props = { run: IndexerRun };
 
@@ -9,6 +10,7 @@ export function IndexingStrip({ run }: Props) {
   const elapsed = useElapsed(run.startedAt, run.endedAt);
   const doneCount = run.stages.filter((s) => s.status === "done").length;
   const activeStage = run.stages.find((s) => s.status === "active") ?? null;
+  const isRunning = !run.endedAt;
 
   return (
     <div
@@ -17,10 +19,7 @@ export function IndexingStrip({ run }: Props) {
       className="animate-[slide-down-in_220ms_var(--ease-out-quart)] flex h-9 flex-shrink-0 items-center gap-3 border-t border-border bg-surface px-4 font-mono text-xs text-text-3"
     >
       <span className="flex items-center gap-1.5">
-        <span
-          className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-accent"
-          aria-hidden
-        />
+        <PikaMark size={12} blink={isRunning} />
         <span className="text-text-2">
           {run.endedAt ? "Indexed" : "Re-indexing"} {run.label}
         </span>

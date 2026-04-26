@@ -4,8 +4,28 @@ import Providers from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PixelDex",
-  description: "Local-first asset explorer",
+  title: {
+    default: "pika · cleanup for asset folders",
+    template: "%s · pika",
+  },
+  description:
+    "Find every image in your repo. Group the duplicates. Hand the cleanup to a coding agent.",
+  applicationName: "pika",
+  authors: [{ name: "Pika" }],
+  keywords: ["assets", "icons", "duplicates", "cleanup", "codebase", "design system"],
+  openGraph: {
+    title: "pika",
+    description:
+      "Every image in your repo, in one place. Find duplicates. Hand cleanup to an agent.",
+    siteName: "pika",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "pika",
+    description:
+      "Every image in your repo, in one place. Find duplicates. Hand cleanup to an agent.",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

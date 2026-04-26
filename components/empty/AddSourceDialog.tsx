@@ -59,7 +59,7 @@ export function AddSourceDialog({ open, onOpenChange, onAdded }: Props) {
             </Dialog.Close>
           </div>
           <Dialog.Description className="sr-only">
-            Point PixelDex at an absolute folder path to index it.
+            Point pika at an absolute folder path to index it.
           </Dialog.Description>
 
           <div className="space-y-3 p-4">

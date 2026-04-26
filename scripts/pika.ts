@@ -20,7 +20,7 @@ const err = (s: string) => process.stderr.write(`${s}\n`);
 
 const program = new Command();
 
-program.name("pdx").description("PixelDex CLI: local-first asset explorer").version("0.0.0");
+program.name("pika").description("pika · local-first asset cleanup").version("0.0.0");
 
 program
   .command("index")
@@ -31,7 +31,7 @@ program
     const config = await loadConfig();
     const srcs = listSources(db);
     if (srcs.length === 0) {
-      err("no sources configured. run `pnpm pdx source add <path>` first");
+      err("no sources configured. run `pnpm pika source add <path>` first");
       process.exit(1);
     }
     for (const source of srcs) {

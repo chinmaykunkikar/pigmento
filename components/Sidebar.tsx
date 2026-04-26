@@ -5,6 +5,8 @@ import type { Source } from "@/lib/db/schema";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useTree } from "@/lib/queries/tree";
 import { useExplorerStore } from "@/lib/store";
+import { PikaMark } from "./brand/PikaMark";
+import { PikaWordmark } from "./brand/PikaWordmark";
 import { ChevronLeft, ChevronRight, Folder } from "./icons";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { ScrollArea } from "./primitives/ScrollArea";
@@ -36,6 +38,9 @@ export function Sidebar({
     const expandDisabled = viewportForcesCollapse;
     return (
       <aside className="flex w-9 flex-shrink-0 flex-col items-center border-r border-border bg-surface py-2">
+        <span className="mb-2 flex h-7 w-7 items-center justify-center text-text" title="pika">
+          <PikaMark size={16} />
+        </span>
         <button
           type="button"
           onClick={expandDisabled ? undefined : toggleSidebar}
@@ -66,6 +71,10 @@ export function Sidebar({
 
   return (
     <aside className="flex w-65 flex-shrink-0 flex-col border-r border-border bg-surface">
+      <div className="flex h-9 items-center justify-between border-b border-border px-3">
+        <PikaWordmark size={14} className="text-text" />
+        <span className="font-mono text-2xs text-text-4 tabular-nums">v0.1</span>
+      </div>
       <div className="flex items-center gap-1 border-b border-border px-3 py-2.5">
         <div className="min-w-0 flex-1">
           <SourceSwitcher
@@ -90,7 +99,10 @@ export function Sidebar({
 
       <ScrollArea className="flex-1">
         {tree.isLoading ? (
-          <div className="p-3 text-xs text-text-3">Loading tree…</div>
+          <div className="flex items-center gap-2 p-3 font-mono text-xs text-text-3">
+            <PikaMark size={12} blink />
+            loading tree…
+          </div>
         ) : tree.isError ? (
           <div className="p-3 text-xs text-danger">Failed to load tree</div>
         ) : tree.data ? (

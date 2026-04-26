@@ -17,7 +17,7 @@ export async function writePlanArtifacts(
   sourceRoot: string,
   mode: DispatchMode,
 ): Promise<PlanArtifacts> {
-  const dir = join(sourceRoot, ".pixeldex", plan.id);
+  const dir = join(sourceRoot, ".pika", plan.id);
   await mkdir(dir, { recursive: true });
   const jsonPath = join(dir, "plan.json");
   const promptPath = join(dir, "plan.md");

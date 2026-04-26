@@ -1,4 +1,4 @@
-# PixelDex — Design TODOs
+# Pika — Design TODOs
 
 Opened by `/plan-design-review` on 2026-04-24, eng-reviewed the same day. Each item is scoped to its surface; most are < 1h CC time.
 
@@ -76,7 +76,7 @@ Arrow-key navigation inside the virtualized grid (Home/End, PageUp/PageDown, arr
 - Sidebar collapses to icon-rail (`w-12`), folder tree hidden.
 - Toolbar filters wrap to a second row.
 - DetailDrawer and PlanDrawer become full-screen Radix Dialogs below 768px.
-- One-time dismissible banner: "PixelDex is a desktop tool. Some views may be cramped below 1024px."
+- One-time dismissible banner: "pika is a desktop tool. Some views may be cramped below 1024px."
 
 ---
 

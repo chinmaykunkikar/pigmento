@@ -18,7 +18,7 @@ export const ConfigSchema = z.object({
   ignore: z
     .array(z.string())
     .default(["**/node_modules/**", "**/.next/**", "**/.nuxt/**", "**/dist/**"]),
-  dbPath: z.string().default("./data/pixeldex.db"),
+  dbPath: z.string().default("./data/pika.db"),
   phash: z
     .object({
       enabled: z.boolean().default(true),

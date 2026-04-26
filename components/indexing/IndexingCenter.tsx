@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { IndexerRun } from "@/lib/queries/indexer-status";
+import { PikaMark } from "../brand/PikaMark";
 import { ScrollArea } from "../primitives/ScrollArea";
 import { LogTerminal } from "./LogTerminal";
 import { StageRow } from "./StageRow";
@@ -11,15 +12,13 @@ type Props = { run: IndexerRun };
 export function IndexingCenter({ run }: Props) {
   const elapsed = useElapsed(run.startedAt, run.endedAt);
   const doneCount = run.stages.filter((s) => s.status === "done").length;
+  const isRunning = !run.endedAt;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden bg-bg">
       <div className="flex h-8 flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-4">
         <span className="flex items-center gap-1.5 font-mono text-xs text-text-3">
-          <span
-            className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-accent"
-            aria-hidden
-          />
+          <PikaMark size={14} blink={isRunning} />
           Indexing {run.label}
           {run.endedAt ? " · complete" : "…"}
         </span>

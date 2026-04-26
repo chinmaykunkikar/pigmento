@@ -7,6 +7,7 @@ import { type IndexerRun, useIndexerStatus } from "@/lib/queries/indexer-status"
 import { useSources } from "@/lib/queries/sources";
 import { useExplorerStore } from "@/lib/store";
 import { ActionBar } from "./actions/ActionBar";
+import { PikaMark } from "./brand/PikaMark";
 import { ClustersView } from "./clusters/ClustersView";
 import { DetailDrawer } from "./detail/DetailDrawer";
 import { EmptyState } from "./empty/EmptyState";
@@ -71,8 +72,9 @@ export function Shell() {
 
   if (sources.isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-bg text-sm text-text-3">
-        Loading…
+      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-bg">
+        <PikaMark size={32} blink />
+        <span className="font-mono text-xs text-text-3">loading…</span>
       </div>
     );
   }
@@ -162,8 +164,9 @@ export function Shell() {
                 />
                 <div className="flex min-h-0 flex-1 flex-col">
                   {folder.isLoading ? (
-                    <div className="flex flex-1 items-center justify-center bg-bg text-sm text-text-3">
-                      Loading folder…
+                    <div className="flex flex-1 flex-col items-center justify-center gap-2 bg-bg">
+                      <PikaMark size={20} blink />
+                      <span className="font-mono text-xs text-text-3">loading folder…</span>
                     </div>
                   ) : folder.isError ? (
                     <div className="m-4">

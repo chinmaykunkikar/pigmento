@@ -6,7 +6,7 @@ const config: Config = {
   styleRoots: ["./assets/css", "./src/styles"],
   extensions: ["svg", "png", "jpg", "jpeg", "webp", "gif"],
   ignore: ["**/node_modules/**", "**/.next/**", "**/.nuxt/**", "**/dist/**"],
-  dbPath: "./data/pixeldex.db",
+  dbPath: "./data/pika.db",
   phash: { enabled: true, maxHamming: 12 },
   clip: { enabled: false },
   usage: { maxHitsPerAsset: 50 },

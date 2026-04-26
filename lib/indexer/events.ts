@@ -12,7 +12,7 @@ export type StageEvent =
     }
   | { type: "run-end"; sourceId: number; ms: number };
 
-const GLOBAL_KEY = Symbol.for("pixeldex.indexerEvents");
+const GLOBAL_KEY = Symbol.for("pika.indexerEvents");
 
 type GlobalStore = { [k: symbol]: EventEmitter | undefined };
 

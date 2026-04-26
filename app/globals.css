@@ -34,6 +34,17 @@
 
   --color-overlay: rgba(20, 20, 30, 0.2);
 
+  /* Pika brand tokens — used only by the mark, wordmark, brand surfaces, and
+     loading indicators. Product chrome continues to use --color-accent (indigo)
+     for selection and primary actions. */
+  --color-pika-rust: #b8492a;
+  --color-pika-rust-ink: #ffffff;
+  --color-pika-paper: #f4f2ec;
+  --color-pika-pitch: #0e1013;
+  --color-pika-pitch-ink: #e8e6df;
+  --color-pika-citron: #e8ec3a;
+  --color-pika-citron-ink: #1a1c00;
+
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 
@@ -209,6 +220,20 @@ body {
   100% {
     background-color: var(--color-surface);
   }
+}
+
+@keyframes pika-blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-pika-blink {
+  animation: pika-blink 1s step-end infinite;
+  transform-origin: center;
 }
 
 @keyframes dialog-overlay-in {

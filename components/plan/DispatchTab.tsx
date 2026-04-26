@@ -119,7 +119,7 @@ export function DispatchTab({ plan }: Props) {
 
       <Section label="Command preview">
         <pre className="overflow-auto rounded-sm bg-text p-3 font-mono text-2xs leading-relaxed text-[#e8e6e2]">
-          {`pdx plan send --source ${plan.sourceId} --mode ${mode} --harness ${harness} plan-${plan.id}.json`}
+          {`pika plan send --source ${plan.sourceId} --mode ${mode} --harness ${harness} plan-${plan.id}.json`}
         </pre>
       </Section>
 

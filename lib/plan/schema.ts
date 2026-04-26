@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const planFormatVersion = "pixeldex/plan v1";
+export const planFormatVersion = "pika/plan v1";
 
 const assetRef = z.object({
   assetId: z.number().int().positive(),

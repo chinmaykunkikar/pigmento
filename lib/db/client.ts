@@ -8,7 +8,7 @@ export type Db = ReturnType<typeof drizzle<typeof schema>>;
 
 let instance: Db | undefined;
 
-export function getDb(dbPath = "./data/pixeldex.db"): Db {
+export function getDb(dbPath = "./data/pika.db"): Db {
   if (instance) return instance;
   const abs = resolve(process.cwd(), dbPath);
   mkdirSync(dirname(abs), { recursive: true });

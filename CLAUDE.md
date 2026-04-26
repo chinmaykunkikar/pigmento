@@ -1,4 +1,4 @@
-# PixelDex — project instructions
+# Pika — project instructions
 
 Local-first developer tool that indexes image/icon assets across a codebase, groups duplicates, shows references, and (eventually) hands a cleanup plan off to a coding agent that opens a PR.
 
@@ -10,7 +10,7 @@ Local-first developer tool that indexes image/icon assets across a codebase, gro
 
 ### Users
 
-Design-system engineers cleaning up an icon library before shipping a new token set, frontend leads auditing asset bloat in a monorepo, and solo developers asking "is there already an icon for this?" before adding another. All three sit in front of this screen for extended stretches during cleanup work — dense data grids, reference lists, and duplicate groups being their primary surfaces. They reach for PixelDex when an existing tool (IDE file tree, Figma, CLI optimisers) can't give them a *map* of the assets and their relationships.
+Design-system engineers cleaning up an icon library before shipping a new token set, frontend leads auditing asset bloat in a monorepo, and solo developers asking "is there already an icon for this?" before adding another. All three sit in front of this screen for extended stretches during cleanup work — dense data grids, reference lists, and duplicate groups being their primary surfaces. They reach for pika when an existing tool (IDE file tree, Figma, CLI optimisers) can't give them a *map* of the assets and their relationships.
 
 ### Brand Personality
 
@@ -259,14 +259,14 @@ Indexer (lib/indexer/, scripts/ae.ts)
 
 ## UI state (zustand)
 
-Client-only state (selected view, drawer open, bounding-boxes toggle, filters, search string) lives in `useExplorerStore` (`lib/store.ts`). Persist via zustand's `persist` middleware to `localStorage` under key `pixeldex:ui`. Exclude transient state (current hover, active keystroke) from persistence.
+Client-only state (selected view, drawer open, bounding-boxes toggle, filters, search string) lives in `useExplorerStore` (`lib/store.ts`). Persist via zustand's `persist` middleware to `localStorage` under key `pika:ui`. Exclude transient state (current hover, active keystroke) from persistence.
 
 ## "Add source" UX
 
 Three entry points, all supported:
 1. **Drag a folder onto the EmptyState** (webkitdirectory input via a hidden `<input type="file" webkitdirectory>`)
 2. **Paste an absolute path** into a text input, validated server-side
-3. **CLI**: `pdx source add <path> [--label <name>]`
+3. **CLI**: `pika source add <path> [--label <name>]`
 
 All three funnel into `POST /api/sources` which resolves + validates + kicks off an index.
 
@@ -295,20 +295,20 @@ lib/
   plan/             schema, parse-prompt, validate, export, dispatch/ (future)
   queries/          TanStack query key factory + shared hooks
   store.ts          zustand store
-scripts/pdx.ts      CLI entry (commander) — binary name `pdx`
+scripts/pika.ts     CLI entry (commander) — binary name `pika`
 drizzle.config.ts
 biome.json
 data/               sqlite + uploads (gitignored)
-pixeldex.config.ts
+pika.config.ts
 ```
 
 ## Commands
 
 - `pnpm dev` — Next dev (Turbopack)
 - `pnpm build && pnpm start`
-- `pnpm index` — `tsx scripts/pdx.ts index`
+- `pnpm index` — `tsx scripts/pika.ts index`
 - `pnpm index:full` — drop caches, re-scan everything
-- `pnpm pdx <cmd>` — general CLI (`pdx status`, `pdx source add <path>`, `pdx match <file>`)
+- `pnpm pika <cmd>` — general CLI (`pika status`, `pika source add <path>`, `pika match <file>`)
 - `pnpm db:generate` — drizzle-kit generate (new migration from schema diff)
 - `pnpm db:migrate` — drizzle-kit migrate (apply pending migrations)
 - `pnpm db:studio` — drizzle-kit studio (web UI for inspecting DB)
@@ -338,10 +338,10 @@ pixeldex.config.ts
 ## When adding a new indexer stage
 
 1. Write the pure function in `lib/indexer/<stage>.ts` with a typed input and output.
-2. Add the stage to `scripts/pdx.ts` as a sequenced step inside a `db.transaction()`.
+2. Add the stage to `scripts/pika.ts` as a sequenced step inside a `db.transaction()`.
 3. If new columns are needed: add to `lib/db/schema.ts`, then `pnpm db:generate && pnpm db:migrate`.
 4. Update `lib/db/queries/*.ts` with any new query that reads the field.
-5. Run `pnpm pdx index --full` against `~/Tribe/cohort-live-web` to verify end-to-end.
+5. Run `pnpm pika index --full` against `~/Tribe/cohort-live-web` to verify end-to-end.
 
 ## When adding a new API route
 
@@ -366,8 +366,8 @@ The `claude-code` harness landed in Phase 10 slice 2 for both `patch` and `open-
 Against the phase's acceptance criteria in the PRD:
 1. `pnpm typecheck && pnpm lint` clean
 2. `pnpm dev` renders; manually walk the phase's screens
-3. For DB phases: `pnpm db:studio` and verify counts/indexes, or `sqlite3 data/pixeldex.db`
-4. For indexer phases: `pnpm pdx index --full` against `~/Tribe/cohort-live-web`
+3. For DB phases: `pnpm db:studio` and verify counts/indexes, or `sqlite3 data/pika.db`
+4. For indexer phases: `pnpm pika index --full` against `~/Tribe/cohort-live-web`
 5. Pixel check: chrome heights match tokens; accent only on selection/primary/focus
 
 ## Never do

@@ -1,4 +1,4 @@
-# PixelDex — Design System
+# Pika — Design System
 
 The product spec. Tokens, patterns, principles. Implementation contract lives in `app/globals.css @theme` and `components/primitives/*`. If a decision isn't here, it isn't a decision.
 
@@ -14,7 +14,7 @@ Target user: design-system engineers cleaning up an icon library, frontend leads
 
 Emotional goal across a long session: **clear, focused, satisfying**. The user can see progress. Every action has a definite outcome. Nothing surprises them.
 
-What PixelDex is **not**:
+What pika is **not**:
 - Not SaaS marketing. No hero type, no gradient CTAs, no feature grids.
 - Not Figma-chrome. No dark default, no floating purple accents.
 - Not Storybook-doc. No centred prose.
@@ -260,7 +260,7 @@ Every shortcut that is advertised in UI (EmptyState hint strip, CommandPalette h
 
 ## 11. Responsive
 
-Target viewport floor: **1024 × 720** (laptop). Below that, show a dismissible banner: "PixelDex is a desktop tool; some views may be cramped." Don't attempt a full mobile redesign; this is a developer workspace.
+Target viewport floor: **1024 × 720** (laptop). Below that, show a dismissible banner: "pika is a desktop tool; some views may be cramped." Don't attempt a full mobile redesign; this is a developer workspace.
 
 What should hold below 1024:
 - Sidebar collapses to icon rail (`w-12`, folder tree hidden).
