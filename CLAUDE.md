@@ -19,8 +19,8 @@ Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets 
 ### Aesthetic Direction
 
 - **Theme scope:** light mode only for MVP. A dark palette may land as a later phase; do not design-double tokens now, but don't encode assumptions that would block it later either.
-- **Palette** (from `design-source/asset-explorer/project/components/tokens.jsx`, mirrored in `app/globals.css @theme`): warm-tinted light neutrals (`bg #fbfbfa`, `surface #ffffff`, `sunken #f5f4f2`, `text #1a1a19` → `text-4 #b3b0a9`). Semantic colours (`warn`, `danger`, `ok`) are muted and paired with backgrounds (`warn-bg`, `danger-bg`, `ok-bg`) for chips/callouts.
-- **One accent colour:** `#3b6cd8` (cool blue). Reserved strictly for: currently-selected items, the single primary action on any given screen, and focus rings. Never decorative, never a hover colour, never on an icon unless it signals selection.
+- **Palette** (authoritative in `app/globals.css @theme`): warm paper neutrals (`bg #f4f2ec`, `surface #fbfaf6`, `sunken #ecebe6`, `text #15171a` → `text-4 #b3b0a9`). Semantic colours (`warn`, `danger`, `ok`) are muted and paired with backgrounds (`warn-bg`, `danger-bg`, `ok-bg`) for chips/callouts.
+- **One accent colour:** `#b8492a` (rust). Reserved strictly for: currently-selected items, the single primary action on any given screen, the dot in the pika mark, and focus rings. Never decorative, never a hover colour, never on an icon unless it signals selection.
 - **Surfaces:** hairlines, not cards. 1px `border-border` between regions. No gradients. No decorative shadows anywhere except the detail drawer's edge shadow.
 - **Type:** Inter for UI, JetBrains Mono for paths, hashes, counts, kbd hints, and anything structural. Per-size line-height, weight, and tracking come from `tokens.jsx` and are wired into `@theme` modifiers (`--text-<size>--line-height` etc.).
 - **Density:** 4px grid everywhere; fixed chrome heights (24/26/28/32 for controls, 24/36/44 for surfaces) are design contracts, not suggestions.

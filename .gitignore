@@ -13,3 +13,6 @@ tsconfig.tsbuildinfo
 # Local skill directories
 /.agents/skills/
 /.claude/skills/
+
+# Design-source bundles (large, generated externally; not needed at runtime)
+design-source/
