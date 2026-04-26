@@ -1,4 +1,6 @@
-# pika
+<p>
+  <img src="./docs/banner.svg" alt="pika" height="96" />
+</p>
 
 > Every image in your repo, in one place.
 
@@ -13,6 +15,8 @@ Local-first. Runs on your machine. Nothing is uploaded.
 ```
 local-first · macos · linux · windows · MIT
 ```
+
+![Pika overview](./docs/screenshots/overview.png)
 
 ---
 
@@ -48,7 +52,11 @@ The app opens at `http://localhost:9900`. Add more sources from the sidebar at a
 
 **Clusters.** Pika collapses look-alikes into a single row. The eleven logos you exported four times all live here, with the highest-resolution version recommended as canonical and an `UNUSED` flag on anything with zero references.
 
+![Near-duplicate clusters](./docs/screenshots/clusters-near.png)
+
 **Match.** Drop any image onto the window and pika tells you whether a near-match already exists in the codebase, before you commit a new one.
+
+![Match a dropped file](./docs/screenshots/match.png)
 
 ## Agent handoff
 
