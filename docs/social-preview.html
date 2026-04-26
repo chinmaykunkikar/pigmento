@@ -40,12 +40,12 @@
     background-size: 24px 24px; opacity: 0.9;
   }
 
-  /* Safe area: 70px top, 70px sides, 110px bottom to clear URL caption pill */
+  /* Safe area: 75px top, 120px sides (mobile crop), 120px bottom (URL pill) */
   .safe {
     position: absolute;
-    top: 70px; left: 70px; right: 70px; bottom: 110px;
+    top: 75px; left: 120px; right: 120px; bottom: 120px;
     display: grid; grid-template-columns: 1.05fr 1fr;
-    gap: 48px; z-index: 1;
+    gap: 36px; z-index: 1;
   }
 
   /* ── Left column ─────────────────────────────────────────────────────── */
