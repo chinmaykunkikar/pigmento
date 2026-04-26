@@ -62,6 +62,10 @@ The app opens at `http://localhost:9900`. Add more sources from the sidebar at a
 
 From the app, queue a set of merges and deletes into a cleanup plan. Pika emits a structured `plan.json` and a small CLI bridge hands it to your agent harness. The agent rewrites imports, deletes the redundant assets, and opens a PR. You stay in control of which clusters merge.
 
+![Plan dispatch panel · pick a harness, mode, and send to the agent](./docs/screenshots/dispatch.png)
+
+The wire format is plain JSON, easy to hand off to whichever harness you have set up:
+
 ```json
 {
   "version": "pika/plan v1",
