@@ -92,7 +92,7 @@ export function ActionBar({ sourceId, sourceLabel }: Props) {
           "inline-flex h-8 items-center gap-1.5 rounded-sm px-2.5 font-sans text-sm font-medium transition-colors",
           lastAdded
             ? "bg-ok-bg text-ok"
-            : "bg-accent text-white hover:bg-accent-text disabled:cursor-not-allowed disabled:opacity-60",
+            : "bg-accent text-on-accent hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60",
         )}
         title="Add selection to cleanup plan"
       >
