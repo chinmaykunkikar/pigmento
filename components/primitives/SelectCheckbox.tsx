@@ -34,7 +34,7 @@ export function SelectCheckbox({ checked, onToggle, label, className, size = "md
         "inline-flex shrink-0 cursor-pointer select-none items-center justify-center rounded-xs border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
         size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4",
         checked
-          ? "border-accent bg-accent text-white"
+          ? "border-accent bg-accent text-on-accent"
           : "border-border-2 bg-surface text-transparent hover:border-text-3",
         className,
       )}

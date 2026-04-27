@@ -17,11 +17,12 @@
   --color-border-2: #cfcdc6;
   --color-divider: #ecebe6;
 
-  /* Primary accent — rust. Used for selection, primary actions, focus rings,
+  /* Primary accent — citron. Used for selection, primary actions, focus rings,
      and the dot in the pika mark. The chevron stroke is always ink. */
-  --color-accent: #b8492a;
-  --color-accent-bg: #f7e8df;
-  --color-accent-text: #8a3520;
+  --color-accent: #e8ec3a;
+  --color-accent-bg: #fafbe0;
+  --color-accent-text: #3d4000;
+  --color-on-accent: #1a1c00;
 
   --color-warn: #b48a00;
   --color-warn-bg: #fbf5e6;
