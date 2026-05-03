@@ -19,8 +19,15 @@ Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets 
 ### Aesthetic Direction
 
 - **Theme scope:** light mode only for MVP. A dark palette may land as a later phase; do not design-double tokens now, but don't encode assumptions that would block it later either.
-- **Palette** (authoritative in `app/globals.css @theme`): warm paper neutrals (`bg #f4f2ec`, `surface #fbfaf6`, `sunken #ecebe6`, `text #15171a` → `text-4 #b3b0a9`). Semantic colours (`warn`, `danger`, `ok`) are muted and paired with backgrounds (`warn-bg`, `danger-bg`, `ok-bg`) for chips/callouts.
-- **One accent colour:** `#b8492a` (rust). Reserved strictly for: currently-selected items, the single primary action on any given screen, the dot in the pika mark, and focus rings. Never decorative, never a hover colour, never on an icon unless it signals selection.
+- **Palette** (authoritative in `app/globals.css @theme`): warm paper neutrals across a four-level depth stack (`bg #f5f3ef` → `surface #faf9f6` → `sunken #edeae4` → `sunken-2 #e4e1da`), with `hover #e8e5df` as the universal interactive overlay. Ink in four weights (`text #18160f` → `text-4 #b0ada6`). Borders are hairlines (`border #e0ddd8`, `border-2 #ccc9c2`, `divider #eae7e2`) — there are no elevation shadows in this system; borders carry all separation work.
+- **One accent colour:** Slate Teal `#1c7a74` (with `accent-hover #166860`, `accent-bg #e6f4f3`, `accent-text #124f4b`, `on-accent #ffffff`). Reserved strictly for: currently-selected items, the single primary action on any given screen, the dot in the pika mark, and focus rings. Never decorative, never a hover-only colour, never on an icon unless it signals selection.
+- **Semantic families — one colour per state.** Each has `base / bg / text` slots and exactly one role:
+  - `ok` `#2d8a52` — success, ready, safe (daemon ready, scan complete, success toast). Never use for selection.
+  - `warn` `#a07800` — pending, needs attention, stale (DROPPED chip, queued items, stale index). Use as text/icon on `warn-bg`, never as a solid fill.
+  - `danger` `#b03a2e` — destructive, unused, irreversible (`0 refs` tag, delete actions, CANONICAL marker on duplicate groups, errors).
+  - `info` `#3b6cd8` — match / preview / external links / informational callouts (Match tab highlight, "Preview migration" action). Distinct from accent: teal = "do this", blue = "look at this".
+  - `cluster` `#7a4ad9` — grouping / relatedness only (CLUSTER tag chip, grouped-view cluster count, cluster-membership indicator). Never as a generic accent.
+  - `citron` `#e8ec3a` — high-visibility quantity signal only ("×3 cluster" chip, "312 dupes" status count). Never means "good" or "bad". Always pair fill with `citron-ink #1a1c00` (the only combination that passes contrast). `citron-muted #b8bc00` is the inline-text variant. Chips/badges only — never a primary button, never a full-width background.
 - **Surfaces:** hairlines, not cards. 1px `border-border` between regions. No gradients. No decorative shadows anywhere except the detail drawer's edge shadow.
 - **Type:** Inter for UI, JetBrains Mono for paths, hashes, counts, kbd hints, and anything structural. Per-size line-height, weight, and tracking come from `tokens.jsx` and are wired into `@theme` modifiers (`--text-<size>--line-height` etc.).
 - **Density:** 4px grid everywhere; fixed chrome heights (24/26/28/32 for controls, 24/36/44 for surfaces) are design contracts, not suggestions.
@@ -34,7 +41,7 @@ Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets 
 
 1. **Tokens first, brackets last.** Before writing any class that names a colour, size, font, or radius, check whether the token already exists in `@theme`. If it's in `tokens.jsx` but not in `@theme`, fix that first. Bracket-arbitrary values (`text-[10px]`, `max-w-[360px]`) are reserved for genuinely off-scale one-offs and require a reason.
 2. **Chrome whispers, data speaks.** Fixed surface heights, hairline borders, mono for structure, sans for narrative. Never add decoration that competes with the content grid, the reference list, or the duplicate table.
-3. **The accent rule is inviolable.** `--color-accent` (rust `#b8492a`) appears only on selection, single primary action, the dot in the mark, and focus. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy.
+3. **The accent rule is inviolable.** `--color-accent` (Slate Teal `#1c7a74`) appears only on selection, single primary action, the dot in the mark, and focus. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy. The other named families (`info`, `cluster`, `citron`, `ok`, `warn`, `danger`) each cover exactly one state — never reach for a semantic colour for decoration.
 4. **Precomputed, never lazy.** Every UI query reads from indexed DB shape. If a view needs a number that isn't in the schema yet, extend the indexer first — don't compute-at-request-time. This shows up visually as no spinners past initial load.
 5. **Information density beats prettiness.** Users spend hours in this interface. The right answer is almost always *fit more on screen without sacrificing legibility* — tighter rows, mono-aligned numerics, hairline dividers — not pad-and-card it into a marketing screenshot.
 
@@ -88,27 +95,51 @@ Do NOT add: Base Web, styled-components, emotion, styletron, CSS Modules, Vanill
 
 @theme {
   /* colors — generate bg-*, text-*, border-* utilities */
-  --color-bg:          #f4f2ec;
-  --color-surface:     #fbfaf6;
-  --color-sunken:      #ecebe6;
-  --color-sunken-2:    #e3e1db;
-  --color-hover:       #ecebe6;
-  --color-text:        #15171a;
-  --color-text-2:      #4a4d52;
-  --color-text-3:      #8a8d92;
-  --color-text-4:      #b3b0a9;
-  --color-border:      #e3e1db;
-  --color-border-2:    #cfcdc6;
-  --color-divider:     #ecebe6;
-  --color-accent:      #b8492a;
-  --color-accent-bg:   #f7e8df;
-  --color-accent-text: #8a3520;
-  --color-warn:        #b48a00;
-  --color-warn-bg:     #fbf5e6;
-  --color-danger:      #b03a2e;
-  --color-danger-bg:   #fbeeea;
-  --color-ok:          #3a8e5a;
-  --color-ok-bg:       #ecf5ee;
+  /* surfaces: depth stack bg → surface → sunken → sunken-2; hover is universal */
+  --color-bg:           #f5f3ef;
+  --color-surface:      #faf9f6;
+  --color-sunken:       #edeae4;
+  --color-sunken-2:     #e4e1da;
+  --color-hover:        #e8e5df;
+  /* text: four ink weights, use in order */
+  --color-text:         #18160f;
+  --color-text-2:       #524f48;
+  --color-text-3:       #878480;
+  --color-text-4:       #b0ada6;
+  /* borders: hairline / strong / subtle internal */
+  --color-border:       #e0ddd8;
+  --color-border-2:     #ccc9c2;
+  --color-divider:      #eae7e2;
+  /* primary accent — Slate Teal: selection, primary CTA, focus, mark dot */
+  --color-accent:       #1c7a74;
+  --color-accent-hover: #166860;
+  --color-accent-bg:    #e6f4f3;
+  --color-accent-text:  #124f4b;
+  --color-on-accent:    #ffffff;
+  /* semantic — ok / success / ready */
+  --color-ok:           #2d8a52;
+  --color-ok-bg:        #eaf5ee;
+  --color-ok-text:      #1d5c36;
+  /* semantic — warn / pending / stale (text on bg, never solid fill) */
+  --color-warn:         #a07800;
+  --color-warn-bg:      #faf4e0;
+  --color-warn-text:    #6b5000;
+  /* semantic — danger / destructive / 0-refs */
+  --color-danger:       #b03a2e;
+  --color-danger-bg:    #fbeae8;
+  --color-danger-text:  #7a2820;
+  /* semantic — info / match / preview / external links (NOT primary nav) */
+  --color-info:         #3b6cd8;
+  --color-info-bg:      #eef3fe;
+  --color-info-text:    #2a53b0;
+  /* semantic — cluster / grouping (CLUSTER chip only) */
+  --color-cluster:      #7a4ad9;
+  --color-cluster-bg:   #f2edfc;
+  --color-cluster-text: #522fa0;
+  /* semantic — citron / quantity chip only (×3, 312 dupes); pair with citron-ink */
+  --color-citron:       #e8ec3a;
+  --color-citron-ink:   #1a1c00;
+  --color-citron-muted: #b8bc00;
 
   /* fonts — generate font-sans, font-mono */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -190,12 +221,23 @@ Never override. If a design looks cramped, the design is wrong and we escalate, 
 
 ### The accent rule
 
-`--color-accent` (`#b8492a`, rust) appears ONLY on:
+`--color-accent` (`#1c7a74`, Slate Teal) appears ONLY on:
 1. Currently selected items (tile outline, tree row left bar, tab underline)
-2. Primary action buttons (one per screen)
+2. Primary action buttons (one per screen) — fill with `bg-accent` + `text-on-accent` (white)
 3. Focus rings
+4. The dot in the pika mark and source-indicator dots
 
-Never as decoration. Never as a hover color. Never on an icon unless it's indicating selection.
+Never as decoration. Never as a hover color (use `accent-hover` for hover/pressed of accent-filled elements). Never on an icon unless it's indicating selection.
+
+For selected rows/tiles where a full-saturation fill is too heavy, use `bg-accent-bg` + `text-accent-text` for a tinted selection state.
+
+The accent is the only "do this / you are here" signal. Other named families cover other meanings, never overlap:
+- `info` (blue) — observe/preview/links: Match tab, "Preview migration", external link icons. Teal = "do this", blue = "look at this".
+- `ok` — success/ready (daemon ready, scan done). Never for selection.
+- `warn` — pending/stale (DROPPED chip, stale index). Text/icon on `warn-bg`, never solid fill.
+- `danger` — destructive/unused (`0 refs` chip, delete actions, CANONICAL marker).
+- `cluster` — grouping only (CLUSTER chip, cluster-membership indicator). Never a generic accent.
+- `citron` — quantity chip only (`×3`, `312 dupes`). Always with `citron-ink`. Chips/badges only — no primary buttons, no full-width fills.
 
 ### Typography
 

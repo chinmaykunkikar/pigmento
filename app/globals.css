@@ -1,38 +1,84 @@
 @import "tailwindcss";
 
 @theme {
-  /* Surfaces — warm paper neutrals from the pika brand spec. */
-  --color-bg: #f4f2ec;
-  --color-surface: #fbfaf6;
-  --color-sunken: #ecebe6;
-  --color-sunken-2: #e3e1db;
-  --color-hover: #ecebe6;
+  /* Surfaces — depth stack: bg → surface → sunken → sunken-2. Always move
+     inward as UI nests deeper. Never skip levels. */
+  --color-bg: #f5f3ef;
+  --color-surface: #faf9f6;
+  --color-sunken: #edeae4;
+  --color-sunken-2: #e4e1da;
+  --color-hover: #e8e5df;
 
-  --color-text: #15171a;
-  --color-text-2: #4a4d52;
-  --color-text-3: #8a8d92;
-  --color-text-4: #b3b0a9;
+  /* Text — four ink weights. Use in order: text → text-2 → text-3 → text-4.
+     text-4 is ghost ink, reserved for disabled/empty-state copy only. */
+  --color-text: #18160f;
+  --color-text-2: #524f48;
+  --color-text-3: #878480;
+  --color-text-4: #b0ada6;
 
-  --color-border: #e3e1db;
-  --color-border-2: #cfcdc6;
-  --color-divider: #ecebe6;
+  /* Borders — no elevation shadows; borders carry all separation work.
+     border is the workhorse hairline; border-2 is for focus rings and
+     active-selection emphasis; divider is the whisper inside a panel. */
+  --color-border: #e0ddd8;
+  --color-border-2: #ccc9c2;
+  --color-divider: #eae7e2;
 
-  /* Primary accent — citron. Used for selection, primary actions, focus rings,
-     and the dot in the pika mark. The chevron stroke is always ink. */
-  --color-accent: #e8ec3a;
-  --color-accent-bg: #fafbe0;
-  --color-accent-text: #3d4000;
-  --color-on-accent: #1a1c00;
+  /* Primary accent — Slate Teal. The single "you are here / do this" color.
+     Active nav, primary CTA, selected tile outline, focus ring, source-
+     indicator dot, mark dot. Never decorative, never a hover-only color,
+     never on an icon unless it signals selection. */
+  --color-accent: #1c7a74;
+  --color-accent-hover: #166860;
+  --color-accent-bg: #e6f4f3;
+  --color-accent-text: #124f4b;
+  --color-on-accent: #ffffff;
 
-  --color-warn: #b48a00;
-  --color-warn-bg: #fbf5e6;
+  /* Semantic — ok / success / ready. Daemon ready, scan complete, success
+     toast, "safe to delete" confirmed. Never use for the selected state. */
+  --color-ok: #2d8a52;
+  --color-ok-bg: #eaf5ee;
+  --color-ok-text: #1d5c36;
 
+  /* Semantic — warn / pending / stale. DROPPED chip, queued items, stale-
+     index warning, pending agent run. Use as text/icon on warn-bg, never
+     as a solid fill alone. */
+  --color-warn: #a07800;
+  --color-warn-bg: #faf4e0;
+  --color-warn-text: #6b5000;
+
+  /* Semantic — danger / destructive / unused. "0 refs" tag, delete actions,
+     CANONICAL marker on duplicate groups, error states. */
   --color-danger: #b03a2e;
-  --color-danger-bg: #fbeeea;
+  --color-danger-bg: #fbeae8;
+  --color-danger-text: #7a2820;
 
-  --color-ok: #3a8e5a;
-  --color-ok-bg: #ecf5ee;
+  /* Semantic — info / match / preview. Match tab highlight, "Preview
+     migration" action, external links, informational callouts. Distinct
+     from accent: teal = "do this", blue = "look at this". */
+  --color-info: #3b6cd8;
+  --color-info-bg: #eef3fe;
+  --color-info-text: #2a53b0;
 
+  /* Semantic — cluster / group. CLUSTER tag chip, grouped-view cluster
+     count, cluster-membership indicator on tile hover. Only when the
+     concept being communicated is "these things are related". */
+  --color-cluster: #7a4ad9;
+  --color-cluster-bg: #f2edfc;
+  --color-cluster-text: #522fa0;
+
+  /* Semantic — citron / quantity. "×3 cluster" count chip, "312 dupes"
+     status-bar count, raw quantity-of-things-that-need-attention signal.
+     Never means "good" or "bad". Always pair fill with citron-ink (the
+     only combination that passes contrast). citron-muted is the inline
+     text variant for when full citron is too loud. Use only on small
+     chip/badge components, never full-width backgrounds, never as a
+     primary button (no hover/focus states defined). */
+  --color-citron: #e8ec3a;
+  --color-citron-ink: #1a1c00;
+  --color-citron-muted: #b8bc00;
+
+  /* Checker pattern — transparency preview for SVG/PNG tiles only.
+     Infrastructure, not palette. Never use elsewhere. */
   --color-checker-a: #ffffff;
   --color-checker-b: #f0eeea;
 

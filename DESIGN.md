@@ -36,30 +36,66 @@ What pika is **not**:
 
 ### Color
 
+**Surfaces — depth stack** (always move inward as UI nests deeper; never skip levels)
+
 | Token | Hex | Use |
 |---|---|---|
-| `--color-bg` | `#f4f2ec` | Page background (warm paper) |
-| `--color-surface` | `#fbfaf6` | Primary content surfaces (toolbar, cards, drawers) |
-| `--color-sunken` | `#ecebe6` | Recessed surfaces (search input, filter trays) |
-| `--color-sunken-2` | `#e3e1db` | Deeper recess (pressed state) |
-| `--color-hover` | `#ecebe6` | Row/button hover |
-| `--color-text` | `#15171a` | Primary text |
-| `--color-text-2` | `#4a4d52` | Secondary text |
-| `--color-text-3` | `#8a8d92` | Meta, mono text, captions |
-| `--color-text-4` | `#b3b0a9` | Tertiary / disabled |
-| `--color-border` | `#e3e1db` | Hairline dividers |
-| `--color-border-2` | `#cfcdc6` | Emphasized hairline (selected row, input focus) |
-| `--color-divider` | `#ecebe6` | In-surface dividers (inside a card) |
-| `--color-accent` | `#b8492a` | Selection, primary action, focus, mark dot (rust) |
-| `--color-accent-bg` | `#f7e8df` | Accent surface (selected row bg) |
-| `--color-accent-text` | `#8a3520` | Accent text (on accent-bg) |
-| `--color-warn` | `#b48a00` | Warnings, non-blocking issues |
-| `--color-warn-bg` | `#fbf5e6` | Warning surface |
-| `--color-danger` | `#b03a2e` | Errors, destructive |
-| `--color-danger-bg` | `#fbeeea` | Danger surface |
-| `--color-ok` | `#3a8e5a` | Success, completion |
-| `--color-ok-bg` | `#ecf5ee` | Success surface |
-| `--color-checker-a/-b` | `#ffffff` / `#f0eeea` | Asset-preview checker pattern |
+| `--color-bg` | `#f5f3ef` | App shell, outermost layer behind all panels |
+| `--color-surface` | `#faf9f6` | Panel face — sidebars, cards, drawers, modals |
+| `--color-sunken` | `#edeae4` | Recessed chrome inside a surface — toolbar, input bg, sidebar header |
+| `--color-sunken-2` | `#e4e1da` | Deepest well — asset tile bg, checker base, nested inset |
+| `--color-hover` | `#e8e5df` | Universal hover overlay for rows, tiles, tree nodes |
+
+**Text — four ink weights** (use in order; `text-4` is ghost ink, disabled/empty-state only)
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-text` | `#18160f` | Primary — filenames, labels, body |
+| `--color-text-2` | `#524f48` | Secondary — file paths, asset type, descriptions |
+| `--color-text-3` | `#878480` | Tertiary — timestamps, counts, placeholders, kbd hints |
+| `--color-text-4` | `#b0ada6` | Ghost — disabled fields, empty-state hints |
+
+**Borders — no shadows; borders carry separation**
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-border` | `#e0ddd8` | Hairline — panel edges, row dividers, card outlines |
+| `--color-border-2` | `#ccc9c2` | Strong — focus rings, drag targets, active selection |
+| `--color-divider` | `#eae7e2` | Subtle internal — section separator inside a card |
+
+**Primary accent — Slate Teal** (the single "you are here / do this" color — selection, primary CTA, focus ring, mark dot)
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-accent` | `#1c7a74` | Base — fill for active nav, primary CTA, source-indicator dot, mark dot, focus ring |
+| `--color-accent-hover` | `#166860` | Hover/pressed of any accent-filled element |
+| `--color-accent-bg` | `#e6f4f3` | Tinted background for selected row/tile (paired with `accent-text`) |
+| `--color-accent-text` | `#124f4b` | Text on `accent-bg` (passes AA on white) |
+| `--color-on-accent` | `#ffffff` | Text on `accent` base (e.g. primary button label) |
+
+**Semantic — one color per state.** Never mix roles. Each family has `base / bg / text` slots:
+
+| Family | base / bg / text | Means |
+|---|---|---|
+| **ok** | `#2d8a52` / `#eaf5ee` / `#1d5c36` | Success, ready, safe — daemon ready, scan done, success toast |
+| **warn** | `#a07800` / `#faf4e0` / `#6b5000` | Pending, stale, needs attention — DROPPED chip, queued items, stale index. Use as text/icon on `warn-bg`, never solid fill |
+| **danger** | `#b03a2e` / `#fbeae8` / `#7a2820` | Destructive, unused, irreversible — `0 refs` chip, delete, CANONICAL marker on dupes, errors |
+| **info** | `#3b6cd8` / `#eef3fe` / `#2a53b0` | Match, preview, external link — Match tab highlight, "Preview migration", info callouts. Teal = "do this", blue = "look at this" — never use info for primary nav |
+| **cluster** | `#7a4ad9` / `#f2edfc` / `#522fa0` | Grouping/relatedness — CLUSTER chip, grouped-view cluster count, cluster-membership indicator. Never as a generic accent |
+
+**Citron — quantity chip only** (raw "here is a number you should see" signal — not "good", not "bad")
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-citron` | `#e8ec3a` | Fill for `×3 cluster`, `312 dupes`. Chips/badges only — never full-width bg, never primary button (no hover/focus defined) |
+| `--color-citron-ink` | `#1a1c00` | The only text color allowed on a citron fill (passes contrast) |
+| `--color-citron-muted` | `#b8bc00` | Inline text variant — when full citron is too loud for body copy |
+
+**Other**
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-checker-a/-b` | `#ffffff` / `#f0eeea` | Asset-preview transparency checker. Infrastructure only — never reuse |
 | `--color-overlay` | `rgba(20,20,30,0.2)` | Dialog/drawer scrim |
 
 Contrast floor: WCAG AA (4.5:1 text, 3:1 UI). Every new color-on-color pair must be verified before shipping.
@@ -154,12 +190,23 @@ If a design wants something off this scale, escalate before padding.
 
 ## 5. The accent rule
 
-`--color-accent` (`#b8492a`, rust) appears ONLY on:
+`--color-accent` (`#1c7a74`, Slate Teal) appears ONLY on:
 1. Currently selected items (tile outline, tree row left bar, tab underline, segmented-control active, radio dot)
-2. The single primary action on any given screen
+2. The single primary action on any given screen — fill `bg-accent` + `text-on-accent` (white)
 3. Focus rings (`focus-visible:ring-1 ring-accent/40`)
+4. The dot in the pika mark and source-indicator dots
 
-Never as decoration. Never as a hover color. Never on an icon unless the icon signals selection. One accent per view, at most.
+Never as decoration. Never as a hover color (use `accent-hover` for the hover/pressed state of accent-filled elements). Never on an icon unless the icon signals selection. One accent per view, at most.
+
+For selection states where a full-saturation fill is too heavy, pair `bg-accent-bg` with `text-accent-text` (the tinted-row treatment).
+
+The accent is the only "do this / you are here" signal. Other named families cover other meanings, never overlap:
+- `info` (blue) — observe/preview/links: Match tab, "Preview migration", external link icons. Teal = "do this", blue = "look at this".
+- `ok` — success/ready (daemon ready, scan done). Never for selection.
+- `warn` — pending/stale (DROPPED chip, stale index). Text/icon on `warn-bg`, never solid fill.
+- `danger` — destructive/unused (`0 refs` chip, delete, CANONICAL marker).
+- `cluster` — grouping only (CLUSTER chip, cluster-membership indicator). Never a generic accent.
+- `citron` — quantity chip only (`×3`, `312 dupes`). Always with `citron-ink`. Chips/badges only.
 
 ---
 
