@@ -63,7 +63,7 @@ export function AssetTile({
         {selected ? (
           <span
             aria-hidden
-            className="absolute right-1.5 top-1.5 z-10 flex h-4 w-4 items-center justify-center rounded-xs bg-accent text-white"
+            className="absolute right-1.5 top-1.5 z-10 flex h-4 w-4 items-center justify-center rounded-xs bg-accent text-on-accent"
           >
             <Check size={10} strokeWidth={1.75} />
           </span>

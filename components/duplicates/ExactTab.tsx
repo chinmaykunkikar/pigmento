@@ -57,7 +57,7 @@ export function ExactTab({ sourceId, sourceLabel }: Props) {
         <button
           type="button"
           disabled
-          className="inline-flex h-6.5 cursor-not-allowed items-center rounded-sm border-none bg-accent px-2.5 text-sm font-medium text-surface opacity-60"
+          className="inline-flex h-6.5 cursor-not-allowed items-center rounded-sm border-none bg-accent px-2.5 text-sm font-medium text-on-accent opacity-60"
         >
           Preview migration
         </button>

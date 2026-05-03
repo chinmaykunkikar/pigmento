@@ -402,7 +402,9 @@ function ReferencesSection({
                   excluded ? "border-border bg-surface" : "border-accent bg-accent",
                 )}
               >
-                {excluded ? null : <Check size={10} strokeWidth={1.75} className="text-white" />}
+                {excluded ? null : (
+                  <Check size={10} strokeWidth={1.75} className="text-on-accent" />
+                )}
               </span>
               <span className="min-w-0 flex-1 truncate" title={u.relPath}>
                 {u.relPath}

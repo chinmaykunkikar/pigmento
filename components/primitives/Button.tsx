@@ -10,7 +10,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const styles: Record<Variant, string> = {
   primary:
-    "bg-accent text-white hover:bg-accent-text disabled:opacity-50 disabled:cursor-not-allowed",
+    "bg-accent text-on-accent hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed",
   secondary:
     "bg-surface text-text border border-border-2 hover:bg-hover disabled:opacity-50 disabled:cursor-not-allowed",
   ghost:
