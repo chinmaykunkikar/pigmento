@@ -58,6 +58,7 @@
   --color-info: #3b6cd8;
   --color-info-bg: #eef3fe;
   --color-info-text: #2a53b0;
+  --color-on-info: #ffffff;
 
   /* Semantic — cluster / group. CLUSTER tag chip, grouped-view cluster
      count, cluster-membership indicator on tile hover. Only when the

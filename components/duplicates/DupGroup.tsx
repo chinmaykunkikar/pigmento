@@ -3,7 +3,7 @@
 import { type MouseEvent, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { ExactGroup } from "@/lib/db/queries/duplicates";
-import type { MergeExactAction } from "@/lib/plan/schema";
+import { mergeExactActionFromGroup } from "@/lib/plan/build";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes } from "@/lib/time";
 import { ChevronDown, ChevronRight } from "../icons";
@@ -33,29 +33,7 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
   const selectedInGroup = orderedIds.filter((id) => cartSet.has(id)).length;
   const allInCart = selectedInGroup === orderedIds.length && orderedIds.length > 0;
 
-  const action: MergeExactAction = {
-    id: `merge-exact:${group.id}`,
-    kind: "merge-exact",
-    createdAt: Date.now(),
-    hashKey: group.key,
-    keep: {
-      assetId: group.canonicalId,
-      relPath:
-        group.members.find((m) => m.assetId === group.canonicalId)?.relPath ?? group.canonicalName,
-      name: group.canonicalName,
-      size: group.perFileSize,
-      usageCount: group.members.find((m) => m.assetId === group.canonicalId)?.usageCount ?? 0,
-    },
-    drop: group.members
-      .filter((m) => m.assetId !== group.canonicalId)
-      .map((m) => ({
-        assetId: m.assetId,
-        relPath: m.relPath,
-        name: m.name,
-        size: m.size,
-        usageCount: m.usageCount,
-      })),
-  };
+  const action = mergeExactActionFromGroup(group);
 
   const handleMemberClick = (id: number, e: MouseEvent) => {
     if (e.metaKey || e.ctrlKey) {
