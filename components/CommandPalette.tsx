@@ -5,11 +5,12 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
 import { useReindex } from "@/lib/queries/reindex";
-import { useExplorerStore } from "@/lib/store";
+import { PREVIEW_BACKDROP_LABELS, useExplorerStore } from "@/lib/store";
 import {
   Box,
   ChevronLeft,
   ClipboardList,
+  Contrast,
   Eye,
   EyeOff,
   Home,
@@ -41,6 +42,8 @@ export function CommandPalette({ source }: Props) {
   const setView = useExplorerStore((s) => s.setView);
   const boundingBoxes = useExplorerStore((s) => s.boundingBoxes);
   const setBoundingBoxes = useExplorerStore((s) => s.setBoundingBoxes);
+  const previewBackdrop = useExplorerStore((s) => s.previewBackdrop);
+  const cyclePreviewBackdrop = useExplorerStore((s) => s.cyclePreviewBackdrop);
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
   const setUnusedOnly = useExplorerStore((s) => s.setUnusedOnly);
   const focusSearch = useExplorerStore((s) => s.focusSearch);
@@ -140,6 +143,15 @@ export function CommandPalette({ source }: Props) {
       icon: <Box size={12} strokeWidth={1.5} />,
       group: "Display",
       onRun: run(() => setBoundingBoxes(!boundingBoxes)),
+      enabled: !!source,
+    },
+    {
+      id: "display:preview-backdrop",
+      label: `Preview backdrop · ${PREVIEW_BACKDROP_LABELS[previewBackdrop]}`,
+      combo: "b",
+      icon: <Contrast size={12} strokeWidth={1.5} />,
+      group: "Display",
+      onRun: run(cyclePreviewBackdrop),
       enabled: !!source,
     },
     {

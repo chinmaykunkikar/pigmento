@@ -9,6 +9,7 @@ export {
   ChevronRight,
   ChevronUp,
   ClipboardList,
+  Contrast,
   Copy,
   Download,
   ExternalLink,

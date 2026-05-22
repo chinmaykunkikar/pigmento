@@ -66,15 +66,7 @@ export function DropCard({ file, signature, isPending, onClear, onPick }: Props)
         </span>
 
         <div className="flex items-center gap-3.5">
-          <div
-            className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-xs border border-border bg-surface"
-            style={{
-              backgroundImage:
-                "linear-gradient(45deg,#f0efec 25%,transparent 25%),linear-gradient(-45deg,#f0efec 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0efec 75%),linear-gradient(-45deg,transparent 75%,#f0efec 75%)",
-              backgroundSize: "12px 12px",
-              backgroundPosition: "0 0, 0 6px, 6px -6px, -6px 0",
-            }}
-          >
+          <div className="bg-checker flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-xs border border-border [--checker-size:12px]">
             {preview ? (
               // biome-ignore lint/performance/noImgElement: local blob URL, not a remote asset
               <img src={preview} alt={file.name} className="max-h-full max-w-full object-contain" />

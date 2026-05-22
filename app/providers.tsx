@@ -1,7 +1,8 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
+import { useExplorerStore } from "@/lib/store";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -24,5 +25,11 @@ function getQueryClient() {
 
 export default function Providers({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient();
+  const previewBackdrop = useExplorerStore((s) => s.previewBackdrop);
+
+  useEffect(() => {
+    document.documentElement.dataset.previewBackdrop = previewBackdrop;
+  }, [previewBackdrop]);
+
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

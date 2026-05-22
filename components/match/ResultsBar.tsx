@@ -1,5 +1,6 @@
 "use client";
 
+import { PreviewBackdropToggle } from "./PreviewBackdropToggle";
 import { ThresholdSlider } from "./ThresholdSlider";
 
 type Props = {
@@ -28,13 +29,17 @@ export function ResultsBar({
         {isPending ? "…" : `${count} found`}
       </span>
       <div className="flex-1" />
+      <PreviewBackdropToggle />
       {thresholdVisible ? (
-        <ThresholdSlider
-          value={threshold}
-          min={0}
-          max={thresholdMax}
-          onChange={onThresholdChange}
-        />
+        <>
+          <div className="h-4 w-px bg-divider" />
+          <ThresholdSlider
+            value={threshold}
+            min={0}
+            max={thresholdMax}
+            onChange={onThresholdChange}
+          />
+        </>
       ) : null}
     </div>
   );

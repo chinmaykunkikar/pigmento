@@ -155,15 +155,7 @@ function RSide({
 }) {
   return (
     <div className="flex min-w-0 items-start gap-2.5 p-2.5">
-      <div
-        className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xs border border-border"
-        style={{
-          backgroundImage:
-            "linear-gradient(45deg,#f0efec 25%,transparent 25%),linear-gradient(-45deg,#f0efec 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0efec 75%),linear-gradient(-45deg,transparent 75%,#f0efec 75%)",
-          backgroundSize: "8px 8px",
-          backgroundPosition: "0 0, 0 4px, 4px -4px, -4px 0",
-        }}
-      >
+      <div className="bg-checker flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xs border border-border [--checker-size:8px]">
         {preview ? (
           // biome-ignore lint/performance/noImgElement: blob url preview, not a remote asset
           <img src={preview} alt="" className="max-h-full max-w-full object-contain" />

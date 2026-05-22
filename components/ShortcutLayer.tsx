@@ -17,6 +17,7 @@ export function ShortcutLayer({ source }: Props) {
   const closeDrawer = useExplorerStore((s) => s.closeDrawer);
   const toggleSidebar = useExplorerStore((s) => s.toggleSidebar);
   const togglePlanDrawer = useExplorerStore((s) => s.togglePlanDrawer);
+  const cyclePreviewBackdrop = useExplorerStore((s) => s.cyclePreviewBackdrop);
 
   const specs = useMemo(
     () => [
@@ -28,6 +29,7 @@ export function ShortcutLayer({ source }: Props) {
       { combo: "2", handler: () => setView("clusters"), enabled: !!source },
       { combo: "3", handler: () => setView("match"), enabled: !!source },
       { combo: "4", handler: togglePlanDrawer, enabled: !!source },
+      { combo: "b", handler: cyclePreviewBackdrop, enabled: !!source },
       {
         combo: "escape",
         handler: closeDrawer,
@@ -40,6 +42,7 @@ export function ShortcutLayer({ source }: Props) {
       toggleSidebar,
       setView,
       togglePlanDrawer,
+      cyclePreviewBackdrop,
       source,
       drawerOpen,
       paletteOpen,

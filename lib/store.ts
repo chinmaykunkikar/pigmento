@@ -33,6 +33,14 @@ export const GRID_SORT_SHORT: Record<GridSort, string> = {
 
 export type AssetHistoryEntry = { id: number; name: string };
 
+export type PreviewBackdrop = "checker" | "light" | "dark";
+export const PREVIEW_BACKDROP_LABELS: Record<PreviewBackdrop, string> = {
+  checker: "Checker",
+  light: "Light",
+  dark: "Dark",
+};
+export const PREVIEW_BACKDROP_CYCLE: readonly PreviewBackdrop[] = ["checker", "light", "dark"];
+
 export type ExplorerState = {
   selectedSourceId: number | null;
   selectedFolder: string | null;
@@ -42,6 +50,7 @@ export type ExplorerState = {
   viewManuallySet: boolean;
   drawerOpen: boolean;
   boundingBoxes: boolean;
+  previewBackdrop: PreviewBackdrop;
   unusedOnly: boolean;
   styleClass: string | null;
   search: string;
@@ -59,6 +68,8 @@ export type ExplorerState = {
   setView: (view: View, opts?: { manual?: boolean }) => void;
   setDrawerOpen: (open: boolean) => void;
   setBoundingBoxes: (on: boolean) => void;
+  setPreviewBackdrop: (backdrop: PreviewBackdrop) => void;
+  cyclePreviewBackdrop: () => void;
   setUnusedOnly: (on: boolean) => void;
   setStyleClass: (c: string | null) => void;
   setSearch: (q: string) => void;
@@ -106,6 +117,7 @@ export const useExplorerStore = create<ExplorerState>()(
       viewManuallySet: false,
       drawerOpen: false,
       boundingBoxes: false,
+      previewBackdrop: "checker",
       unusedOnly: false,
       styleClass: null,
       search: "",
@@ -152,6 +164,13 @@ export const useExplorerStore = create<ExplorerState>()(
       setView: (view, opts) => set({ view, viewManuallySet: opts?.manual ?? true }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
       setBoundingBoxes: (boundingBoxes) => set({ boundingBoxes }),
+      setPreviewBackdrop: (previewBackdrop) => set({ previewBackdrop }),
+      cyclePreviewBackdrop: () =>
+        set((s) => {
+          const idx = PREVIEW_BACKDROP_CYCLE.indexOf(s.previewBackdrop);
+          const next = PREVIEW_BACKDROP_CYCLE[(idx + 1) % PREVIEW_BACKDROP_CYCLE.length];
+          return { previewBackdrop: next ?? "checker" };
+        }),
       setUnusedOnly: (unusedOnly) => set({ unusedOnly }),
       setStyleClass: (styleClass) => set({ styleClass }),
       setSearch: (search) => set({ search }),
@@ -299,6 +318,7 @@ export const useExplorerStore = create<ExplorerState>()(
         selectedFolder: state.selectedFolder,
         view: state.view,
         boundingBoxes: state.boundingBoxes,
+        previewBackdrop: state.previewBackdrop,
         unusedOnly: state.unusedOnly,
         styleClass: state.styleClass,
         extFilter: state.extFilter,

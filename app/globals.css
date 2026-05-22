@@ -78,10 +78,13 @@
   --color-citron-ink: #1a1c00;
   --color-citron-muted: #b8bc00;
 
-  /* Checker pattern — transparency preview for SVG/PNG tiles only.
-     Infrastructure, not palette. Never use elsewhere. */
+  /* Preview backdrop — the ground behind indexed SVG/PNG assets.
+     checker-a/b build the default transparency checkerboard; preview-dark
+     is the high-contrast solid for white / light-stroke assets that vanish
+     on the checker. Infrastructure, not palette. Never use elsewhere. */
   --color-checker-a: #ffffff;
   --color-checker-b: #f0eeea;
+  --color-preview-dark: #2a2824;
 
   --color-overlay: rgba(20, 20, 30, 0.2);
 
@@ -182,6 +185,18 @@ body {
     0 var(--checker-half),
     var(--checker-half) calc(var(--checker-half) * -1),
     calc(var(--checker-half) * -1) 0;
+}
+
+/* Preview backdrop override — data-preview-backdrop on <html> swaps the
+   checkerboard for a solid ground so white / dark assets stay legible.
+   "checker" (or unset) keeps the default pattern above. */
+[data-preview-backdrop="light"] .bg-checker {
+  background-image: none;
+  background-color: var(--color-surface);
+}
+[data-preview-backdrop="dark"] .bg-checker {
+  background-image: none;
+  background-color: var(--color-preview-dark);
 }
 
 @keyframes fade-in {
