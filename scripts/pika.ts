@@ -1,4 +1,5 @@
 import { readFile, stat } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { basename, resolve } from "node:path";
 import { Command, Option } from "commander";
 import { loadConfig } from "@/lib/config/load";
@@ -20,7 +21,9 @@ const err = (s: string) => process.stderr.write(`${s}\n`);
 
 const program = new Command();
 
-program.name("pika").description("pika · local-first asset cleanup").version("0.0.0");
+const pkg = createRequire(import.meta.url)("../package.json") as { version: string };
+
+program.name("pika").description("pika · local-first asset cleanup").version(pkg.version);
 
 program
   .command("index")
@@ -171,7 +174,8 @@ program
   .description("Find matches for a file in an indexed source")
   .option("-s, --source <id>", "source id (defaults to first source)")
   .option("-t, --threshold <n>", "pHash Δ ceiling for near matches (0–20, default 12)", "12")
-  .action(async (file: string, opts: { source?: string; threshold: string }) => {
+  .option("--json", "machine-readable output", false)
+  .action(async (file: string, opts: { source?: string; threshold: string; json: boolean }) => {
     const abs = resolve(file);
     const st = await stat(abs).catch(() => null);
     if (!st?.isFile()) {
@@ -214,6 +218,11 @@ program
       ...rawBuckets,
       near: rawBuckets.near.filter((m) => m.hamming <= thresholdRaw),
     };
+
+    if (opts.json) {
+      out(JSON.stringify({ signature, clipEnabled, threshold: thresholdRaw, buckets }, null, 2));
+      return;
+    }
 
     out(`${signature.name}  (${source.label})`);
     out(`  sha1      ${signature.sha1}`);

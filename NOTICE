@@ -1,0 +1,11 @@
+pika bundles no third-party model weights, but downloads the following at
+first index when clip.enabled is set in pika.config.ts:
+
+  Model:    Xenova/clip-vit-base-patch32 (ONNX conversion of openai/clip-vit-base-patch32)
+  Revision: d15189d7028b43f1d3e65039190477f6af591c2a (pinned in lib/match/clip.ts)
+  Source:   https://huggingface.co/Xenova/clip-vit-base-patch32
+  Upstream: CLIP by OpenAI, https://github.com/openai/CLIP (MIT License)
+  Cache:    data/models/ (gitignored, local only)
+
+Offline installs: pre-seed the cache directory and set PIKA_ALLOW_LOCAL_MODELS=1
+to let transformers.js resolve local model directories.

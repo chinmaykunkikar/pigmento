@@ -3,11 +3,15 @@ import { env, pipeline, RawImage } from "@huggingface/transformers";
 import sharp from "sharp";
 
 const MODEL_ID = "Xenova/clip-vit-base-patch32";
+// pinned commit: calibrated thresholds (entropy guards, MAD gate fixtures)
+// assume stable embeddings; bump deliberately and re-measure, never float main
+const MODEL_REVISION = "d15189d7028b43f1d3e65039190477f6af591c2a";
 const RASTER_PX = 256;
 const NEAR_WHITE = 250;
 
 env.cacheDir = join(process.cwd(), "data", "models");
-env.allowLocalModels = false;
+// opt-in escape hatch for offline installs with pre-seeded model dirs
+env.allowLocalModels = process.env.PIKA_ALLOW_LOCAL_MODELS === "1";
 
 export type ClipImageEncoder = Awaited<ReturnType<typeof pipeline<"image-feature-extraction">>>;
 
@@ -21,7 +25,10 @@ export function getClipImageEncoder(): Promise<ClipImageEncoder> {
   const g = globalThis as unknown as EncoderStore;
   let promise = g[ENCODER_KEY];
   if (!promise) {
-    promise = pipeline("image-feature-extraction", MODEL_ID, { dtype: "q8" }).catch((err) => {
+    promise = pipeline("image-feature-extraction", MODEL_ID, {
+      dtype: "q8",
+      revision: MODEL_REVISION,
+    }).catch((err) => {
       g[ENCODER_KEY] = undefined;
       throw err;
     });
