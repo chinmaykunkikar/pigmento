@@ -3,7 +3,7 @@ import { fail, ok } from "@/lib/api/response";
 import { getDb } from "@/lib/db/client";
 import { getSource } from "@/lib/db/queries/sources";
 import { writePlanArtifacts } from "@/lib/plan/dispatch/artifacts";
-import { listRunningForSource, startJob } from "@/lib/plan/dispatch/jobs";
+import { JobActiveError, startJob } from "@/lib/plan/dispatch/jobs";
 import { checkHarness } from "@/lib/plan/dispatch/registry";
 import { planSchema } from "@/lib/plan/schema";
 
@@ -34,22 +34,26 @@ export async function POST(req: Request) {
     });
   }
 
-  if (listRunningForSource(source.id).length > 0) {
-    return fail("a dispatch is already running for this source", 409);
-  }
-
   const { harness: adapter, readiness } = await checkHarness(harness, mode);
   if (!adapter || !readiness.ready) {
     return fail(readiness.ready ? `${harness} is not configured yet` : readiness.reason, 501);
   }
 
   const artifacts = await writePlanArtifacts(plan, source.root, mode);
-  const job = startJob(adapter, {
-    plan,
-    mode,
-    cwd: source.root,
-    planDir: artifacts.dir,
-  });
+  // the dispatch_jobs partial unique index inside startJob is the concurrency
+  // gate; checking ahead of the awaits above would be a check-then-act race
+  let job: ReturnType<typeof startJob>;
+  try {
+    job = startJob(db, adapter, {
+      plan,
+      mode,
+      cwd: source.root,
+      planDir: artifacts.dir,
+    });
+  } catch (err) {
+    if (err instanceof JobActiveError) return fail(err.message, 409);
+    throw err;
+  }
 
   return ok({
     jobId: job.id,

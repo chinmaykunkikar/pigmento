@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { loadConfig } from "@/lib/config/load";
 import { getDb } from "@/lib/db/client";
 import { countAssets } from "@/lib/db/queries/assets";
@@ -100,8 +100,16 @@ const planCmd = program.command("plan").description("Work with cleanup plans");
 planCmd
   .command("send <plan-file>")
   .description("Send a saved plan to an agent harness")
-  .option("-m, --mode <mode>", "dispatch mode: dry-run, patch, open-pr", "patch")
-  .option("-H, --harness <harness>", "harness: claude-code, devin, codex-cli", "claude-code")
+  .addOption(
+    new Option("-m, --mode <mode>", "dispatch mode")
+      .choices(["dry-run", "patch", "open-pr"])
+      .default("patch"),
+  )
+  .addOption(
+    new Option("-H, --harness <harness>", "agent harness")
+      .choices(["claude-code", "devin", "codex-cli"])
+      .default("claude-code"),
+  )
   .action(
     async (
       planFile: string,

@@ -5,10 +5,20 @@ import { createInterface } from "node:readline";
 import type { DispatchEvent, DispatchJobInput, Harness, RunnableMode } from "./types";
 
 const PATCH_TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"];
+// git/gh are scoped to the subcommands the PR workflow needs; a wildcard
+// would also allow remote rewrites, config edits, and history surgery
 const PR_TOOLS = [
   ...PATCH_TOOLS,
-  "Bash(git:*)",
-  "Bash(gh:*)",
+  "Bash(git status:*)",
+  "Bash(git add:*)",
+  "Bash(git commit:*)",
+  "Bash(git push:*)",
+  "Bash(git checkout:*)",
+  "Bash(git branch:*)",
+  "Bash(git diff:*)",
+  "Bash(git log:*)",
+  "Bash(git rev-parse:*)",
+  "Bash(gh pr:*)",
   "Bash(pnpm:*)",
   "Bash(npm:*)",
   "Bash(node:*)",
@@ -63,9 +73,13 @@ async function* runClaude(
 
   const child = spawn("claude", args, {
     cwd: input.cwd,
-    env: process.env,
+    env: { ...process.env, ...(input.jobToken ? { PIKA_DISPATCH_JOB: input.jobToken } : {}) },
     stdio: ["pipe", "pipe", "pipe"],
   });
+
+  if (typeof child.pid === "number") {
+    queue.push({ type: "spawned", pid: child.pid, line: `• agent pid ${child.pid}`, ts: ts() });
+  }
 
   child.stdin?.write(prompt);
   child.stdin?.end();

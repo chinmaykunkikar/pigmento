@@ -9,6 +9,7 @@ export type DispatchMode = "dry-run" | "patch" | "open-pr";
 export type DispatchHarness = "claude-code" | "devin" | "codex-cli";
 
 export type DispatchEvent =
+  | { type: "spawned"; pid: number; line: string; ts: number }
   | { type: "stdout"; line: string; ts: number }
   | { type: "stderr"; line: string; ts: number }
   | { type: "info"; line: string; ts: number }

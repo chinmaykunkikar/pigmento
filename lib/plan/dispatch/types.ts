@@ -9,9 +9,11 @@ export type DispatchJobInput = {
   mode: RunnableMode;
   cwd: string;
   planDir: string;
+  jobToken?: string;
 };
 
 export type DispatchEvent =
+  | { type: "spawned"; pid: number; line: string; ts: number }
   | { type: "stdout"; line: string; ts: number }
   | { type: "stderr"; line: string; ts: number }
   | { type: "info"; line: string; ts: number }

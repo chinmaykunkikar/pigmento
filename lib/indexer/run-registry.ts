@@ -35,7 +35,7 @@ function pidStartMs(pid: number): number | null {
 }
 
 // identity is pid + process start time, so a reused pid never counts as live
-function isLive(pid: number, storedStartMs: number): boolean {
+export function isPidLive(pid: number, storedStartMs: number): boolean {
   if (!pidAlive(pid)) return false;
   const start = pidStartMs(pid);
   if (start === null) return true;
@@ -57,7 +57,7 @@ export function reapStaleRuns(db: Db, sourceId?: number): number {
           .all();
   let reaped = 0;
   for (const row of rows) {
-    if (isLive(row.pid, row.pidStartedAtMs)) continue;
+    if (isPidLive(row.pid, row.pidStartedAtMs)) continue;
     db.update(indexRuns)
       .set({ status: "crashed", endedAt: new Date().toISOString() })
       .where(eq(indexRuns.id, row.id))
