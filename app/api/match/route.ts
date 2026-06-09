@@ -53,7 +53,14 @@ export async function POST(req: Request) {
   const buf = Buffer.from(await file.arrayBuffer());
   const [signature, embedding] = await Promise.all([
     computeSignature(buf, file.name),
-    clipEnabled ? embedImage(buf, normalizeExt(file.name)) : Promise.resolve(null),
+    clipEnabled
+      ? embedImage(buf, normalizeExt(file.name))
+          .then((r) => r.vec)
+          .catch((err) => {
+            console.warn(`match: embedding failed for ${file.name}:`, err);
+            return null;
+          })
+      : Promise.resolve(null),
   ]);
   const buckets = findMatches(db, sourceId, signature, embedding);
 

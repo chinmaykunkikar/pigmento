@@ -5,7 +5,8 @@ import { fail, ok } from "@/lib/api/response";
 import { loadConfig } from "@/lib/config/load";
 import { getDb } from "@/lib/db/client";
 import { addSource, listSourcesWithMeta } from "@/lib/db/queries/sources";
-import { runIndexer } from "@/lib/indexer/run";
+import { startIndexerRun } from "@/lib/indexer/run";
+import { RunActiveError } from "@/lib/indexer/run-registry";
 
 const AddBody = z.object({
   root: z.string().min(1),
@@ -40,7 +41,14 @@ export async function POST(req: Request) {
   }
 
   const config = await loadConfig();
-  await runIndexer({ db, source, config, full: false });
+  try {
+    const { promise } = startIndexerRun({ db, source, config, full: false });
+    // detached: progress streams over /api/status; errors land in index_runs + run-error events
+    promise.catch(() => {});
+  } catch (err) {
+    if (err instanceof RunActiveError) return fail(err.message, 409);
+    throw err;
+  }
 
-  return ok(source);
+  return ok(source, undefined, 202);
 }

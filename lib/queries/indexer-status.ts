@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import type { StageEvent } from "@/lib/indexer/events";
 
@@ -30,6 +31,7 @@ export type IndexerRun = {
   log: LogEntry[];
   currentStage: string | null;
   progress: number;
+  error: string | null;
 };
 
 const PIPELINE: { key: string; label: string }[] = [
@@ -46,6 +48,7 @@ const PIPELINE: { key: string; label: string }[] = [
 
 const LOG_MAX = 14;
 const CLEAR_AFTER_END_MS = 1200;
+const CLEAR_AFTER_ERROR_MS = 6000;
 
 function initialStages(): StageState[] {
   return PIPELINE.map((p) => ({
@@ -69,6 +72,7 @@ export function useIndexerStatus(): IndexerRun | null {
   const [run, setRun] = useState<IndexerRun | null>(null);
   const logIdRef = useRef(0);
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const qc = useQueryClient();
 
   useEffect(() => {
     const source = new EventSource("/api/status");
@@ -97,6 +101,7 @@ export function useIndexerStatus(): IndexerRun | null {
           log: [],
           currentStage: null,
           progress: 0,
+          error: null,
         });
         return;
       }
@@ -150,6 +155,8 @@ export function useIndexerStatus(): IndexerRun | null {
       }
 
       if (ev.type === "run-end") {
+        // data only changes when the indexer writes, so refetch everything now
+        qc.invalidateQueries();
         setRun((prev) => {
           if (!prev) return prev;
           const stages = prev.stages.map(
@@ -168,6 +175,25 @@ export function useIndexerStatus(): IndexerRun | null {
         clearTimerRef.current = setTimeout(() => {
           setRun(null);
         }, CLEAR_AFTER_END_MS);
+        return;
+      }
+
+      if (ev.type === "run-error") {
+        qc.invalidateQueries();
+        setRun((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            endedAt: Date.now(),
+            totalMs: ev.ms,
+            currentStage: null,
+            error: ev.error,
+            log: pushLog(prev, "warn", `run failed: ${ev.error}`),
+          };
+        });
+        clearTimerRef.current = setTimeout(() => {
+          setRun(null);
+        }, CLEAR_AFTER_ERROR_MS);
       }
     };
 
@@ -188,7 +214,7 @@ export function useIndexerStatus(): IndexerRun | null {
       source.close();
       if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
     };
-  }, []);
+  }, [qc]);
 
   return run;
 }

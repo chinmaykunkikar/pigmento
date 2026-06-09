@@ -26,6 +26,10 @@ const EXCLUDED_SET = {
   strokeWidths: sql`excluded.stroke_widths`,
   literalColors: sql`excluded.literal_colors`,
   dominantColor: sql`excluded.dominant_color`,
+  // content change invalidates the stored embedding so the clip stage re-embeds
+  clipEmbedding: sql`CASE WHEN excluded.content_hash = assets.content_hash THEN assets.clip_embedding ELSE NULL END`,
+  embedStatus: sql`CASE WHEN excluded.content_hash = assets.content_hash THEN assets.embed_status ELSE NULL END`,
+  rasterWhiteFraction: sql`CASE WHEN excluded.content_hash = assets.content_hash THEN assets.raster_white_fraction ELSE NULL END`,
 };
 
 export function bulkUpsert(db: Db, values: NewAsset[]): number {

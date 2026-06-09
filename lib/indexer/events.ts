@@ -1,5 +1,7 @@
 import { EventEmitter } from "node:events";
 
+export type StageFailure = { label: string; file: string; reason: string };
+
 export type StageEvent =
   | { type: "run-start"; sourceId: number; label: string }
   | { type: "stage-start"; sourceId: number; stage: string }
@@ -9,8 +11,10 @@ export type StageEvent =
       stage: string;
       detail: string;
       ms: number;
+      failures?: StageFailure[];
     }
-  | { type: "run-end"; sourceId: number; ms: number };
+  | { type: "run-end"; sourceId: number; ms: number }
+  | { type: "run-error"; sourceId: number; ms: number; error: string };
 
 const GLOBAL_KEY = Symbol.for("pika.indexerEvents");
 

@@ -1,4 +1,4 @@
-import { and, count, eq, inArray, isNotNull, ne } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, isNull, ne, or } from "drizzle-orm";
 import { jaccard, sharedTokens, tokenize } from "@/lib/indexer/name-tokens";
 import { hamming, isDegeneratePhash, SVG_NEAR_THRESHOLD } from "@/lib/indexer/phash";
 import { cosine } from "@/lib/match/clip";
@@ -249,7 +249,13 @@ function findSemantic(
       embedding: assets.clipEmbedding,
     })
     .from(assets)
-    .where(and(eq(assets.sourceId, sourceId), isNotNull(assets.clipEmbedding)))
+    .where(
+      and(
+        eq(assets.sourceId, sourceId),
+        isNotNull(assets.clipEmbedding),
+        or(isNull(assets.embedStatus), ne(assets.embedStatus, "degenerate")),
+      ),
+    )
     .all();
 
   const scored: { row: (typeof candidates)[number]; score: number }[] = [];

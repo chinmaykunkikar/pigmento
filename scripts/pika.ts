@@ -195,7 +195,11 @@ program
     const buf = await readFile(abs);
     const [signature, embedding] = await Promise.all([
       computeSignature(buf, basename(abs)),
-      clipEnabled ? embedImage(buf, normalizeExt(basename(abs))) : Promise.resolve(null),
+      clipEnabled
+        ? embedImage(buf, normalizeExt(basename(abs)))
+            .then((r) => r.vec)
+            .catch(() => null)
+        : Promise.resolve(null),
     ]);
     const rawBuckets = findMatches(db, source.id, signature, embedding);
     const buckets = {

@@ -1,9 +1,10 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 import pLimit from "p-limit";
 import type { Config } from "../config/schema";
 import type { Db } from "../db/client";
 import { type Asset, assets, type NewAsset, type Source, sources } from "../db/schema";
+import { FailureLog } from "./attempt";
 import { categorize } from "./category";
 import { runClipStage } from "./clip";
 import { hashCluster } from "./cluster-hash";
@@ -20,6 +21,7 @@ import { backfillPhashPopcount } from "./hygiene";
 import { getMeta } from "./meta";
 import { computePhash, popcountHex } from "./phash";
 import { Progress } from "./progress";
+import { acquireRun, completeRun } from "./run-registry";
 import { scan } from "./scan";
 import { parseSvg } from "./svg";
 import { bulkUpsert } from "./upsert";
@@ -36,13 +38,50 @@ export type IndexerOptions = {
   full: boolean;
 };
 
+// Acquires the cross-process index_runs sentinel synchronously (throws
+// RunActiveError) so HTTP routes can 409 before any work starts, then runs
+// detached. The CLI awaits the promise; the web routes return 202.
+export function startIndexerRun(opts: IndexerOptions): { promise: Promise<void> } {
+  const runId = acquireRun(opts.db, opts.source.id);
+  return { promise: executeRun(opts, runId) };
+}
+
 export async function runIndexer(opts: IndexerOptions): Promise<void> {
+  await startIndexerRun(opts).promise;
+}
+
+async function executeRun(opts: IndexerOptions, runId: number): Promise<void> {
+  const { db, source } = opts;
+  const sourceId = source.id;
+  const runStart = Date.now();
+  try {
+    await runStages(opts);
+    completeRun(db, runId, "done");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    completeRun(db, runId, "error", message);
+    emitStage({ type: "run-error", sourceId, ms: Date.now() - runStart, error: message });
+    throw err;
+  }
+}
+
+async function assertRootExists(root: string): Promise<void> {
+  const st = await stat(root).catch(() => null);
+  if (!st || !st.isDirectory()) {
+    throw new Error(`source root is missing or not a directory: ${root}`);
+  }
+}
+
+async function runStages(opts: IndexerOptions): Promise<void> {
   const { db, source, config, full } = opts;
   const progress = new Progress();
   const sourceId = source.id;
   const runStart = Date.now();
 
   emitStage({ type: "run-start", sourceId, label: source.label });
+
+  // a vanished root must abort, not scan to zero files and prune every row
+  await assertRootExists(source.root);
 
   ensureFts(db);
   ensureViews(db);
@@ -54,13 +93,6 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
     });
     return { result: files, detail: `${files.length} files` };
   });
-
-  if (full) {
-    await stage(progress, sourceId, "purge", () => {
-      const changes = deleteMissing(db, sourceId, []);
-      return { result: changes, detail: `${changes} rows` };
-    });
-  }
 
   const toProcess = await stage(progress, sourceId, "diff", () => {
     const existing = new Map<string, { size: number; mtime: number }>();
@@ -85,15 +117,18 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
 
   const indexed = await stage(progress, sourceId, "hash+meta", async () => {
     const limit = pLimit(PER_FILE_CONCURRENCY);
+    const failures = new FailureLog();
     const rows = await Promise.all(
       toProcess.map((f) =>
-        limit(async (): Promise<NewAsset> => {
-          const buf = await readFile(f.absPath);
-          const [hashRes, meta, phash, dom] = await Promise.all([
-            hashBuffer(buf),
-            getMeta(buf, f.ext),
-            computePhash(buf, f.ext),
-            dominantColor(buf, f.ext),
+        limit(async (): Promise<NewAsset | null> => {
+          const buf = await failures.attempt("read", f.relPath, () => readFile(f.absPath));
+          if (!buf) return null;
+          const hashRes = await failures.attempt("hash", f.relPath, () => hashBuffer(buf));
+          if (!hashRes) return null;
+          const [meta, phash, dom] = await Promise.all([
+            failures.attempt("meta", f.relPath, () => getMeta(buf, f.ext)),
+            failures.attempt("phash", f.relPath, () => computePhash(buf, f.ext)),
+            failures.attempt("color", f.relPath, () => dominantColor(buf, f.ext)),
           ]);
           const svg = f.ext === "svg" ? parseSvg(buf.toString("utf8")) : null;
           return {
@@ -108,10 +143,10 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
             mtime: Math.round(f.mtime),
             contentHash: hashRes.content,
             sha1: hashRes.sha1,
-            width: meta.width,
-            height: meta.height,
-            category: categorize(f.ext, meta.width, meta.height),
-            phash,
+            width: meta?.width ?? null,
+            height: meta?.height ?? null,
+            category: categorize(f.ext, meta?.width ?? null, meta?.height ?? null),
+            phash: phash ?? null,
             phashPopcount: phash ? popcountHex(phash) : null,
             viewBox: svg?.viewBox ?? null,
             pathsCount: svg?.pathsCount ?? null,
@@ -124,7 +159,12 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
         }),
       ),
     );
-    return { result: rows, detail: `${rows.length} files` };
+    const okRows = rows.filter((r): r is NewAsset => r !== null);
+    const detail =
+      failures.size === 0
+        ? `${okRows.length} files`
+        : `${okRows.length} files, ${failures.summary()}`;
+    return { result: okRows, detail, failures: failures.sample() };
   });
 
   await stage(progress, sourceId, "upsert", () => {
@@ -171,11 +211,15 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
       return { result: res, detail: "disabled (set clip.enabled in pika.config.ts)" };
     }
     if (res.skippedModelUnavailable) {
-      return { result: res, detail: "model unavailable, skipped" };
+      return { result: res, detail: `model unavailable, skipped (${res.modelError})` };
     }
+    const parts = [`${res.embedded} embedded`];
+    if (res.degenerate > 0) parts.push(`${res.degenerate} degenerate`);
+    if (res.failed > 0) parts.push(res.failures.summary());
     return {
       result: res,
-      detail: `${res.embedded} embedded, ${res.failed} failed, ${res.processed} targeted`,
+      detail: `${parts.join(", ")} of ${res.processed} targeted`,
+      failures: res.failures.sample(),
     };
   });
 
@@ -224,18 +268,31 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
   emitStage({ type: "run-end", sourceId, ms: totalMs });
 }
 
+type StageOutput<T> = {
+  result: T;
+  detail: string;
+  failures?: { label: string; file: string; reason: string }[];
+};
+
 async function stage<T>(
   progress: Progress,
   sourceId: number,
   name: string,
-  fn: () => Promise<{ result: T; detail: string }> | { result: T; detail: string },
+  fn: () => Promise<StageOutput<T>> | StageOutput<T>,
 ): Promise<T> {
   progress.start(name);
   emitStage({ type: "stage-start", sourceId, stage: name });
   const t0 = Date.now();
-  const { result, detail } = await fn();
+  const { result, detail, failures } = await fn();
   const ms = Date.now() - t0;
   progress.end(name, detail);
-  emitStage({ type: "stage-end", sourceId, stage: name, detail, ms });
+  emitStage({
+    type: "stage-end",
+    sourceId,
+    stage: name,
+    detail,
+    ms,
+    ...(failures && failures.length > 0 ? { failures } : {}),
+  });
   return result;
 }

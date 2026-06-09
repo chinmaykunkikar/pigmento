@@ -15,9 +15,18 @@ export async function computeSignature(buf: Buffer, name: string): Promise<Query
 
   const [{ content, sha1 }, phash, meta, dom] = await Promise.all([
     hashBuffer(buf),
-    computePhash(buf, ext),
-    getMeta(buf, ext),
-    dominantColor(buf, ext),
+    computePhash(buf, ext).catch((err) => {
+      console.warn(`match signature: phash failed for ${name}:`, err);
+      return null;
+    }),
+    getMeta(buf, ext).catch((err) => {
+      console.warn(`match signature: meta failed for ${name}:`, err);
+      return { width: null, height: null };
+    }),
+    dominantColor(buf, ext).catch((err) => {
+      console.warn(`match signature: dominant color failed for ${name}:`, err);
+      return null;
+    }),
   ]);
 
   const svg = ext === "svg" ? parseSvg(buf.toString("utf8")) : null;
