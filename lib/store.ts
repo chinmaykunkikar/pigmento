@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { Plan, PlanAction } from "./plan/schema";
 
 export type View = "overview" | "grid" | "clusters" | "match";
+export type ClustersMode = "exact" | "near" | "name";
 export type SizeBucket = "s" | "m" | "l";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];
@@ -66,6 +67,8 @@ export type ExplorerState = {
   goBackAsset: () => void;
   closeDrawer: () => void;
   setView: (view: View, opts?: { manual?: boolean }) => void;
+  clustersMode: ClustersMode;
+  setClustersMode: (mode: ClustersMode) => void;
   setDrawerOpen: (open: boolean) => void;
   setBoundingBoxes: (on: boolean) => void;
   setPreviewBackdrop: (backdrop: PreviewBackdrop) => void;
@@ -162,6 +165,8 @@ export const useExplorerStore = create<ExplorerState>()(
         }),
       closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null, assetHistory: [] }),
       setView: (view, opts) => set({ view, viewManuallySet: opts?.manual ?? true }),
+      clustersMode: "exact",
+      setClustersMode: (clustersMode) => set({ clustersMode }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
       setBoundingBoxes: (boundingBoxes) => set({ boundingBoxes }),
       setPreviewBackdrop: (previewBackdrop) => set({ previewBackdrop }),
@@ -317,6 +322,7 @@ export const useExplorerStore = create<ExplorerState>()(
         selectedSourceId: state.selectedSourceId,
         selectedFolder: state.selectedFolder,
         view: state.view,
+        clustersMode: state.clustersMode,
         boundingBoxes: state.boundingBoxes,
         previewBackdrop: state.previewBackdrop,
         unusedOnly: state.unusedOnly,

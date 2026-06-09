@@ -21,7 +21,8 @@ type Mode = "exact" | "near" | "name";
 type Props = { sourceId: number; sourceLabel: string; lastIndexedAt: string | null };
 
 export function ClustersView({ sourceId, sourceLabel, lastIndexedAt }: Props) {
-  const [mode, setMode] = useState<Mode>("exact");
+  const mode = useExplorerStore((s) => s.clustersMode);
+  const setMode = useExplorerStore((s) => s.setClustersMode);
   const [nameSort, setNameSort] = useState<GroupSort>("size");
   const selectedFolder = useExplorerStore((s) => s.selectedFolder);
   const folder = selectedFolder ?? undefined;

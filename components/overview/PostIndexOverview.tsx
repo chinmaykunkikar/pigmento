@@ -19,11 +19,13 @@ export function PostIndexOverview({ sourceId, sourceLabel, lastIndexedAt }: Prop
   const q = useOverviewCounts(sourceId);
   const setView = useExplorerStore((s) => s.setView);
   const setUnusedOnly = useExplorerStore((s) => s.setUnusedOnly);
+  const setClustersMode = useExplorerStore((s) => s.setClustersMode);
 
   const rows = q.data ? buildRows(q.data) : [];
 
   const go = (target: Row["target"]) => () => {
     if (target.view === "grid") setUnusedOnly(target.unusedOnly ?? false);
+    if (target.view === "clusters" && target.clustersMode) setClustersMode(target.clustersMode);
     setView(target.view, { manual: true });
   };
 
