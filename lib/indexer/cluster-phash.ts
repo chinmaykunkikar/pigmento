@@ -1,4 +1,4 @@
-import { hamming } from "./phash";
+import { hamming, isDegeneratePhash, SVG_NEAR_THRESHOLD } from "./phash";
 
 export type PhashCluster = {
   key: string;
@@ -8,30 +8,15 @@ export type PhashCluster = {
 
 type Item = { id: number; ext: string; phash: string };
 
-const SVG_THRESHOLD = 8;
-const MIN_ENTROPY = 12;
-const MAX_ENTROPY = 52;
-
-function popcountHex(hex: string): number {
-  let n = BigInt(`0x${hex}`);
-  let c = 0;
-  while (n) {
-    c += Number(n & 1n);
-    n >>= 1n;
-  }
-  return c;
-}
-
 function thresholdFor(ext: string, defaultMax: number): number {
-  return ext === "svg" ? Math.min(defaultMax, SVG_THRESHOLD) : defaultMax;
+  return ext === "svg" ? Math.min(defaultMax, SVG_NEAR_THRESHOLD) : defaultMax;
 }
 
 export function phashCluster(items: Item[], maxHamming: number): PhashCluster[] {
   const byExt = new Map<string, Item[]>();
   for (const it of items) {
     if (!it.phash) continue;
-    const entropy = popcountHex(it.phash);
-    if (entropy < MIN_ENTROPY || entropy > MAX_ENTROPY) continue;
+    if (isDegeneratePhash(it.phash)) continue;
     const bucket = byExt.get(it.ext) ?? [];
     bucket.push(it);
     byExt.set(it.ext, bucket);

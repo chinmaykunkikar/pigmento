@@ -1,6 +1,6 @@
 import { and, count, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { jaccard, sharedTokens, tokenize } from "@/lib/indexer/name-tokens";
-import { hamming } from "@/lib/indexer/phash";
+import { hamming, isDegeneratePhash, SVG_NEAR_THRESHOLD } from "@/lib/indexer/phash";
 import { cosine } from "@/lib/match/clip";
 import type { QuerySignature } from "@/lib/match/ext";
 import type { Db } from "../client";
@@ -47,6 +47,7 @@ export type SemanticMatch = MatchRow & {
 export type MatchBuckets = {
   exact: ExactMatch[];
   near: NearMatch[];
+  nearDegenerateQuery: boolean;
   name: NameMatch[];
   semantic: SemanticMatch[];
 };
@@ -59,7 +60,10 @@ export function findMatches(
 ): MatchBuckets {
   const exact = findExact(db, sourceId, signature.contentHash);
   const exactIds = new Set(exact.map((m) => m.assetId));
-  const near = findNear(db, sourceId, signature.ext, signature.phash, exactIds);
+  const nearDegenerateQuery = signature.phash !== null && isDegeneratePhash(signature.phash);
+  const near = nearDegenerateQuery
+    ? []
+    : findNear(db, sourceId, signature.ext, signature.phash, exactIds);
   const nearIds = new Set(near.map((m) => m.assetId));
   const nameExclude = new Set([...exactIds, ...nearIds]);
   const name = findNameCluster(db, sourceId, signature.stem, nameExclude);
@@ -79,7 +83,7 @@ export function findMatches(
   applyUsage(name, usageBy);
   applyUsage(semantic, usageBy);
 
-  return { exact, near, name, semantic };
+  return { exact, near, nearDegenerateQuery, name, semantic };
 }
 
 function countUsages(db: Db, assetIds: number[]): Map<number, number> {
@@ -125,6 +129,7 @@ function findNear(
   exclude: Set<number>,
 ): NearMatch[] {
   if (!queryPhash) return [];
+  const ceiling = ext === "svg" ? SVG_NEAR_THRESHOLD : NEAR_HAMMING_CEILING;
   const candidates = db
     .select({
       assetId: assets.id,
@@ -146,8 +151,9 @@ function findNear(
   for (const c of candidates) {
     if (exclude.has(c.assetId)) continue;
     if (!c.phash) continue;
+    if (isDegeneratePhash(c.phash)) continue;
     const h = hamming(queryPhash, c.phash);
-    if (h > NEAR_HAMMING_CEILING) continue;
+    if (h > ceiling) continue;
     hits.push({
       assetId: c.assetId,
       name: c.name,
@@ -160,7 +166,8 @@ function findNear(
       strokeWidths: c.strokeWidths,
       usageCount: 0,
       hamming: h,
-      pct: Math.round(((64 - h) / 64) * 100),
+      // capped at 99: equal phash is not equal content; 100% belongs to the exact bucket
+      pct: Math.min(99, Math.round(((64 - h) / 64) * 100)),
     });
   }
   hits.sort((a, b) => a.hamming - b.hamming);

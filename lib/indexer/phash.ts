@@ -27,6 +27,25 @@ export async function computePhash(buf: Buffer, ext: string): Promise<string | n
   }
 }
 
+export const PHASH_MIN_ENTROPY = 12;
+export const PHASH_MAX_ENTROPY = 52;
+export const SVG_NEAR_THRESHOLD = 8;
+
+export function popcountHex(hex: string): number {
+  let n = BigInt(`0x${hex}`);
+  let c = 0;
+  while (n) {
+    c += Number(n & 1n);
+    n >>= 1n;
+  }
+  return c;
+}
+
+export function isDegeneratePhash(hex: string): boolean {
+  const entropy = popcountHex(hex);
+  return entropy < PHASH_MIN_ENTROPY || entropy > PHASH_MAX_ENTROPY;
+}
+
 export function hamming(a: string, b: string): number {
   if (!a || !b || a.length !== b.length) return 64;
   let n = BigInt(`0x${a}`) ^ BigInt(`0x${b}`);
