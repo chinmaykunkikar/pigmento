@@ -1,7 +1,8 @@
-import { and, count, eq, inArray, isNotNull, isNull, ne, or } from "drizzle-orm";
+import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { jaccard, sharedTokens, tokenize } from "@/lib/indexer/name-tokens";
 import { hamming, isDegeneratePhash, SVG_NEAR_THRESHOLD } from "@/lib/indexer/phash";
 import { cosine } from "@/lib/match/clip";
+import { getEmbeddingCandidates } from "@/lib/match/embedding-cache";
 import type { QuerySignature } from "@/lib/match/ext";
 import { percentileOf, semanticGate } from "@/lib/match/semantic";
 import type { Db } from "../client";
@@ -235,33 +236,11 @@ function findSemantic(
   exclude: Set<number>,
 ): SemanticMatch[] {
   if (!queryEmbedding) return [];
-  const candidates = db
-    .select({
-      assetId: assets.id,
-      name: assets.name,
-      relPath: assets.relPath,
-      ext: assets.ext,
-      size: assets.size,
-      width: assets.width,
-      height: assets.height,
-      dominantColor: assets.dominantColor,
-      strokeWidths: assets.strokeWidths,
-      embedding: assets.clipEmbedding,
-    })
-    .from(assets)
-    .where(
-      and(
-        eq(assets.sourceId, sourceId),
-        isNotNull(assets.clipEmbedding),
-        or(isNull(assets.embedStatus), ne(assets.embedStatus, "degenerate")),
-      ),
-    )
-    .all();
+  const candidates = getEmbeddingCandidates(db, sourceId);
 
   const scored: { row: (typeof candidates)[number]; score: number }[] = [];
   for (const c of candidates) {
     if (exclude.has(c.assetId)) continue;
-    if (!c.embedding) continue;
     scored.push({ row: c, score: cosine(queryEmbedding, c.embedding) });
   }
 

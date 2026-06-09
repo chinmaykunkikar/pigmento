@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import type { Config } from "../config/schema";
 import type { Db } from "../db/client";
 import { type Asset, assets, type Source } from "../db/schema";
+import { invalidateEmbeddingCache } from "../match/embedding-cache";
 import { hashCluster } from "./cluster-hash";
 import { nameCluster } from "./cluster-name";
 import { phashCluster } from "./cluster-phash";
@@ -55,6 +56,9 @@ export async function reindexAfterRename(
   const clusterCounts = rebuildClusters(db, source.id, nameIt, hashIt, phashIt);
 
   rebuildFts(db);
+
+  // cached candidates carry relPath, which the rename just changed
+  invalidateEmbeddingCache(source.id);
 
   return { usageCount, clusterCounts };
 }

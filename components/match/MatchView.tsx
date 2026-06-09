@@ -153,6 +153,7 @@ export function MatchView({ sourceId, sourceLabel, lastIndexedAt }: Props) {
             <BucketList
               buckets={buckets}
               clipEnabled={clipEnabled}
+              clipDegraded={match.data?.clipHealth.degraded ?? false}
               threshold={threshold}
               droppedName={file.name}
               droppedPreview={preview}
@@ -170,6 +171,7 @@ type MappedBuckets = ReturnType<typeof useBuckets>;
 function BucketList({
   buckets,
   clipEnabled,
+  clipDegraded,
   threshold,
   droppedName,
   droppedPreview,
@@ -177,6 +179,7 @@ function BucketList({
 }: {
   buckets: MappedBuckets;
   clipEnabled: boolean;
+  clipDegraded: boolean;
   threshold: number;
   droppedName: string;
   droppedPreview: string | null;
@@ -253,11 +256,7 @@ function BucketList({
           label="Semantic matches"
           badge={countBadge(buckets.semantic.length, "match", "matches")}
           tone="ok"
-          note={
-            buckets.semantic.length > 0
-              ? "Shares visual concept even if the geometry differs. Likely the same icon, redrawn."
-              : "No asset clears this query's similarity bar. The bar adapts to your corpus, so an empty list means a genuinely new concept."
-          }
+          note={semanticNote(buckets, clipDegraded)}
         >
           {buckets.semantic.map((r) => (
             <ResultRow
@@ -408,6 +407,15 @@ function useBuckets(
       nearDegenerateQuery: raw.nearDegenerateQuery,
     };
   }, [raw, threshold]);
+}
+
+function semanticNote(buckets: MappedBuckets, clipDegraded: boolean): string {
+  const base =
+    buckets.semantic.length > 0
+      ? "Shares visual concept even if the geometry differs. Likely the same icon, redrawn."
+      : "No asset clears this query's similarity bar. The bar adapts to your corpus, so an empty list means a genuinely new concept.";
+  if (!clipDegraded) return base;
+  return `Embeddings are failing for over 20% of this source's assets, so semantic results are incomplete. Check the indexer log, then re-index. ${base}`;
 }
 
 function nearNote(buckets: MappedBuckets): string | undefined {

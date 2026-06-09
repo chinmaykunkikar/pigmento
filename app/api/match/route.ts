@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db/client";
 import { findMatches, type MatchBuckets } from "@/lib/db/queries/matches";
 import { getSource } from "@/lib/db/queries/sources";
 import { embedImage } from "@/lib/match/clip";
+import { type ClipHealth, clipHealth } from "@/lib/match/embedding-cache";
 import { isAllowedExt, normalizeExt, type QuerySignature } from "@/lib/match/ext";
 import { computeSignature } from "@/lib/match/signature";
 
@@ -13,6 +14,7 @@ export type MatchResponse = {
   signature: QuerySignature;
   buckets: MatchBuckets;
   clipEnabled: boolean;
+  clipHealth: ClipHealth;
 };
 
 export async function POST(req: Request) {
@@ -64,5 +66,10 @@ export async function POST(req: Request) {
   ]);
   const buckets = findMatches(db, sourceId, signature, embedding);
 
-  return ok<MatchResponse>({ signature, buckets, clipEnabled });
+  return ok<MatchResponse>({
+    signature,
+    buckets,
+    clipEnabled,
+    clipHealth: clipHealth(db, sourceId),
+  });
 }
