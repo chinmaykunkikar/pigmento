@@ -297,6 +297,7 @@ function dedupeSizes(variants: SizeVariant[]): SizeVariant[] {
 export type UsageRow = {
   id: number;
   relPath: string;
+  absPath: string;
   line: number;
   snippet: string;
   commented: boolean;
@@ -312,6 +313,7 @@ export function listAssetUsages(
     .select({
       id: usages.id,
       relPath: usages.relPath,
+      absPath: usages.absPath,
       line: usages.line,
       snippet: usages.snippet,
       commented: usages.commented,

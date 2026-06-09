@@ -82,7 +82,10 @@ export const usages = sqliteTable(
     sourceId: integer("source_id")
       .notNull()
       .references(() => sources.id, { onDelete: "cascade" }),
+    // relPath is display-only; absPath is authoritative for any file edit so
+    // a path can never resolve against the wrong root
     relPath: text("rel_path").notNull(),
+    absPath: text("abs_path").notNull().default(""),
     line: integer("line").notNull(),
     snippet: text("snippet").notNull(),
     commented: integer("commented", { mode: "boolean" }).notNull().default(false),

@@ -14,6 +14,7 @@ export type UsageHit = {
   assetId: number;
   sourceId: number;
   relPath: string;
+  absPath: string;
   line: number;
   snippet: string;
   commented: boolean;
@@ -101,6 +102,7 @@ export async function scanUsages(opts: ScanOpts): Promise<UsageHit[]> {
                   relPath: codeFile.startsWith(`${root}/`)
                     ? codeFile.slice(root.length + 1)
                     : codeFile,
+                  absPath: codeFile,
                   line: i + 1,
                   snippet: line.trim().slice(0, 200),
                   commented: h.commented,

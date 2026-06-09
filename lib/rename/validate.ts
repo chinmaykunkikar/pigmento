@@ -39,12 +39,14 @@ export type Conflict = { code: ConflictCode; message: string };
 export type Warning = { code: WarningCode; message: string; detail?: string };
 export type Tip = { code: TipCode; message: string };
 
+export type AffectedUsage = UsageRow & { external: boolean };
+
 export type PreflightResult = {
   ok: boolean;
   conflicts: Conflict[];
   warnings: Warning[];
   tips: Tip[];
-  affectedUsages: UsageRow[];
+  affectedUsages: AffectedUsage[];
   newName: string;
   newRelPath: string;
   newAbsPath: string;
@@ -244,9 +246,14 @@ export async function validateRename(input: ValidateInput): Promise<PreflightRes
     });
   }
 
-  const affectedUsages = listAssetUsages(db, asset.id, null, USAGE_FETCH_LIMIT);
+  const affectedUsages = listAssetUsages(db, asset.id, null, USAGE_FETCH_LIMIT).map((u) => ({
+    ...u,
+    external: u.absPath !== "" && !u.absPath.startsWith(rootWithSep),
+  }));
+  // git status only understands paths inside the repo; external refs are
+  // reported, never edited, so they don't gate the rename
   const affectedRelPaths = Array.from(
-    new Set([asset.relPath, ...affectedUsages.map((u) => u.relPath)]),
+    new Set([asset.relPath, ...affectedUsages.filter((u) => !u.external).map((u) => u.relPath)]),
   );
 
   const repo = await isGitRepo(sourceRoot);

@@ -1,5 +1,5 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
-import { basename, dirname, posix, resolve } from "node:path";
+import { basename, dirname, posix, resolve, sep } from "node:path";
 import { eq } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { type Asset, assets, usages } from "@/lib/db/schema";
@@ -17,6 +17,8 @@ import { validateRename } from "./validate";
 
 export type StaleRef = { usageId: number; relPath: string; line: number };
 
+export type SkippedExternalRef = { usageId: number; absPath: string; line: number };
+
 export type ExecuteResult = {
   assetId: number;
   newRelPath: string;
@@ -25,6 +27,8 @@ export type ExecuteResult = {
   updatedUsageCount: number;
   commitSha: string | null;
   staleRefs: StaleRef[];
+  skippedExternal: SkippedExternalRef[];
+  indexStale: boolean;
   affectedRelPaths: string[];
 };
 
@@ -62,10 +66,19 @@ export async function executeRename(input: ExecuteInput): Promise<ExecuteResult>
   const newName = pre.newName;
   const newStem = stripExt(newName, asset.ext);
 
-  const selected =
+  const selectedAll =
     acceptedUsageIds === "all"
       ? pre.affectedUsages
       : pre.affectedUsages.filter((u) => acceptedUsageIds.includes(u.id));
+
+  // references outside the source root are never edited and never block the
+  // rename; they are reported so the caller can surface them as stale
+  const rootWithSep = sourceRoot.endsWith(sep) ? sourceRoot : sourceRoot + sep;
+  const isExternal = (absPath: string) => absPath !== "" && !absPath.startsWith(rootWithSep);
+  const selected = selectedAll.filter((u) => !isExternal(u.absPath));
+  const skippedExternal: SkippedExternalRef[] = selectedAll
+    .filter((u) => isExternal(u.absPath))
+    .map((u) => ({ usageId: u.id, absPath: u.absPath, line: u.line }));
 
   const usageRelPaths = Array.from(new Set(selected.map((u) => u.relPath)));
   const affectedRelPaths = Array.from(new Set([asset.relPath, ...usageRelPaths]));
@@ -78,35 +91,52 @@ export async function executeRename(input: ExecuteInput): Promise<ExecuteResult>
     );
   }
 
-  const fileEdits = groupByFile(selected, asset.name, newName);
+  const fileEdits = groupByFile(selected);
   const editedFiles: string[] = [];
   const staleRefs: StaleRef[] = [];
   const updatedSnippets = new Map<number, string>();
   let movedFile = false;
 
-  const rollback = async (): Promise<void> => {
+  const rollback = async (): Promise<string[]> => {
+    const problems: string[] = [];
     const toCheckout = [...editedFiles];
     if (movedFile) {
       try {
         await rename(newAbsPath, oldAbsPath);
-      } catch {}
+      } catch (err) {
+        problems.push(
+          `failed to move ${newRelPath} back: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
       toCheckout.push(asset.relPath, newRelPath);
     }
     if (toCheckout.length > 0) {
-      await gitResetPaths(sourceRoot, toCheckout);
-      await gitCheckoutPaths(sourceRoot, toCheckout);
+      const reset = await gitResetPaths(sourceRoot, toCheckout);
+      if (!reset.ok) problems.push(`git reset failed: ${reset.stderr.trim()}`);
+      const checkout = await gitCheckoutPaths(sourceRoot, toCheckout);
+      if (!checkout.ok) problems.push(`git checkout failed: ${checkout.stderr.trim()}`);
     }
+    return problems;
+  };
+
+  const rollbackOrReport = async (base: RenameError): Promise<RenameError> => {
+    const problems = await rollback();
+    if (problems.length === 0) return base;
+    return new RenameError(
+      base.code,
+      `${base.message} Rollback was incomplete: ${problems.join("; ")}. Inspect the working tree before retrying.`,
+    );
   };
 
   try {
     for (const [relPath, group] of fileEdits) {
-      const absFile = resolve(sourceRoot, relPath);
+      const absFile = group.absPath !== "" ? group.absPath : resolve(sourceRoot, relPath);
       const source = await readFile(absFile, "utf8");
       const lines = source.split("\n");
       const needleLc = asset.name.toLowerCase();
       let changed = false;
 
-      for (const u of group) {
+      for (const u of group.rows) {
         const lineIdx = u.line - 1;
         const original = lines[lineIdx];
         if (original === undefined) {
@@ -132,47 +162,58 @@ export async function executeRename(input: ExecuteInput): Promise<ExecuteResult>
     }
 
     if (staleRefs.length > 0 && !skipStale) {
-      await rollback();
-      throw new RenameError(
-        "STALE_REFERENCES",
-        `${staleRefs.length} reference${staleRefs.length === 1 ? " does" : "s do"} not match the index. Re-run index or opt into skipping stale references.`,
+      throw await rollbackOrReport(
+        new RenameError(
+          "STALE_REFERENCES",
+          `${staleRefs.length} reference${staleRefs.length === 1 ? " does" : "s do"} not match the index. Re-run index or opt into skipping stale references.`,
+        ),
       );
     }
 
     const mv = await gitMove(sourceRoot, asset.relPath, newRelPath);
     if (!mv.ok) {
-      await rollback();
-      throw new RenameError("GIT_MV_FAILED", mv.stderr.trim() || "git mv failed.");
+      throw await rollbackOrReport(
+        new RenameError("GIT_MV_FAILED", mv.stderr.trim() || "git mv failed."),
+      );
     }
     movedFile = true;
 
     const add = await gitAdd(sourceRoot, editedFiles);
     if (!add.ok) {
-      await rollback();
-      throw new RenameError("GIT_ADD_FAILED", add.stderr.trim() || "git add failed.");
+      throw await rollbackOrReport(
+        new RenameError("GIT_ADD_FAILED", add.stderr.trim() || "git add failed."),
+      );
     }
 
     const message = `rename: ${asset.relPath} → ${newRelPath}`;
     const commit = await gitCommit(sourceRoot, message);
     if (!commit.ok) {
-      await rollback();
-      throw new RenameError(
-        "GIT_COMMIT_FAILED",
-        commit.stderr.trim() || "git commit failed (hook rejection or empty commit).",
+      throw await rollbackOrReport(
+        new RenameError(
+          "GIT_COMMIT_FAILED",
+          commit.stderr.trim() || "git commit failed (hook rejection or empty commit).",
+        ),
       );
     }
 
     const commitSha = await headSha(sourceRoot);
 
-    db.transaction((tx) => {
-      tx.update(assets)
-        .set({ absPath: newAbsPath, relPath: newRelPath, name: newName, stem: newStem })
-        .where(eq(assets.id, asset.id))
-        .run();
-      for (const [usageId, snippet] of updatedSnippets) {
-        tx.update(usages).set({ snippet }).where(eq(usages.id, usageId)).run();
-      }
-    });
+    // the commit is the point of no return: a failure past here must never
+    // roll back files, or repo HEAD and the working tree diverge silently
+    let indexStale = false;
+    try {
+      db.transaction((tx) => {
+        tx.update(assets)
+          .set({ absPath: newAbsPath, relPath: newRelPath, name: newName, stem: newStem })
+          .where(eq(assets.id, asset.id))
+          .run();
+        for (const [usageId, snippet] of updatedSnippets) {
+          tx.update(usages).set({ snippet }).where(eq(usages.id, usageId)).run();
+        }
+      });
+    } catch {
+      indexStale = true;
+    }
 
     return {
       assetId: asset.id,
@@ -182,29 +223,28 @@ export async function executeRename(input: ExecuteInput): Promise<ExecuteResult>
       updatedUsageCount: updatedSnippets.size,
       commitSha,
       staleRefs,
+      skippedExternal,
+      indexStale,
       affectedRelPaths,
     };
   } catch (err) {
     if (err instanceof RenameError) throw err;
-    await rollback();
     const message = err instanceof Error ? err.message : String(err);
-    throw new RenameError("UNEXPECTED", message);
+    throw await rollbackOrReport(new RenameError("UNEXPECTED", message));
   }
 }
 
-function groupByFile(
-  rows: { id: number; relPath: string; line: number }[],
-  _oldName: string,
-  _newName: string,
-): Map<string, { id: number; line: number }[]> {
-  const out = new Map<string, { id: number; line: number }[]>();
+type FileEditGroup = { absPath: string; rows: { id: number; line: number }[] };
+
+function groupByFile(rows: { id: number; relPath: string; absPath: string; line: number }[]) {
+  const out = new Map<string, FileEditGroup>();
   for (const r of rows) {
-    const bucket = out.get(r.relPath) ?? [];
-    bucket.push({ id: r.id, line: r.line });
+    const bucket = out.get(r.relPath) ?? { absPath: r.absPath, rows: [] };
+    bucket.rows.push({ id: r.id, line: r.line });
     out.set(r.relPath, bucket);
   }
   for (const bucket of out.values()) {
-    bucket.sort((a, b) => a.line - b.line);
+    bucket.rows.sort((a, b) => a.line - b.line);
   }
   return out;
 }

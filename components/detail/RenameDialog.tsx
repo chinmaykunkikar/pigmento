@@ -357,6 +357,7 @@ type UsageRow = {
   line: number;
   snippet: string;
   commented: boolean;
+  external?: boolean;
 };
 
 function ReferencesSection({
@@ -413,6 +414,14 @@ function ReferencesSection({
               {u.commented ? (
                 <span className="flex-shrink-0 rounded-xs bg-warn-bg px-1 text-2xs text-warn">
                   commented
+                </span>
+              ) : null}
+              {u.external ? (
+                <span
+                  className="flex-shrink-0 rounded-xs bg-sunken px-1 text-2xs text-text-3"
+                  title="Outside the source root. Reported but never edited by rename."
+                >
+                  external
                 </span>
               ) : null}
             </button>
