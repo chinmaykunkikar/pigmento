@@ -214,11 +214,7 @@ function BucketList({
         label={`Near matches · pHash Δ ≤ ${threshold}`}
         badge={countBadge(buckets.near.length, "match", "matches")}
         tone="warn"
-        note={
-          buckets.near.length > 0
-            ? "Visually similar. Consider merging instead of adding another variant."
-            : undefined
-        }
+        note={nearNote(buckets)}
       >
         {buckets.near.map((r) => (
           <ResultRow
@@ -260,7 +256,7 @@ function BucketList({
           note={
             buckets.semantic.length > 0
               ? "Shares visual concept even if the geometry differs. Likely the same icon, redrawn."
-              : undefined
+              : "No asset clears this query's similarity bar. The bar adapts to your corpus, so an empty list means a genuinely new concept."
           }
         >
           {buckets.semantic.map((r) => (
@@ -327,7 +323,9 @@ type RawBuckets = {
     size: number;
     usageCount: number;
     score: number;
+    percentile: number;
   }[];
+  nearDegenerateQuery: boolean;
 };
 
 function useBuckets(
@@ -338,9 +336,12 @@ function useBuckets(
   near: ResultRowData[];
   name: ResultRowData[];
   semantic: ResultRowData[];
+  nearDegenerateQuery: boolean;
 } {
   return useMemo(() => {
-    if (!raw) return { exact: [], near: [], name: [], semantic: [] };
+    if (!raw) {
+      return { exact: [], near: [], name: [], semantic: [], nearDegenerateQuery: false };
+    }
     return {
       exact: raw.exact.map<ResultRowData>((r) => ({
         assetId: r.assetId,
@@ -389,26 +390,34 @@ function useBuckets(
         tone: "accent",
         roleLabel: "CLUSTER",
       })),
-      semantic: raw.semantic.map<ResultRowData>((r) => {
-        const pct = Math.round(r.score * 100);
-        return {
-          assetId: r.assetId,
-          name: r.name,
-          relPath: r.relPath,
-          ext: r.ext,
-          size: r.size,
-          usageCount: r.usageCount,
-          metric: "COSINE",
-          metricValue: String(pct),
-          metricUnit: "% similar",
-          pct,
-          diff: "Semantically similar; shares visual concept, different geometry.",
-          tone: "ok",
-          roleLabel: "SEMANTIC",
-        };
-      }),
+      semantic: raw.semantic.map<ResultRowData>((r) => ({
+        assetId: r.assetId,
+        name: r.name,
+        relPath: r.relPath,
+        ext: r.ext,
+        size: r.size,
+        usageCount: r.usageCount,
+        metric: "SEMANTIC",
+        metricValue: `p${r.percentile}`,
+        metricUnit: "corpus percentile",
+        pct: r.percentile,
+        diff: `Closer than ${r.percentile}% of indexed assets to this file.`,
+        tone: "ok",
+        roleLabel: "SEMANTIC",
+      })),
+      nearDegenerateQuery: raw.nearDegenerateQuery,
     };
   }, [raw, threshold]);
+}
+
+function nearNote(buckets: MappedBuckets): string | undefined {
+  if (buckets.nearDegenerateQuery) {
+    return "This file rasterizes to mostly empty space, so perceptual hashing has no signal for it. Lean on the name and semantic buckets instead.";
+  }
+  if (buckets.near.length > 0) {
+    return "Visually similar. Consider merging instead of adding another variant.";
+  }
+  return undefined;
 }
 
 function countBadge(n: number, singular: string, plural: string): string | undefined {

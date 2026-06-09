@@ -3,13 +3,13 @@ import { jaccard, sharedTokens, tokenize } from "@/lib/indexer/name-tokens";
 import { hamming, isDegeneratePhash, SVG_NEAR_THRESHOLD } from "@/lib/indexer/phash";
 import { cosine } from "@/lib/match/clip";
 import type { QuerySignature } from "@/lib/match/ext";
+import { percentileOf, semanticGate } from "@/lib/match/semantic";
 import type { Db } from "../client";
 import { assets, usages } from "../schema";
 
 export const NEAR_HAMMING_CEILING = 20;
 export const NEAR_HAMMING_DEFAULT = 12;
 const NAME_JACCARD_MIN = 0.33;
-const SEMANTIC_SCORE_MIN = 0.75;
 const LIMIT_EXACT = 10;
 const LIMIT_NEAR = 30;
 const LIMIT_NAME = 10;
@@ -42,6 +42,7 @@ export type NameMatch = MatchRow & {
 
 export type SemanticMatch = MatchRow & {
   score: number;
+  percentile: number;
 };
 
 export type MatchBuckets = {
@@ -251,24 +252,33 @@ function findSemantic(
     .where(and(eq(assets.sourceId, sourceId), isNotNull(assets.clipEmbedding)))
     .all();
 
-  const hits: SemanticMatch[] = [];
+  const scored: { row: (typeof candidates)[number]; score: number }[] = [];
   for (const c of candidates) {
     if (exclude.has(c.assetId)) continue;
     if (!c.embedding) continue;
-    const score = cosine(queryEmbedding, c.embedding);
-    if (score < SEMANTIC_SCORE_MIN) continue;
+    scored.push({ row: c, score: cosine(queryEmbedding, c.embedding) });
+  }
+
+  const allScores = scored.map((s) => s.score);
+  const gate = semanticGate(allScores);
+  const sortedScores = [...allScores].sort((a, b) => a - b);
+
+  const hits: SemanticMatch[] = [];
+  for (const { row, score } of scored) {
+    if (score < gate) continue;
     hits.push({
-      assetId: c.assetId,
-      name: c.name,
-      relPath: c.relPath,
-      ext: c.ext,
-      size: c.size,
-      width: c.width,
-      height: c.height,
-      dominantColor: c.dominantColor,
-      strokeWidths: c.strokeWidths,
+      assetId: row.assetId,
+      name: row.name,
+      relPath: row.relPath,
+      ext: row.ext,
+      size: row.size,
+      width: row.width,
+      height: row.height,
+      dominantColor: row.dominantColor,
+      strokeWidths: row.strokeWidths,
       usageCount: 0,
       score,
+      percentile: percentileOf(sortedScores, score),
     });
   }
   hits.sort((a, b) => b.score - a.score);
