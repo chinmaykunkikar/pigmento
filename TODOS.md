@@ -161,6 +161,38 @@ Summary of what was proposed:
 
 ---
 
+## Post-audit engineering TODOs
+
+Added by /plan-eng-review on 2026-06-10 after the full-codebase audit. The fix sweep itself (matching guards, MAD calibration, background indexing, dispatch persistence, rename safety, vitest harness, deletion batch) is tracked in the eng-review tasks artifact, not here. These are the items deliberately left out of that sweep.
+
+### E1. Revalidate persisted plans against the live index
+`draftPlan` persists to localStorage as frozen assetId/relPath snapshots (`lib/store.ts:329` does the same for cartIds). A full reindex reassigns ids and pika's own rename changes relPath under a queued plan, so dispatch can hand an agent stale paths. Fix at the dispatch chokepoint (and on PlanDrawer open): re-resolve each item, remap by contentHash where possible (content survives reindex), and surface a "stale item" state for the rest. Needs a small UX decision (flag vs drop vs remap), which is why it isn't a sweep rider. Lower urgency once the purge stage is gone (ids get more stable). Start at `lib/plan/build.ts` + the dispatch route's plan load.
+
+### E2. Rasterization v2 (the real white-collapse fix) — TRIGGER: after the sweep's hygiene columns ship and a measurement baseline exists
+The sweep's entropy guards EXCLUDE degenerate illustrations; v2 makes them matchable again. Scope: adaptive density from viewBox (~512px target), `sharp.trim()` whitespace crop, hash the alpha/coverage channel when the flattened greyscale is near-uniform (mean>245), render-large-then-area-downsample for the 9x8 dHash, `fit:'contain'` for CLIP. Bump a phash version column so reindex recomputes only stale rows. Golden-file test set required. Benefits phash, clustering, and CLIP simultaneously.
+
+### E3. Embedding model evaluation (SigLIP / DINOv2 via transformers.js) — TRIGGER: only if calibrated CLIP still underperforms after E2
+Re-measure the corpus baselines after E2 + the MAD gate. If white-cluster separation is still poor, evaluate SigLIP base (better-calibrated baseline) or DINOv2-small (structure-sensitive, suits line art). Full re-embed required; thresholds must be re-measured against the pinned-revision corpus fixtures from the sweep.
+
+### E4. Sub-quadratic phash clustering — TRIGGER: corpus >10k same-ext assets
+`cluster-phash.ts` compares all pairs with BigInt hamming (~1.14us/pair measured): ~57s of blocked CPU at 10k, ~15min at 40k. Store phash as two 32-bit ints, XOR+popcount lookup, band candidates by 16-bit prefix (LSH) or BK-tree. Invisible at the current ~1.5k corpus; do not build early.
+
+## Color Explorer follow-ups — deferred by /plan-ceo-review (2026-06-10)
+
+Full context: `~/.gstack/projects/chinmaykunkikar-pika/ceo-plans/2026-06-10-color-explorer-design-language-debugger.md`
+
+### CE-1. Palette poster export (P2, effort S; CC ~0.5-1d)
+**What:** One-click PNG/SVG export of the repo's color identity (brand palette, drift ring, coverage score, repo name), OG-card sized, small pika mark.
+**Why:** The launch screenshot as a product feature; every user who posts one is distribution. Deferred to the week after launch (ceremony decision E4); the render endpoint composes data that already exists; sharp is already a dependency.
+
+### CE-2. `pika check` CI mode (P2, effort M; CC ~2d)
+**What:** Headless engine reuse in CI: fail the build when a diff introduces colors/type off the established palette, with readable messages ("#1366a8 is 1.2 ΔE from brand.blue — use var(--color-accent)").
+**Why:** Completes clean-up-then-stay-clean; the team-adoption feature (ceremony decision E5). Schema door already held open: persist palette baselines. Depends on: color engine shipped, baseline persistence.
+
+### CE-3. Tailwind config resolution for the coverage score (P2, effort M; CC ~2-3d)
+**What:** Resolve the target repo's Tailwind theme (jiti for v3 JS configs, @theme parsing for v4) so named utilities map to real values, the "not scored" bucket folds into the tokenization score, and utility-based drift becomes detectable.
+**Why:** The CEO review's outside-voice pass (OV-4) excluded named utilities from the v1 score to keep it unfalsifiable; this is the recorded path to completing it. Depends on: v1 score shipping with the labeled bucket.
+
 ## Deferred — documented, not in this sprint
 
 These are real but out of scope for the design-gap sprint. Listed so they don't rot:
