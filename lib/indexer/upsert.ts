@@ -18,6 +18,7 @@ const EXCLUDED_SET = {
   name: sql`excluded.name`,
   ext: sql`excluded.ext`,
   phash: sql`excluded.phash`,
+  phashPopcount: sql`excluded.phash_popcount`,
   viewBox: sql`excluded.view_box`,
   pathsCount: sql`excluded.paths_count`,
   commandsCount: sql`excluded.commands_count`,

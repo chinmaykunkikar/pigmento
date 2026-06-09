@@ -16,8 +16,9 @@ import { emitStage } from "./events";
 import { ensureFts, ensureViews, rebuildFts } from "./fts";
 import { gitAuthor } from "./git";
 import { hashBuffer } from "./hash";
+import { backfillPhashPopcount } from "./hygiene";
 import { getMeta } from "./meta";
-import { computePhash } from "./phash";
+import { computePhash, popcountHex } from "./phash";
 import { Progress } from "./progress";
 import { scan } from "./scan";
 import { parseSvg } from "./svg";
@@ -111,6 +112,7 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
             height: meta.height,
             category: categorize(f.ext, meta.width, meta.height),
             phash,
+            phashPopcount: phash ? popcountHex(phash) : null,
             viewBox: svg?.viewBox ?? null,
             pathsCount: svg?.pathsCount ?? null,
             commandsCount: svg?.commandsCount ?? null,
@@ -134,6 +136,11 @@ export async function runIndexer(opts: IndexerOptions): Promise<void> {
     const keep = scanned.map((f) => f.absPath);
     const n = deleteMissing(db, sourceId, keep);
     return { result: n, detail: `${n} rows` };
+  });
+
+  await stage(progress, sourceId, "hygiene", () => {
+    const n = backfillPhashPopcount(db, sourceId);
+    return { result: n, detail: n === 0 ? "up to date" : `${n} backfilled` };
   });
 
   await stage(progress, sourceId, "git-author", async () => {

@@ -3,6 +3,7 @@ import {
   customType,
   index,
   integer,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -56,6 +57,9 @@ export const assets = sqliteTable(
     dominantColor: text("dominant_color"),
     author: text("author"),
     clipEmbedding: float32Blob("clip_embedding"),
+    phashPopcount: integer("phash_popcount"),
+    rasterWhiteFraction: real("raster_white_fraction"),
+    embedStatus: text("embed_status", { enum: ["ok", "failed", "degenerate"] }),
   },
   (t) => [
     uniqueIndex("assets_abs_uq").on(t.absPath),
@@ -122,6 +126,53 @@ export const clusterMembers = sqliteTable(
   ],
 );
 
+export const indexRuns = sqliteTable(
+  "index_runs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    sourceId: integer("source_id")
+      .notNull()
+      .references(() => sources.id, { onDelete: "cascade" }),
+    pid: integer("pid").notNull(),
+    pidStartedAtMs: integer("pid_started_at_ms").notNull(),
+    status: text("status", { enum: ["running", "done", "error", "crashed"] }).notNull(),
+    error: text("error"),
+    startedAt: text("started_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    endedAt: text("ended_at"),
+  },
+  (t) => [
+    index("index_runs_source_idx").on(t.sourceId),
+    uniqueIndex("index_runs_active_uq").on(t.sourceId).where(sql`status = 'running'`),
+  ],
+);
+
+export const dispatchJobs = sqliteTable(
+  "dispatch_jobs",
+  {
+    id: text("id").primaryKey(),
+    sourceId: integer("source_id")
+      .notNull()
+      .references(() => sources.id, { onDelete: "cascade" }),
+    planId: text("plan_id").notNull(),
+    harness: text("harness").notNull(),
+    mode: text("mode").notNull(),
+    pid: integer("pid"),
+    pidStartedAtMs: integer("pid_started_at_ms"),
+    token: text("token").notNull(),
+    status: text("status", {
+      enum: ["pending", "running", "done", "failed", "cancelled", "orphaned", "crashed"],
+    }).notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    endedAt: text("ended_at"),
+  },
+  (t) => [
+    index("dispatch_jobs_source_idx").on(t.sourceId),
+    uniqueIndex("dispatch_jobs_active_uq")
+      .on(t.sourceId)
+      .where(sql`status IN ('pending', 'running')`),
+  ],
+);
+
 export const sourcesRelations = relations(sources, ({ many }) => ({
   assets: many(assets),
   clusters: many(clusters),
@@ -161,3 +212,7 @@ export type Cluster = typeof clusters.$inferSelect;
 export type NewCluster = typeof clusters.$inferInsert;
 export type ClusterMember = typeof clusterMembers.$inferSelect;
 export type NewClusterMember = typeof clusterMembers.$inferInsert;
+export type IndexRun = typeof indexRuns.$inferSelect;
+export type NewIndexRun = typeof indexRuns.$inferInsert;
+export type DispatchJobRow = typeof dispatchJobs.$inferSelect;
+export type NewDispatchJobRow = typeof dispatchJobs.$inferInsert;
