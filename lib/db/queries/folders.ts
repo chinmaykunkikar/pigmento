@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gt, inArray, like, lte, or, type SQL, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, like, or, type SQL, sql } from "drizzle-orm";
 import type { Db } from "../client";
 import { assets } from "../schema";
 

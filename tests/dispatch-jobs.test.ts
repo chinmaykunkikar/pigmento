@@ -37,7 +37,6 @@ function scriptedHarness(events: DispatchEvent[]): Harness {
   return {
     name: "claude-code",
     isReady: async () => ({ ready: true }),
-    // biome-ignore lint/correctness/useYield: generator yields from array
     run: async function* () {
       for (const ev of events) yield ev;
     },

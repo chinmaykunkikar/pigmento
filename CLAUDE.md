@@ -261,12 +261,13 @@ API (app/api/**)
     │ Drizzle queries
 Storage (lib/db/)
     │ drizzle-kit migrations
-Indexer (lib/indexer/, scripts/ae.ts)
+Indexer (lib/indexer/, scripts/pika.ts)
 ```
 
-- **UI never imports from `lib/db/` or `lib/indexer/`.** Only via TanStack Query → `app/api/**`.
-- **API handlers never walk the filesystem.** Only the indexer touches disk.
-- **Indexer is the only writer** (plus the plans CRUD endpoints). UI is read-only except plan builder.
+- **UI imports from `lib/db/` and `lib/indexer/` are type-only** (`import type`). Runtime data flows exclusively via TanStack Query → `app/api/**`.
+- **Only the indexer scans the source tree.** API handlers may `stat` a path to validate it, serve a single asset via `/api/preview/:id`, and write plan artifacts; none of them walk directories.
+- **Three writers, each with a defined surface:** the indexer (assets, usages, clusters, fts, `index_runs`), the rename executor (assets/usages rows plus the user's repo via git, behind preflight + the sentinel), and the dispatch system (`dispatch_jobs` rows, plan artifacts, and the user's repo via the agent harness). UI mutates only through those endpoints; everything else is read-only.
+- **Cross-process exclusion lives in SQLite.** `index_runs` and `dispatch_jobs` partial unique indexes are the locks; in-process `globalThis` registries hold live handles only. Never add a JS-only guard for something a second process can race.
 - **Every UI-facing query must hit an index.** Drizzle gives you type-safe query builders; if the compiled SQL has an unindexed scan on a >1k-row table, it's a bug.
 - **Any list > 200 rows is virtualized** with `@tanstack/react-virtual`.
 
@@ -401,12 +402,12 @@ The `claude-code` harness landed in Phase 10 slice 2 for both `patch` and `open-
 3. `isReady(mode)` should probe for CLI presence and any auth state (`.env.local` for API tokens, never hardcoded). Return a specific `reason` when not ready so the UI can surface it verbatim.
 4. `run(input, signal)` yields `DispatchEvent`s; treat `signal` abort as SIGTERM followed by SIGKILL after a short grace.
 5. Streaming route (`app/api/plans/dispatch/[jobId]/stream`) and cancel route (`app/api/plans/dispatch/[jobId]`) don't change — they read from the job registry.
-6. Flip the `ready` flag in `components/plan/DispatchTab.tsx::HARNESSES`.
+6. Add the harness to `components/plan/DispatchTab.tsx::HARNESSES` — the picker lists only adapters that are actually registered, never "soon" stubs.
 
 ## Verification before marking any phase done
 
 Against the phase's acceptance criteria in the PRD:
-1. `pnpm typecheck && pnpm lint` clean
+1. `pnpm typecheck && pnpm test` clean; `pnpm lint` clean on changed files (docs/ has pre-existing failures)
 2. `pnpm dev` renders; manually walk the phase's screens
 3. For DB phases: `pnpm db:studio` and verify counts/indexes, or `sqlite3 data/pika.db`
 4. For indexer phases: `pnpm pika index --full` against `~/Tribe/cohort-live-web`
