@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ThresholdSlider } from "@/components/match/ThresholdSlider";
 import type { NearPair as NearPairT } from "@/lib/db/queries/duplicates";
 import { useNearDuplicates } from "@/lib/queries/duplicates";
 import { ErrorState } from "../primitives/ErrorState";
@@ -90,14 +91,11 @@ export function NearTab({ sourceId, sourceLabel }: Props) {
           </div>
         </div>
         <HammingHistogram bins={data.histogram} threshold={threshold} />
-        <input
-          type="range"
+        <ThresholdSlider
+          value={threshold}
           min={MIN_THRESHOLD}
           max={MAX_THRESHOLD}
-          value={threshold}
-          onChange={(e) => setThreshold(Number(e.target.value))}
-          className="h-1 w-35 cursor-pointer accent-[var(--color-accent)]"
-          aria-label="Hamming threshold"
+          onChange={setThreshold}
         />
       </div>
 

@@ -30,15 +30,6 @@ export function EmptyState({ onAdded }: Props) {
         <Button variant="primary" className="h-8 px-3.5" onClick={() => setOpen(true)}>
           Add local source…
         </Button>
-        <button
-          type="button"
-          disabled
-          title="Coming soon"
-          className="inline-flex h-8 cursor-not-allowed items-center gap-1.5 rounded-sm border border-border-2 bg-surface px-3.5 text-sm font-medium text-text opacity-50"
-        >
-          Clone from Git URL…
-          <span className="rounded-xs bg-sunken px-1 font-mono text-3xs text-text-3">SOON</span>
-        </button>
       </div>
 
       <div className="mt-4 flex gap-7 font-mono text-xs text-text-3">

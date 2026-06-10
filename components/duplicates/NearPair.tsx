@@ -85,8 +85,6 @@ export function NearPair({ pair, sourceId, sourceLabel }: Props) {
         <span className="font-mono text-2xs tracking-wider text-text-3">DIFF</span>
         <span className="truncate font-mono text-xs text-text-2">{diff}</span>
         <div className="flex-1" />
-        <DiffBtn label="Side-by-side" />
-        <DiffBtn label="Overlay" />
         <AddToPlanButton action={action} sourceId={sourceId} sourceLabel={sourceLabel} size="sm" />
       </div>
     </div>
@@ -122,7 +120,7 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
               canonical ? "bg-accent-bg text-accent-text" : "bg-sunken text-text-3",
             )}
           >
-            {canonical ? "A · CANDIDATE" : "B · PROPOSED DROP"}
+            {canonical ? "A · CANONICAL" : "B · NEAR-DUPLICATE"}
           </span>
         </div>
         <div className="truncate font-mono text-xs font-medium text-text" title={side.relPath}>
@@ -136,18 +134,6 @@ function NearSide({ side, canonical }: { side: NearPairSide; canonical?: boolean
           </span>
         </div>
       </div>
-    </button>
-  );
-}
-
-function DiffBtn({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      disabled
-      className="cursor-not-allowed rounded-xs border border-border bg-surface px-2 py-0.5 font-sans text-xs text-text-2 opacity-70"
-    >
-      {label}
     </button>
   );
 }

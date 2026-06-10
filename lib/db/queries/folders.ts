@@ -109,31 +109,15 @@ export function listByFolder(
     .all();
 }
 
-export type SizeBucket = "s" | "m" | "l";
-
 export type AssetFilters = {
   sourceId: number;
   path?: string;
   q?: string;
   exts?: string[];
-  size?: SizeBucket;
   unusedOnly?: boolean;
   sort?: GridSort;
   limit?: number;
 };
-
-const SIZE_SMALL_MAX = 4 * 1024;
-const SIZE_MEDIUM_MAX = 64 * 1024;
-
-function sizeBucketClause(bucket: SizeBucket): SQL<unknown> {
-  if (bucket === "s") return lte(assets.size, SIZE_SMALL_MAX);
-  if (bucket === "m") {
-    const combined = and(gt(assets.size, SIZE_SMALL_MAX), lte(assets.size, SIZE_MEDIUM_MAX));
-    if (combined) return combined;
-    return gt(assets.size, SIZE_SMALL_MAX);
-  }
-  return gt(assets.size, SIZE_MEDIUM_MAX);
-}
 
 function pushLikeMatch(conds: SQL<unknown>[], q: string) {
   const combined = or(like(assets.stem, `%${q}%`), like(assets.relPath, `%${q}%`));
@@ -153,7 +137,6 @@ export function searchAssets(db: Db, f: AssetFilters): AssetSummary[] {
   const conds: SQL<unknown>[] = [eq(assets.sourceId, f.sourceId)];
   if (f.path !== undefined) conds.push(eq(assets.dir, f.path));
   if (f.exts && f.exts.length > 0) conds.push(inArray(assets.ext, f.exts));
-  if (f.size) conds.push(sizeBucketClause(f.size));
 
   const q = f.q?.trim() ?? "";
   let matchedIds: number[] | null = null;

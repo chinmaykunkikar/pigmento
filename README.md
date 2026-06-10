@@ -66,22 +66,33 @@ From the app, queue a set of merges and deletes into a cleanup plan. Pika emits 
 
 ![Plan dispatch panel · pick a harness, mode, and send to the agent](./docs/screenshots/dispatch.png)
 
-The wire format is plain JSON, easy to hand off to whichever harness you have set up:
+The wire format is plain JSON validated by `lib/plan/schema.ts` (the example below is abbreviated; every action kind carries full asset refs):
 
 ```json
 {
   "version": "pika/plan v1",
-  "cluster": "logo-mark",
-  "canonical": "public/logo.svg",
-  "merge": [
-    "src/components/Header/logo-mark.svg",
-    "src/marketing/brand-logo.svg",
-    "public/icons/logo@2x.png"
-  ],
-  "delete": ["archive/logo-old.svg"],
-  "rewrite_imports": 24,
-  "estimated_savings_kb": 112,
-  "branch": "pika/dedupe-logo-mark"
+  "id": "plan-3f2a",
+  "name": "logo cleanup",
+  "sourceId": 1,
+  "sourceLabel": "cohort-live-web",
+  "createdAt": 1764979200000,
+  "updatedAt": 1764979200000,
+  "actions": [
+    {
+      "id": "act-1",
+      "createdAt": 1764979200000,
+      "kind": "merge-exact",
+      "hashKey": "c0ffee42",
+      "keep": { "assetId": 12, "relPath": "public/logo.svg", "name": "logo.svg", "size": 4096, "usageCount": 24 },
+      "drop": [{ "assetId": 31, "relPath": "src/marketing/brand-logo.svg", "name": "brand-logo.svg", "size": 4096, "usageCount": 2 }]
+    },
+    {
+      "id": "act-2",
+      "createdAt": 1764979200000,
+      "kind": "delete-unused",
+      "drop": [{ "assetId": 44, "relPath": "archive/logo-old.svg", "name": "logo-old.svg", "size": 9120, "usageCount": 0 }]
+    }
+  ]
 }
 ```
 

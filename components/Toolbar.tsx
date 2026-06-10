@@ -5,16 +5,9 @@ import { cn } from "@/lib/cn";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
 import { useOverviewCounts } from "@/lib/queries/overview";
 import { useReindex } from "@/lib/queries/reindex";
-import {
-  EXT_FILTERS,
-  type ExtFilter,
-  type SizeBucket,
-  useExplorerStore,
-  type View,
-} from "@/lib/store";
+import { EXT_FILTERS, type ExtFilter, useExplorerStore, type View } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
 import { ClipboardList, Home, Layers, LayoutGrid, RefreshCw, ScanSearch, Search, X } from "./icons";
-import { Chip } from "./primitives/Chip";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
 import { Segmented } from "./primitives/Segmented";
@@ -24,16 +17,6 @@ type Props = {
   source: SourceWithMeta | null;
   indexerProgress: number | null;
 };
-
-const SIZE_BUCKETS: { value: SizeBucket; label: string }[] = [
-  { value: "s", label: "S" },
-  { value: "m", label: "M" },
-  { value: "l", label: "L" },
-];
-
-// Size filters are intentionally hidden from the toolbar until the UX is finalized.
-// Keep the SIZE_BUCKETS constant and the render block below; do not delete in cleanup passes.
-const SHOW_SIZE_FILTERS = false;
 
 const EXT_LABELS: Record<ExtFilter, string> = {
   svg: "SVG",
@@ -52,8 +35,6 @@ export function Toolbar({ source, indexerProgress }: Props) {
   const setSearch = useExplorerStore((s) => s.setSearch);
   const extFilter = useExplorerStore((s) => s.extFilter);
   const toggleExtFilter = useExplorerStore((s) => s.toggleExtFilter);
-  const sizeBucket = useExplorerStore((s) => s.sizeBucket);
-  const setSizeBucket = useExplorerStore((s) => s.setSizeBucket);
   const reindex = useReindex(source?.id ?? null);
   const overview = useOverviewCounts(source?.id ?? null);
   const visibleExtFilters = useMemo<ExtFilter[]>(() => {
@@ -76,8 +57,7 @@ export function Toolbar({ source, indexerProgress }: Props) {
 
   const planBadge = () => (planCount > 0 ? `Plan · ${planCount}` : "Plan");
 
-  const filterActive =
-    search.length > 0 || extFilter.length > 0 || sizeBucket !== null || unusedOnly;
+  const filterActive = search.length > 0 || extFilter.length > 0 || unusedOnly;
   const filtersApply = view === "grid";
   const inactiveTip = "Type / size / unused / search apply to the Grid view only";
 
@@ -132,22 +112,6 @@ export function Toolbar({ source, indexerProgress }: Props) {
                 label={EXT_LABELS[ext]}
                 active={extFilter.includes(ext)}
                 onClick={() => toggleExtFilter(ext)}
-              />
-            ))}
-          </div>
-        ) : null}
-
-        {SHOW_SIZE_FILTERS ? (
-          <div
-            aria-disabled={!filtersApply}
-            className="flex h-7 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-sm border border-border bg-surface px-1 aria-disabled:pointer-events-none max-lg:hidden"
-          >
-            {SIZE_BUCKETS.map((b) => (
-              <Chip
-                key={b.value}
-                label={b.label}
-                active={sizeBucket === b.value}
-                onClick={() => setSizeBucket(sizeBucket === b.value ? null : b.value)}
               />
             ))}
           </div>

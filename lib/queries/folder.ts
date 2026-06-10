@@ -11,7 +11,6 @@ export type FolderParams = {
   path: string | null;
   q?: string;
   exts?: string[];
-  size?: "s" | "m" | "l" | null;
   unusedOnly?: boolean;
   sort?: GridSort;
 };
@@ -22,7 +21,6 @@ function cacheKey(p: FolderParams): string {
     p.path ?? "*",
     p.q ?? "",
     (p.exts ?? []).join("+"),
-    p.size ?? "",
     p.unusedOnly ? "1" : "0",
     p.sort ?? "",
   ];
@@ -37,7 +35,6 @@ export function useFolder(p: FolderParams) {
       if (p.path !== null) params.set("path", p.path);
       if (p.q) params.set("q", p.q);
       if (p.exts && p.exts.length > 0) params.set("exts", p.exts.join(","));
-      if (p.size) params.set("size", p.size);
       if (p.unusedOnly) params.set("unusedOnly", "1");
       if (p.sort) params.set("sort", p.sort);
       return apiGet<AssetSummary[]>(`/api/folders?${params.toString()}`);

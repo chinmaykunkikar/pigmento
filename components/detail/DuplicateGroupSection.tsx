@@ -87,7 +87,7 @@ function HashBlock({
                   m.role === "canonical" ? "bg-ok-bg text-ok" : "bg-danger-bg text-danger",
                 )}
               >
-                {m.role === "canonical" ? "CANONICAL" : "EXACT"}
+                {m.role === "canonical" ? "CANONICAL" : "DUPLICATE"}
               </span>
               <span className="truncate font-mono text-xs text-text" title={m.relPath}>
                 {m.relPath}

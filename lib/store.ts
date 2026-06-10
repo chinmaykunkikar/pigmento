@@ -4,7 +4,6 @@ import type { Plan, PlanAction } from "./plan/schema";
 
 export type View = "overview" | "grid" | "clusters" | "match";
 export type ClustersMode = "exact" | "near" | "name";
-export type SizeBucket = "s" | "m" | "l";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];
 
@@ -53,10 +52,8 @@ export type ExplorerState = {
   boundingBoxes: boolean;
   previewBackdrop: PreviewBackdrop;
   unusedOnly: boolean;
-  styleClass: string | null;
   search: string;
   extFilter: ExtFilter[];
-  sizeBucket: SizeBucket | null;
 
   cartIds: readonly number[];
   cartAnchor: number | null;
@@ -74,10 +71,8 @@ export type ExplorerState = {
   setPreviewBackdrop: (backdrop: PreviewBackdrop) => void;
   cyclePreviewBackdrop: () => void;
   setUnusedOnly: (on: boolean) => void;
-  setStyleClass: (c: string | null) => void;
   setSearch: (q: string) => void;
   toggleExtFilter: (ext: ExtFilter) => void;
-  setSizeBucket: (b: SizeBucket | null) => void;
   clearFilters: () => void;
   gridSort: GridSort;
   setGridSort: (s: GridSort) => void;
@@ -122,10 +117,8 @@ export const useExplorerStore = create<ExplorerState>()(
       boundingBoxes: false,
       previewBackdrop: "checker",
       unusedOnly: false,
-      styleClass: null,
       search: "",
       extFilter: [],
-      sizeBucket: null,
 
       cartIds: [],
       cartAnchor: null,
@@ -177,7 +170,6 @@ export const useExplorerStore = create<ExplorerState>()(
           return { previewBackdrop: next ?? "checker" };
         }),
       setUnusedOnly: (unusedOnly) => set({ unusedOnly }),
-      setStyleClass: (styleClass) => set({ styleClass }),
       setSearch: (search) => set({ search }),
       toggleExtFilter: (ext) =>
         set((s) => ({
@@ -185,8 +177,7 @@ export const useExplorerStore = create<ExplorerState>()(
             ? s.extFilter.filter((e) => e !== ext)
             : [...s.extFilter, ext],
         })),
-      setSizeBucket: (sizeBucket) => set({ sizeBucket }),
-      clearFilters: () => set({ search: "", extFilter: [], sizeBucket: null, unusedOnly: false }),
+      clearFilters: () => set({ search: "", extFilter: [], unusedOnly: false }),
       gridSort: "name-asc" as GridSort,
       setGridSort: (gridSort) => set({ gridSort }),
 
@@ -326,9 +317,7 @@ export const useExplorerStore = create<ExplorerState>()(
         boundingBoxes: state.boundingBoxes,
         previewBackdrop: state.previewBackdrop,
         unusedOnly: state.unusedOnly,
-        styleClass: state.styleClass,
         extFilter: state.extFilter,
-        sizeBucket: state.sizeBucket,
         gridSort: state.gridSort,
         draftPlan: state.draftPlan,
         sidebarCollapsed: state.sidebarCollapsed,

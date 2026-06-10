@@ -3,23 +3,30 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { type ExportFormat, planSchemaFooter, serializePlan } from "@/lib/plan/export";
+import { generatePrompt } from "@/lib/plan/prompt";
 import type { Plan } from "@/lib/plan/schema";
 import { Copy, Download } from "../icons";
 import { Button } from "../primitives/Button";
 
 type Props = { plan: Plan };
 
-const FORMATS: { value: ExportFormat; label: string; ext: string; mime: string }[] = [
+type HandoffFormat = ExportFormat | "prompt";
+
+const FORMATS: { value: HandoffFormat; label: string; ext: string; mime: string }[] = [
+  { value: "prompt", label: "Prompt", ext: "md", mime: "text/markdown" },
   { value: "json", label: "JSON", ext: "json", mime: "application/json" },
   { value: "csv", label: "CSV", ext: "csv", mime: "text/csv" },
   { value: "yaml", label: "YAML", ext: "yaml", mime: "text/yaml" },
 ];
 
 export function ExportTab({ plan }: Props) {
-  const [format, setFormat] = useState<ExportFormat>("json");
+  const [format, setFormat] = useState<HandoffFormat>("json");
   const [copied, setCopied] = useState(false);
 
-  const body = useMemo(() => serializePlan(plan, format), [plan, format]);
+  const body = useMemo(
+    () => (format === "prompt" ? generatePrompt(plan) : serializePlan(plan, format)),
+    [plan, format],
+  );
   const current = FORMATS.find((f) => f.value === format) ?? FORMATS[0];
   if (!current) throw new Error("no export format");
 
@@ -53,7 +60,7 @@ export function ExportTab({ plan }: Props) {
                 format === f.value
                   ? "bg-accent-bg text-accent-text"
                   : "bg-surface text-text-2 hover:bg-hover",
-                f.value !== "json" && "border-border border-l",
+                f.value !== "prompt" && "border-border border-l",
               )}
             >
               {f.label}
@@ -79,7 +86,13 @@ export function ExportTab({ plan }: Props) {
         {body}
       </pre>
 
-      <div className="text-right font-mono text-2xs text-text-3">{planSchemaFooter()}</div>
+      {format === "prompt" ? (
+        <div className="text-right font-mono text-2xs text-text-3">
+          Generated from the structured plan. Paste into a coding agent or PR description.
+        </div>
+      ) : (
+        <div className="text-right font-mono text-2xs text-text-3">{planSchemaFooter()}</div>
+      )}
     </div>
   );
 }

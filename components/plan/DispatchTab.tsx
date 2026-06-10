@@ -17,10 +17,10 @@ import { DispatchLogViewer } from "./DispatchLogViewer";
 
 type Props = { plan: Plan };
 
-const HARNESSES: { value: DispatchHarness; label: string; ready: boolean }[] = [
-  { value: "claude-code", label: "Claude Code", ready: true },
-  { value: "devin", label: "Devin", ready: false },
-  { value: "codex-cli", label: "codex-cli", ready: false },
+// only adapters that actually run belong here; add entries when they land in
+// lib/plan/dispatch/registry.ts, not before
+const HARNESSES: { value: DispatchHarness; label: string }[] = [
+  { value: "claude-code", label: "Claude Code" },
 ];
 
 const MODES: { value: DispatchMode; label: string; ready: boolean; description: string }[] = [
@@ -50,12 +50,8 @@ export function DispatchTab({ plan }: Props) {
   const dispatch = useDispatchPlan();
 
   const canSend = plan.actions.length > 0 && !dispatch.isPending;
-  const readyMsg =
-    HARNESSES.find((h) => h.value === harness)?.ready === false
-      ? `${harness} is not configured yet`
-      : MODES.find((m) => m.value === mode)?.ready === false
-        ? `${mode} is not implemented yet`
-        : null;
+  const notReady = MODES.find((m) => m.value === mode)?.ready === false;
+  const readyMsg = notReady ? `${mode} is not implemented yet` : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -66,17 +62,14 @@ export function DispatchTab({ plan }: Props) {
               key={h.value}
               type="button"
               onClick={() => setHarness(h.value)}
-              disabled={!h.ready}
               className={cn(
                 "inline-flex h-7 items-center gap-1.5 rounded-sm border px-2.5 font-sans text-xs font-medium transition-colors",
                 harness === h.value
                   ? "border-accent bg-accent-bg text-accent-text"
                   : "border-border bg-surface text-text-2 hover:border-border-2 hover:bg-hover",
-                !h.ready && "cursor-not-allowed opacity-50",
               )}
             >
               {h.label}
-              {!h.ready ? <span className="font-mono text-2xs text-text-4">soon</span> : null}
             </button>
           ))}
         </div>
@@ -119,7 +112,7 @@ export function DispatchTab({ plan }: Props) {
 
       <Section label="Command preview">
         <pre className="overflow-auto rounded-sm bg-text p-3 font-mono text-2xs leading-relaxed text-[#e8e6e2]">
-          {`pika plan send --source ${plan.sourceId} --mode ${mode} --harness ${harness} plan-${plan.id}.json`}
+          {`pnpm pika plan send --mode ${mode} --harness ${harness} ${plan.id}.json`}
         </pre>
       </Section>
 
@@ -135,7 +128,6 @@ export function DispatchTab({ plan }: Props) {
           className="h-8 gap-2 px-3"
         >
           Send plan to agent
-          <span className="font-mono text-2xs opacity-80">⌘↵</span>
         </Button>
       </div>
 

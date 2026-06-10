@@ -23,7 +23,6 @@ import { PlanDrawer } from "./plan/PlanDrawer";
 import { ErrorState } from "./primitives/ErrorState";
 import { ShortcutLayer } from "./ShortcutLayer";
 import { Sidebar } from "./Sidebar";
-import { StatusBar } from "./StatusBar";
 import { Toolbar } from "./Toolbar";
 
 export function Shell() {
@@ -36,7 +35,6 @@ export function Shell() {
   const setView = useExplorerStore((s) => s.setView);
   const search = useExplorerStore((s) => s.search);
   const extFilter = useExplorerStore((s) => s.extFilter);
-  const sizeBucket = useExplorerStore((s) => s.sizeBucket);
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
   const gridSort = useExplorerStore((s) => s.gridSort);
   const debouncedSearch = useDebounce(search, 200);
@@ -61,7 +59,6 @@ export function Shell() {
     path: effectivePath,
     q: debouncedSearch,
     exts: extFilter,
-    size: sizeBucket,
     unusedOnly,
     sort: gridSort,
   });
@@ -154,12 +151,7 @@ export function Shell() {
                   assetCount={assets.length}
                   assetIds={assetIds}
                   totalBytes={totalBytes}
-                  filtered={
-                    debouncedSearch.length > 0 ||
-                    extFilter.length > 0 ||
-                    sizeBucket !== null ||
-                    unusedOnly
-                  }
+                  filtered={debouncedSearch.length > 0 || extFilter.length > 0 || unusedOnly}
                   onSelect={(p) => setSelectedFolder(p)}
                 />
                 <div className="flex min-h-0 flex-1 flex-col">
@@ -181,10 +173,7 @@ export function Shell() {
                       sourceId={selectedSource.id}
                       folderPath={effectivePath}
                       filterActive={
-                        debouncedSearch.length > 0 ||
-                        extFilter.length > 0 ||
-                        sizeBucket !== null ||
-                        unusedOnly
+                        debouncedSearch.length > 0 || extFilter.length > 0 || unusedOnly
                       }
                     />
                   ) : (
@@ -222,11 +211,6 @@ export function Shell() {
           )}
         </div>
       </div>
-      <StatusBar
-        totalAssets={assets.length}
-        totalBytes={totalBytes}
-        folderPath={effectivePath || "/"}
-      />
       <ShortcutLayer source={selectedSource} />
     </div>
   );

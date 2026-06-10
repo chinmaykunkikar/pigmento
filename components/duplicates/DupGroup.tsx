@@ -173,9 +173,6 @@ export function DupGroup({ group, defaultOpen, sourceId, sourceLabel }: Props) {
                 >
                   {m.usageCount} {m.usageCount === 1 ? "ref" : "refs"}
                 </span>
-                <span className="rounded-xs border border-border bg-surface px-1.5 py-px text-2xs text-text-2 hover:bg-hover">
-                  diff
-                </span>
               </button>
             );
           })}
