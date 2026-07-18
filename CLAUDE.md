@@ -84,7 +84,7 @@ Do NOT add: Base Web, styled-components, emotion, styletron, CSS Modules, Vanill
 
 - **sharp on Node 24**: If libvips is installed globally via Homebrew (`brew install vips`), sharp builds from source and fails. Set `SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install`.
 - **pnpm approves**: pnpm 10 blocks native postinstalls by default. `package.json` declares `pnpm.onlyBuiltDependencies: ["better-sqlite3", "sharp", "esbuild"]`.
-- **esbuild override**: drizzle-kit still ships a legacy `@esbuild-kit/*` loader that pulls vulnerable `esbuild@0.18.x`. `package.json` overrides transitive `esbuild <0.25.0 → >=0.25.0`. Revisit after drizzle-kit updates its loader.
+- **Security overrides**: `package.json` `pnpm.overrides` forces patched transitives: `esbuild >=0.28.1` (drizzle-kit's legacy `@esbuild-kit/*` loader), `protobufjs >=7.6.3` and `@protobufjs/utf8 >=1.1.1` (onnxruntime via `@huggingface/transformers`), `postcss >=8.5.10` (pinned inside next), `adm-zip >=0.6.0` (onnxruntime-node). Revisit each when its parent updates.
 
 ## Styling rules (Tailwind v4)
 
