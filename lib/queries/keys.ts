@@ -10,5 +10,8 @@ export const qk = {
   renamePreflight: (id: number, target: string) =>
     ["asset", id, "rename", "preflight", target] as const,
   styles: ["styles"] as const,
+  palette: (sourceId: number) => ["palette", sourceId] as const,
+  drift: (sourceId: number) => ["drift", sourceId] as const,
+  coverage: (sourceId: number) => ["coverage", sourceId] as const,
   status: ["status"] as const,
 };
