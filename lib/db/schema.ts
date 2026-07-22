@@ -176,9 +176,92 @@ export const dispatchJobs = sqliteTable(
   ],
 );
 
+// Generic style-asset tables shared by every non-image kind (colors now,
+// typography next, strings later). One row per literal occurrence; `kind`
+// discriminates. normalizedColor is null for unresolved tokens (var()/named
+// utilities) — excluded from clustering, still counted in coverage insights.
+export const styleUsages = sqliteTable(
+  "style_usages",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    sourceId: integer("source_id")
+      .notNull()
+      .references(() => sources.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    normalizedColor: text("normalized_color"),
+    alpha: real("alpha"),
+    rawToken: text("raw_token").notNull(),
+    relPath: text("rel_path").notNull(),
+    absPath: text("abs_path").notNull().default(""),
+    line: integer("line"),
+    col: integer("col"),
+    startOffset: integer("start_offset"),
+    endOffset: integer("end_offset"),
+    snippet: text("snippet"),
+    contextKind: text("context_kind").notNull(),
+    contextDetail: text("context_detail"),
+  },
+  (t) => [
+    index("style_usages_source_kind_idx").on(t.sourceId, t.kind),
+    index("style_usages_norm_idx").on(t.sourceId, t.kind, t.normalizedColor),
+  ],
+);
+
+// Near-miss clusters only. Exact groups (all usages of one normalized color)
+// are a cheap indexed GROUP BY on style_usages, not persisted. params is the
+// per-kind escape hatch (OV-3).
+export const styleClusters = sqliteTable(
+  "style_clusters",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    sourceId: integer("source_id")
+      .notNull()
+      .references(() => sources.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    key: text("key").notNull(),
+    canonical: text("canonical").notNull(),
+    size: integer("size").notNull(),
+    neutral: integer("neutral", { mode: "boolean" }).notNull().default(false),
+    maxDeltaE: real("max_delta_e"),
+    params: text("params"),
+  },
+  (t) => [
+    uniqueIndex("style_clusters_source_kind_key_uq").on(t.sourceId, t.kind, t.key),
+    index("style_clusters_source_kind_idx").on(t.sourceId, t.kind),
+  ],
+);
+
+export const styleClusterMembers = sqliteTable(
+  "style_cluster_members",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    clusterId: integer("cluster_id")
+      .notNull()
+      .references(() => styleClusters.id, { onDelete: "cascade" }),
+    color: text("color").notNull(),
+    role: text("role").notNull(),
+    deltaE: real("delta_e"),
+    usageCount: integer("usage_count").notNull(),
+  },
+  (t) => [index("style_cluster_members_cluster_idx").on(t.clusterId)],
+);
+
 export const sourcesRelations = relations(sources, ({ many }) => ({
   assets: many(assets),
   clusters: many(clusters),
+  styleClusters: many(styleClusters),
+}));
+
+export const styleClustersRelations = relations(styleClusters, ({ one, many }) => ({
+  source: one(sources, { fields: [styleClusters.sourceId], references: [sources.id] }),
+  members: many(styleClusterMembers),
+}));
+
+export const styleClusterMembersRelations = relations(styleClusterMembers, ({ one }) => ({
+  cluster: one(styleClusters, {
+    fields: [styleClusterMembers.clusterId],
+    references: [styleClusters.id],
+  }),
 }));
 
 export const assetsRelations = relations(assets, ({ one, many }) => ({
@@ -219,3 +302,9 @@ export type IndexRun = typeof indexRuns.$inferSelect;
 export type NewIndexRun = typeof indexRuns.$inferInsert;
 export type DispatchJobRow = typeof dispatchJobs.$inferSelect;
 export type NewDispatchJobRow = typeof dispatchJobs.$inferInsert;
+export type StyleUsage = typeof styleUsages.$inferSelect;
+export type NewStyleUsage = typeof styleUsages.$inferInsert;
+export type StyleCluster = typeof styleClusters.$inferSelect;
+export type NewStyleCluster = typeof styleClusters.$inferInsert;
+export type StyleClusterMember = typeof styleClusterMembers.$inferSelect;
+export type NewStyleClusterMember = typeof styleClusterMembers.$inferInsert;

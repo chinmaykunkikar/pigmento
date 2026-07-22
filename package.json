@@ -38,6 +38,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "commander": "^14.0.3",
+    "culori": "^4.0.2",
     "drizzle-orm": "^0.45.2",
     "fast-glob": "^3.3.3",
     "fuse.js": "^7.3.0",
@@ -57,6 +58,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.12",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/culori": "^4.0.1",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

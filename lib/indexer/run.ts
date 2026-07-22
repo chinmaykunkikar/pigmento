@@ -12,6 +12,8 @@ import { nameCluster } from "./cluster-name";
 import { phashCluster } from "./cluster-phash";
 import { rebuildClusters } from "./cluster-store";
 import { dominantColor } from "./color";
+import { clusterColors } from "./color-cluster";
+import { extractColors } from "./color-extract";
 import { deleteMissing } from "./delete";
 import { emitStage } from "./events";
 import { ensureFts, ensureViews, rebuildFts } from "./fts";
@@ -23,6 +25,8 @@ import { computePhash, popcountHex } from "./phash";
 import { Progress } from "./progress";
 import { acquireRun, completeRun } from "./run-registry";
 import { scan } from "./scan";
+import { rebuildStyleClusters } from "./style-cluster-store";
+import { rebuildStyleUsages } from "./style-usage-store";
 import { parseSvg } from "./svg";
 import { bulkUpsert } from "./upsert";
 import { scanUsages } from "./usage";
@@ -253,6 +257,32 @@ async function runStages(opts: IndexerOptions): Promise<void> {
     };
   });
 
+  const colorHits = await softStage(progress, sourceId, "color-extract", async () => {
+    const hits = await extractColors({
+      sourceId,
+      codeRoots: [source.root, ...config.codeRoots],
+      ignore: config.ignore,
+      assets: allAssets,
+    });
+    const n = rebuildStyleUsages(db, sourceId, "color", hits);
+    const resolved = hits.filter((h) => h.normalizedColor !== null).length;
+    return { result: hits, detail: `${n} usages, ${resolved} resolved` };
+  });
+
+  if (colorHits) {
+    await softStage(progress, sourceId, "color-cluster", () => {
+      const counts = new Map<string, number>();
+      for (const h of colorHits) {
+        if (!h.normalizedColor) continue;
+        counts.set(h.normalizedColor, (counts.get(h.normalizedColor) ?? 0) + 1);
+      }
+      const clusters = clusterColors([...counts].map(([color, count]) => ({ color, count })));
+      const n = rebuildStyleClusters(db, sourceId, "color", clusters);
+      const neutral = clusters.filter((c) => c.neutral).length;
+      return { result: n, detail: `${n} near-miss clusters (${neutral} neutral)` };
+    });
+  }
+
   await stage(progress, sourceId, "fts", () => {
     rebuildFts(db);
     return { result: true, detail: "rebuilt" };
@@ -295,4 +325,36 @@ async function stage<T>(
     ...(failures && failures.length > 0 ? { failures } : {}),
   });
   return result;
+}
+
+// Non-fatal stage (design S2): a throw marks the stage failed-and-skipped with
+// observable detail, and the rest of the run continues. Style stages use this
+// so a color-extraction bug never aborts a completed image index.
+async function softStage<T>(
+  progress: Progress,
+  sourceId: number,
+  name: string,
+  fn: () => Promise<StageOutput<T>> | StageOutput<T>,
+): Promise<T | null> {
+  progress.start(name);
+  emitStage({ type: "stage-start", sourceId, stage: name });
+  const t0 = Date.now();
+  try {
+    const { result, detail, failures } = await fn();
+    progress.end(name, detail);
+    emitStage({
+      type: "stage-end",
+      sourceId,
+      stage: name,
+      detail,
+      ms: Date.now() - t0,
+      ...(failures && failures.length > 0 ? { failures } : {}),
+    });
+    return result;
+  } catch (err) {
+    const detail = `FAILED: ${err instanceof Error ? err.message : String(err)}`;
+    progress.end(name, detail);
+    emitStage({ type: "stage-end", sourceId, stage: name, detail, ms: Date.now() - t0 });
+    return null;
+  }
 }
