@@ -11,7 +11,7 @@ import {
   suspicionScore,
 } from "@/lib/db/queries/colors";
 import { type NewStyleUsage, styleUsages } from "@/lib/db/schema";
-import type { NearMissCluster } from "@/lib/indexer/color-cluster";
+import type { StyleClusterInput } from "@/lib/indexer/style-cluster-store";
 import { rebuildStyleClusters } from "@/lib/indexer/style-cluster-store";
 import { createTestDb, seedSource } from "./helpers/test-db";
 
@@ -19,7 +19,7 @@ function seedUsages(db: Db, sourceId: number, rows: Partial<NewStyleUsage>[]) {
   const values: NewStyleUsage[] = rows.map((r, i) => ({
     sourceId,
     kind: "color",
-    rawToken: r.rawToken ?? r.normalizedColor ?? "x",
+    rawToken: r.rawToken ?? r.normalizedValue ?? "x",
     relPath: r.relPath ?? `f${i}.css`,
     contextKind: r.contextKind ?? "css-decl",
     ...r,
@@ -63,7 +63,7 @@ describe("color insight — getColorStats", () => {
         {
           contextKind: "css-var-def",
           contextDetail: "--brand",
-          normalizedColor: "#402678",
+          normalizedValue: "#402678",
           relPath: "tokens.css",
         },
         { contextKind: "css-var-ref", contextDetail: "--brand", relPath: "a.css" },
@@ -74,7 +74,7 @@ describe("color insight — getColorStats", () => {
         {
           contextKind: "css-decl",
           contextDetail: "color",
-          normalizedColor: "#ff0000",
+          normalizedValue: "#ff0000",
           relPath: "x.css",
         },
         { contextKind: "tailwind-named", rawToken: "text-red-500" },
@@ -103,7 +103,7 @@ describe("color insight — getColorStats", () => {
     try {
       const sourceId = seedSource(t.db).id;
       seedUsages(t.db, sourceId, [
-        { contextKind: "css-decl", contextDetail: "color", normalizedColor: "#402678" },
+        { contextKind: "css-decl", contextDetail: "color", normalizedValue: "#402678" },
       ]);
       t.db
         .insert(styleUsages)
@@ -113,7 +113,7 @@ describe("color insight — getColorStats", () => {
           rawToken: "#402678",
           relPath: "t.css",
           contextKind: "css-decl",
-          normalizedColor: "#402678",
+          normalizedValue: "#402678",
         })
         .run();
       const stats = getColorStats(t.db, sourceId);
@@ -138,15 +138,15 @@ describe("color insight — getColorStats", () => {
   });
 });
 
-const cluster = (over: Partial<NearMissCluster>): NearMissCluster => ({
+const cluster = (over: Partial<StyleClusterInput>): StyleClusterInput => ({
   key: "#402678",
   canonical: "#402678",
   size: 2,
   neutral: false,
-  maxDeltaE: 0.21,
+  maxDistance: 0.21,
   members: [
-    { color: "#402678", role: "canonical", deltaE: null, usageCount: 100 },
-    { color: "#3f2678", role: "variant", deltaE: 0.21, usageCount: 3 },
+    { value: "#402678", role: "canonical", distance: null, usageCount: 100 },
+    { value: "#3f2678", role: "variant", distance: 0.21, usageCount: 3 },
   ],
   ...over,
 });
@@ -158,15 +158,15 @@ describe("color insight — listColorDrift", () => {
       const sourceId = seedSource(t.db).id;
       rebuildStyleClusters(t.db, sourceId, "color", [cluster({})]);
       seedUsages(t.db, sourceId, [
-        { contextKind: "css-var-def", contextDetail: "--brand", normalizedColor: "#402678" },
-        { contextKind: "css-var-def", contextDetail: "--alias", normalizedColor: "#402678" },
+        { contextKind: "css-var-def", contextDetail: "--brand", normalizedValue: "#402678" },
+        { contextKind: "css-var-def", contextDetail: "--alias", normalizedValue: "#402678" },
         { contextKind: "css-var-ref", contextDetail: "--brand" },
         { contextKind: "css-var-ref", contextDetail: "--brand" },
         { contextKind: "css-var-ref", contextDetail: "--alias" },
         {
           contextKind: "css-decl",
           contextDetail: "color",
-          normalizedColor: "#3f2678",
+          normalizedValue: "#3f2678",
           relPath: "drift.css",
           line: 12,
         },
@@ -202,8 +202,8 @@ describe("color insight — listColorDrift", () => {
           canonical: "#808080",
           neutral: true,
           members: [
-            { color: "#808080", role: "canonical", deltaE: null, usageCount: 100 },
-            { color: "#818181", role: "variant", deltaE: 0.21, usageCount: 3 },
+            { value: "#808080", role: "canonical", distance: null, usageCount: 100 },
+            { value: "#818181", role: "variant", distance: 0.21, usageCount: 3 },
           ],
         }),
         cluster({}),

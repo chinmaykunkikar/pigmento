@@ -188,7 +188,10 @@ export const styleUsages = sqliteTable(
       .notNull()
       .references(() => sources.id, { onDelete: "cascade" }),
     kind: text("kind").notNull(),
-    normalizedColor: text("normalized_color"),
+    // kind-agnostic grouping key: color hex, size px, family stack, weight, ratio
+    normalizedValue: text("normalized_color"),
+    // typographic sub-property (family|size|weight|line-height); null for color
+    axis: text("axis"),
     alpha: real("alpha"),
     rawToken: text("raw_token").notNull(),
     relPath: text("rel_path").notNull(),
@@ -203,7 +206,8 @@ export const styleUsages = sqliteTable(
   },
   (t) => [
     index("style_usages_source_kind_idx").on(t.sourceId, t.kind),
-    index("style_usages_norm_idx").on(t.sourceId, t.kind, t.normalizedColor),
+    index("style_usages_norm_idx").on(t.sourceId, t.kind, t.normalizedValue),
+    index("style_usages_axis_idx").on(t.sourceId, t.kind, t.axis),
   ],
 );
 
@@ -222,7 +226,8 @@ export const styleClusters = sqliteTable(
     canonical: text("canonical").notNull(),
     size: integer("size").notNull(),
     neutral: integer("neutral", { mode: "boolean" }).notNull().default(false),
-    maxDeltaE: real("max_delta_e"),
+    // near-miss spread in the kind's metric: ΔE2000 (color) | px (size)
+    maxDistance: real("max_delta_e"),
     params: text("params"),
   },
   (t) => [
@@ -238,9 +243,9 @@ export const styleClusterMembers = sqliteTable(
     clusterId: integer("cluster_id")
       .notNull()
       .references(() => styleClusters.id, { onDelete: "cascade" }),
-    color: text("color").notNull(),
+    value: text("color").notNull(),
     role: text("role").notNull(),
-    deltaE: real("delta_e"),
+    distance: real("delta_e"),
     usageCount: integer("usage_count").notNull(),
   },
   (t) => [index("style_cluster_members_cluster_idx").on(t.clusterId)],

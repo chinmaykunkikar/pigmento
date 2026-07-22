@@ -127,7 +127,7 @@ function bump(
 export function getColorStats(db: Db, sourceId: number): ColorStats {
   const rows = db
     .select({
-      color: styleUsages.normalizedColor,
+      color: styleUsages.normalizedValue,
       contextKind: styleUsages.contextKind,
       contextDetail: styleUsages.contextDetail,
       alpha: styleUsages.alpha,
@@ -255,7 +255,7 @@ function representativeLocations(
   if (colors.length === 0) return best;
   const rows = db
     .select({
-      color: styleUsages.normalizedColor,
+      color: styleUsages.normalizedValue,
       relPath: styleUsages.relPath,
       line: styleUsages.line,
     })
@@ -264,7 +264,7 @@ function representativeLocations(
       and(
         eq(styleUsages.sourceId, sourceId),
         eq(styleUsages.kind, "color"),
-        inArray(styleUsages.normalizedColor, colors),
+        inArray(styleUsages.normalizedValue, colors),
       ),
     )
     .all();
@@ -294,7 +294,7 @@ function bestVarByColor(db: Db, sourceId: number, colors: string[]): Map<string,
   const out = new Map<string, string>();
   if (colors.length === 0) return out;
   const defs = db
-    .select({ name: styleUsages.contextDetail, color: styleUsages.normalizedColor })
+    .select({ name: styleUsages.contextDetail, color: styleUsages.normalizedValue })
     .from(styleUsages)
     .where(
       and(
@@ -302,7 +302,7 @@ function bestVarByColor(db: Db, sourceId: number, colors: string[]): Map<string,
         eq(styleUsages.kind, "color"),
         eq(styleUsages.contextKind, "css-var-def"),
         isNotNull(styleUsages.contextDetail),
-        inArray(styleUsages.normalizedColor, colors),
+        inArray(styleUsages.normalizedValue, colors),
       ),
     )
     .all();
@@ -363,7 +363,7 @@ export function listColorDrift(db: Db, sourceId: number): DriftFinding[] {
     byCluster.set(m.clusterId, list);
   }
 
-  const variantColors = memberRows.filter((m) => m.role === "variant").map((m) => m.color);
+  const variantColors = memberRows.filter((m) => m.role === "variant").map((m) => m.value);
   const locByColor = representativeLocations(db, sourceId, variantColors);
   const bestVar = bestVarByColor(
     db,
@@ -386,15 +386,15 @@ export function listColorDrift(db: Db, sourceId: number): DriftFinding[] {
         canonicalUsage: canonical.usageCount,
         variantUsage,
         variantCount: variants.length,
-        maxDeltaE: c.maxDeltaE,
+        maxDeltaE: c.maxDistance,
       }),
-      maxDeltaE: c.maxDeltaE,
+      maxDeltaE: c.maxDistance,
       variants: variants.map((v) => {
-        const loc = locByColor.get(v.color);
+        const loc = locByColor.get(v.value);
         return {
-          color: v.color,
+          color: v.value,
           usageCount: v.usageCount,
-          deltaE: v.deltaE,
+          deltaE: v.distance,
           file: loc?.file ?? null,
           line: loc?.line ?? null,
         };

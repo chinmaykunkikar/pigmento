@@ -22,13 +22,13 @@ describe("color extraction — CSS grammar", () => {
     const h = at(1)[0];
     expect(h?.contextKind).toBe("css-decl");
     expect(h?.contextDetail).toBe("color");
-    expect(h?.normalizedColor).toBe("#402678");
+    expect(h?.normalizedValue).toBe("#402678");
   });
 
   it("extracts a named color only in a color-bearing declaration value", () => {
     const h = at(2)[0];
     expect(h?.contextKind).toBe("css-decl");
-    expect(h?.normalizedColor).toBe("#ff0000");
+    expect(h?.normalizedValue).toBe("#ff0000");
     expect(h?.rawToken).toBe("red");
   });
 
@@ -36,14 +36,14 @@ describe("color extraction — CSS grammar", () => {
     const h = at(3)[0];
     expect(h?.contextKind).toBe("css-var-def");
     expect(h?.contextDetail).toBe("--brand");
-    expect(h?.normalizedColor).toBe("#3f2678");
+    expect(h?.normalizedValue).toBe("#3f2678");
   });
 
   it("captures a var() reference site with a null normalized color", () => {
     const h = at(4)[0];
     expect(h?.contextKind).toBe("css-var-ref");
     expect(h?.contextDetail).toBe("--brand");
-    expect(h?.normalizedColor).toBeNull();
+    expect(h?.normalizedValue).toBeNull();
   });
 
   it("does not treat font-family identifiers as named colors", () => {
@@ -52,7 +52,7 @@ describe("color extraction — CSS grammar", () => {
 
   it("ignores id selectors that are not declaration values", () => {
     const declHit = at(6).find((h) => h.contextKind === "css-decl");
-    expect(declHit?.normalizedColor).toBe("#1c7a74");
+    expect(declHit?.normalizedValue).toBe("#1c7a74");
     expect(at(6).every((h) => h.contextKind === "css-decl")).toBe(true);
   });
 });
@@ -61,7 +61,7 @@ describe("color extraction — JS/JSX grammar", () => {
   it("extracts hex string literals as js-literal", () => {
     const h = extract('const c = "#402678";', "ts")[0];
     expect(h?.contextKind).toBe("js-literal");
-    expect(h?.normalizedColor).toBe("#402678");
+    expect(h?.normalizedValue).toBe("#402678");
   });
 
   it("named-color guard: bare color words in JS are not extracted", () => {
@@ -74,10 +74,10 @@ describe("color extraction — JS/JSX grammar", () => {
     const named = hits.filter((h) => h.contextKind === "tailwind-named");
     expect(hits.filter((h) => h.contextKind === "js-literal")).toHaveLength(0);
     expect(arb).toHaveLength(1);
-    expect(arb[0]?.normalizedColor).toBe("#402678");
+    expect(arb[0]?.normalizedValue).toBe("#402678");
     expect(arb[0]?.contextDetail).toBe("bg");
     expect(named).toHaveLength(1);
-    expect(named[0]?.normalizedColor).toBeNull();
+    expect(named[0]?.normalizedValue).toBeNull();
   });
 });
 
@@ -120,7 +120,7 @@ describe("color extraction — SVG literalColors ingestion", () => {
       const svg = hits.filter((h) => h.contextKind === "svg-attr");
       expect(svg).toHaveLength(2);
       expect(svg.every((h) => h.line === null)).toBe(true);
-      expect(svg.map((h) => h.normalizedColor).sort()).toEqual(["#402678", "#ff0000"]);
+      expect(svg.map((h) => h.normalizedValue).sort()).toEqual(["#402678", "#ff0000"]);
     } finally {
       t.cleanup();
     }

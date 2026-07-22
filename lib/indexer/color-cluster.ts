@@ -1,20 +1,5 @@
 import { deltaE, isNeutral, NEAR_MISS_DELTA_E } from "./color-normalize";
-
-export type StyleClusterMember = {
-  color: string;
-  role: "canonical" | "variant";
-  deltaE: number | null;
-  usageCount: number;
-};
-
-export type NearMissCluster = {
-  key: string;
-  canonical: string;
-  size: number;
-  neutral: boolean;
-  maxDeltaE: number;
-  members: StyleClusterMember[];
-};
+import type { StyleClusterInput, StyleClusterMemberInput } from "./style-cluster-store";
 
 export type ColorCount = { color: string; count: number };
 
@@ -26,10 +11,10 @@ export type ColorCount = { color: string; count: number };
 // suspicion ranking downweights gray micro-variants (the dogfood learning).
 // ponytail: O(n²) ΔE, fine at ~500 distinct colors; bucket by OKLCH lightness
 // if a huge palette shows pain (design S7).
-export function clusterColors(counts: ColorCount[]): NearMissCluster[] {
+export function clusterColors(counts: ColorCount[]): StyleClusterInput[] {
   const sorted = [...counts].sort((a, b) => b.count - a.count || (a.color < b.color ? -1 : 1));
   const assigned = new Set<string>();
-  const out: NearMissCluster[] = [];
+  const out: StyleClusterInput[] = [];
 
   for (const anchor of sorted) {
     if (assigned.has(anchor.color)) continue;
@@ -45,22 +30,22 @@ export function clusterColors(counts: ColorCount[]): NearMissCluster[] {
     }
     if (variants.length === 0) continue;
 
-    const members: StyleClusterMember[] = [
-      { color: anchor.color, role: "canonical", deltaE: null, usageCount: anchor.count },
+    const members: StyleClusterMemberInput[] = [
+      { value: anchor.color, role: "canonical", distance: null, usageCount: anchor.count },
       ...variants.map((v) => ({
-        color: v.color,
+        value: v.color,
         role: "variant" as const,
-        deltaE: deltaE(anchor.color, v.color),
+        distance: deltaE(anchor.color, v.color),
         usageCount: v.count,
       })),
     ];
-    const maxDeltaE = Math.max(...members.map((m) => m.deltaE ?? 0));
+    const maxDistance = Math.max(...members.map((m) => m.distance ?? 0));
     out.push({
       key: anchor.color,
       canonical: anchor.color,
       size: members.length,
       neutral: isNeutral(anchor.color),
-      maxDeltaE,
+      maxDistance,
       members,
     });
   }

@@ -20,8 +20,8 @@ describe("color clustering", () => {
     expect(c?.size).toBe(2);
     expect(c?.neutral).toBe(false);
     const variant = c?.members.find((m) => m.role === "variant");
-    expect(variant?.color).toBe("#3f2678");
-    expect(variant?.deltaE).toBeCloseTo(0.207, 2);
+    expect(variant?.value).toBe("#3f2678");
+    expect(variant?.distance).toBeCloseTo(0.207, 2);
   });
 
   it("respects the ΔE2000 < 6 boundary", () => {
@@ -54,7 +54,7 @@ describe("color clustering", () => {
     expect(clusters).toHaveLength(1);
     const c = clusters[0];
     expect(c?.size).toBe(2);
-    expect(c?.members.map((m) => m.color).sort()).toEqual(["#808080", "#909090"]);
+    expect(c?.members.map((m) => m.value).sort()).toEqual(["#808080", "#909090"]);
   });
 
   it("excludes one-off colors with no near neighbor", () => {
@@ -66,7 +66,7 @@ describe("style-table persistence (real migrations)", () => {
   const hit = (over: Partial<ColorUsageHit>): ColorUsageHit => ({
     sourceId: 1,
     kind: "color",
-    normalizedColor: "#402678",
+    normalizedValue: "#402678",
     alpha: null,
     rawToken: "#402678",
     relPath: "app.css",
@@ -87,8 +87,8 @@ describe("style-table persistence (real migrations)", () => {
       const sourceId = seedSource(t.db).id;
       const hits = [
         ...Array.from({ length: 5 }, () => hit({ sourceId })),
-        hit({ sourceId, normalizedColor: "#3f2678", rawToken: "#3f2678" }),
-        hit({ sourceId, normalizedColor: null, rawToken: "var(--x)", contextKind: "css-var-ref" }),
+        hit({ sourceId, normalizedValue: "#3f2678", rawToken: "#3f2678" }),
+        hit({ sourceId, normalizedValue: null, rawToken: "var(--x)", contextKind: "css-var-ref" }),
       ];
       const written = rebuildStyleUsages(t.db, sourceId, "color", hits);
       expect(written).toBe(7);
@@ -99,7 +99,7 @@ describe("style-table persistence (real migrations)", () => {
         .where(and(eq(styleUsages.sourceId, sourceId), eq(styleUsages.kind, "color")))
         .all();
       expect(stored).toHaveLength(7);
-      expect(stored.filter((r) => r.normalizedColor === null)).toHaveLength(1);
+      expect(stored.filter((r) => r.normalizedValue === null)).toHaveLength(1);
 
       const clusters = clusterColors([
         { color: "#402678", count: 5 },
@@ -139,6 +139,33 @@ describe("style-table persistence (real migrations)", () => {
         .where(and(eq(styleUsages.sourceId, sourceId), eq(styleUsages.kind, "type")))
         .all();
       expect(typeRows).toHaveLength(1);
+    } finally {
+      t.cleanup();
+    }
+  });
+
+  it("an empty rebuild purges the kind (the on-failure recovery path)", () => {
+    const t = createTestDb();
+    try {
+      const sourceId = seedSource(t.db).id;
+      rebuildStyleUsages(t.db, sourceId, "color", [hit({ sourceId })]);
+      rebuildStyleClusters(
+        t.db,
+        sourceId,
+        "color",
+        clusterColors([
+          { color: "#402678", count: 5 },
+          { color: "#3f2678", count: 1 },
+        ]),
+      );
+      rebuildStyleUsages(t.db, sourceId, "color", []);
+      rebuildStyleClusters(t.db, sourceId, "color", []);
+      expect(
+        t.db.select().from(styleUsages).where(eq(styleUsages.sourceId, sourceId)).all(),
+      ).toHaveLength(0);
+      expect(
+        t.db.select().from(styleClusters).where(eq(styleClusters.sourceId, sourceId)).all(),
+      ).toHaveLength(0);
     } finally {
       t.cleanup();
     }

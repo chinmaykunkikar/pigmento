@@ -19,7 +19,7 @@ export type StyleContextKind =
 export type ColorUsageHit = {
   sourceId: number;
   kind: "color";
-  normalizedColor: string | null;
+  normalizedValue: string | null;
   alpha: number | null;
   rawToken: string;
   relPath: string;
@@ -293,7 +293,7 @@ function scanText(
       if (classifyLine(line, h.col, syntax, block).commented) continue;
       const startOffset = offset + h.col;
       out.push({
-        normalizedColor: h.normalizedColor,
+        normalizedValue: h.normalizedColor,
         alpha: h.alpha,
         rawToken: h.rawToken,
         line: i + 1,
@@ -326,7 +326,7 @@ function svgHits(assets: Asset[], sourceId: number): ColorUsageHit[] {
       out.push({
         sourceId,
         kind: "color",
-        normalizedColor: norm?.color ?? null,
+        normalizedValue: norm?.color ?? null,
         alpha: norm?.alpha ?? null,
         rawToken: raw,
         relPath: a.relPath,

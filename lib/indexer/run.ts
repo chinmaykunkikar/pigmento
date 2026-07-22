@@ -258,28 +258,40 @@ async function runStages(opts: IndexerOptions): Promise<void> {
   });
 
   const colorHits = await softStage(progress, sourceId, "color-extract", async () => {
-    const hits = await extractColors({
-      sourceId,
-      codeRoots: [source.root, ...config.codeRoots],
-      ignore: config.ignore,
-      assets: allAssets,
-    });
-    const n = rebuildStyleUsages(db, sourceId, "color", hits);
-    const resolved = hits.filter((h) => h.normalizedColor !== null).length;
-    return { result: hits, detail: `${n} usages, ${resolved} resolved` };
+    // purge-on-failure (OV-1b): a throw before the rebuild would otherwise leave
+    // the prior run's rows reading as stale-fresh, so empty the kind instead.
+    try {
+      const hits = await extractColors({
+        sourceId,
+        codeRoots: [source.root, ...config.codeRoots],
+        ignore: config.ignore,
+        assets: allAssets,
+      });
+      const n = rebuildStyleUsages(db, sourceId, "color", hits);
+      const resolved = hits.filter((h) => h.normalizedValue !== null).length;
+      return { result: hits, detail: `${n} usages, ${resolved} resolved` };
+    } catch (err) {
+      rebuildStyleUsages(db, sourceId, "color", []);
+      throw err;
+    }
   });
 
   if (colorHits) {
     await softStage(progress, sourceId, "color-cluster", () => {
-      const counts = new Map<string, number>();
-      for (const h of colorHits) {
-        if (!h.normalizedColor) continue;
-        counts.set(h.normalizedColor, (counts.get(h.normalizedColor) ?? 0) + 1);
+      try {
+        const counts = new Map<string, number>();
+        for (const h of colorHits) {
+          if (!h.normalizedValue) continue;
+          counts.set(h.normalizedValue, (counts.get(h.normalizedValue) ?? 0) + 1);
+        }
+        const clusters = clusterColors([...counts].map(([color, count]) => ({ color, count })));
+        const n = rebuildStyleClusters(db, sourceId, "color", clusters);
+        const neutral = clusters.filter((c) => c.neutral).length;
+        return { result: n, detail: `${n} near-miss clusters (${neutral} neutral)` };
+      } catch (err) {
+        rebuildStyleClusters(db, sourceId, "color", []);
+        throw err;
       }
-      const clusters = clusterColors([...counts].map(([color, count]) => ({ color, count })));
-      const n = rebuildStyleClusters(db, sourceId, "color", clusters);
-      const neutral = clusters.filter((c) => c.neutral).length;
-      return { result: n, detail: `${n} near-miss clusters (${neutral} neutral)` };
     });
   }
 
