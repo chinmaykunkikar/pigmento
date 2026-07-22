@@ -28,6 +28,8 @@ import { scan } from "./scan";
 import { rebuildStyleClusters } from "./style-cluster-store";
 import { rebuildStyleUsages } from "./style-usage-store";
 import { parseSvg } from "./svg";
+import { clusterTypography, type TypeValueCount } from "./type-cluster";
+import { extractTypography } from "./type-extract";
 import { bulkUpsert } from "./upsert";
 import { scanUsages } from "./usage";
 import { rebuildUsages } from "./usage-store";
@@ -290,6 +292,44 @@ async function runStages(opts: IndexerOptions): Promise<void> {
         return { result: n, detail: `${n} near-miss clusters (${neutral} neutral)` };
       } catch (err) {
         rebuildStyleClusters(db, sourceId, "color", []);
+        throw err;
+      }
+    });
+  }
+
+  const typeHits = await softStage(progress, sourceId, "type-extract", async () => {
+    try {
+      const hits = await extractTypography({
+        sourceId,
+        codeRoots: [source.root, ...config.codeRoots],
+        ignore: config.ignore,
+      });
+      const n = rebuildStyleUsages(db, sourceId, "type", hits);
+      const resolved = hits.filter((h) => h.normalizedValue !== null).length;
+      return { result: hits, detail: `${n} usages, ${resolved} resolved` };
+    } catch (err) {
+      rebuildStyleUsages(db, sourceId, "type", []);
+      throw err;
+    }
+  });
+
+  if (typeHits) {
+    await softStage(progress, sourceId, "type-cluster", () => {
+      try {
+        const counts = new Map<string, TypeValueCount>();
+        for (const h of typeHits) {
+          const axis = h.axis;
+          if (!h.normalizedValue || (axis !== "size" && axis !== "family")) continue;
+          const key = `${axis} ${h.normalizedValue}`;
+          const cur = counts.get(key);
+          if (cur) cur.count++;
+          else counts.set(key, { axis, value: h.normalizedValue, count: 1 });
+        }
+        const clusters = clusterTypography([...counts.values()]);
+        const n = rebuildStyleClusters(db, sourceId, "type", clusters);
+        return { result: n, detail: `${n} near-miss clusters` };
+      } catch (err) {
+        rebuildStyleClusters(db, sourceId, "type", []);
         throw err;
       }
     });

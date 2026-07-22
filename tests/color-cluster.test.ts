@@ -67,6 +67,7 @@ describe("style-table persistence (real migrations)", () => {
     sourceId: 1,
     kind: "color",
     normalizedValue: "#402678",
+    axis: null,
     alpha: null,
     rawToken: "#402678",
     relPath: "app.css",

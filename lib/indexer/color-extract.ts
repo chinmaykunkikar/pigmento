@@ -1,45 +1,22 @@
-import { readFile } from "node:fs/promises";
-import { extname } from "node:path";
-import fg from "fast-glob";
-import pLimit from "p-limit";
 import type { Asset } from "../db/schema";
 import { normalizeColor } from "./color-normalize";
-import { classifyLine, initialBlockState, syntaxFor } from "./comment-detect";
+import {
+  declKind,
+  findDeclRegions,
+  type Grammar,
+  inConsumed,
+  prefixOf,
+  type Range,
+  type RawStyleHit,
+  regionAt,
+  type StyleFileHit,
+  scanFileText,
+  walkStyleFiles,
+} from "./style-walk";
 
-export type StyleContextKind =
-  | "css-decl"
-  | "css-var-def"
-  | "css-var-ref"
-  | "tailwind-arbitrary"
-  | "tailwind-named"
-  | "js-literal"
-  | "svg-attr"
-  | "other";
+export type { StyleContextKind } from "./style-walk";
 
-export type ColorUsageHit = {
-  sourceId: number;
-  kind: "color";
-  normalizedValue: string | null;
-  alpha: number | null;
-  rawToken: string;
-  relPath: string;
-  absPath: string;
-  line: number | null;
-  col: number | null;
-  startOffset: number | null;
-  endOffset: number | null;
-  snippet: string | null;
-  contextKind: StyleContextKind;
-  contextDetail: string | null;
-};
-
-// md/mdx/json/yml are deliberately excluded: prose floods on bare color words,
-// and JSON/YAML color literals (design-token files) are a documented v1 gap.
-const STYLE_GLOB = "**/*.{css,scss,sass,less,styl,ts,tsx,js,jsx,mjs,cjs,vue,svelte,astro,html,htm}";
-
-const SKIP_FILE_RE = /(?:\.min\.(?:css|js)|\.bundle\.js|\.d\.ts)$/i;
-const MAX_FILE = 2_000_000;
-const MAX_LINE = 50_000;
+export type ColorUsageHit = StyleFileHit & { sourceId: number; kind: "color" };
 
 const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g;
 const FUNC_RE = /\b(?:rgba?|hsla?|hwb|okl(?:ab|ch)|lab|lch)\(\s*[^)]*\)/gi;
@@ -54,12 +31,6 @@ const TW_NAMED_RE = new RegExp(
   `\\b(?:${TW_PREFIX})-(?:(?:${TW_FAMILY})-(?:50|100|200|300|400|500|600|700|800|900|950)|black|white)\\b`,
   "g",
 );
-
-// A declaration starts at a `{`, `;`, or line start, then `prop:`. Its value
-// region runs to the next `;`/`{`/`}`. This finds declarations anywhere on a
-// line, so single-line rules (`.a { color: #fff }`) work like multi-line ones,
-// and selectors/at-rules (no `prop: value` region) contribute nothing.
-const DECL_START_RE = /(?:^|[{};])\s*(--[A-Za-z0-9_-]+|[A-Za-z][A-Za-z-]*)\s*:/g;
 
 const COLOR_PROPERTIES = new Set([
   "color",
@@ -102,89 +73,12 @@ const SKIP_WORDS = new Set([
   "revert",
 ]);
 
-type Grammar = "css" | "js" | "markup";
-
-function grammarFor(ext: string): Grammar | null {
-  switch (ext) {
-    case "css":
-    case "scss":
-    case "sass":
-    case "less":
-    case "styl":
-      return "css";
-    case "ts":
-    case "tsx":
-    case "js":
-    case "jsx":
-    case "mjs":
-    case "cjs":
-      return "js";
-    case "vue":
-    case "svelte":
-    case "astro":
-    case "html":
-    case "htm":
-      return "markup";
-    default:
-      return null;
-  }
-}
-
 function isColorProp(prop: string): boolean {
   return prop.startsWith("--") || COLOR_PROPERTIES.has(prop.toLowerCase());
 }
 
-function prefixOf(twClass: string): string {
-  return twClass.split("-")[0] ?? twClass;
-}
-
-type Range = readonly [number, number];
-
-function inConsumed(ranges: Range[], start: number): boolean {
-  return ranges.some(([s, e]) => start >= s && start < e);
-}
-
-type RawHit = {
-  rawToken: string;
-  col: number;
-  contextKind: StyleContextKind;
-  contextDetail: string | null;
-  normalizedColor: string | null;
-  alpha: number | null;
-};
-
-type DeclRegion = { prop: string; start: number; end: number };
-
-function findDeclRegions(line: string): DeclRegion[] {
-  const regions: DeclRegion[] = [];
-  for (const m of line.matchAll(DECL_START_RE)) {
-    const prop = m[1];
-    if (!prop) continue;
-    const start = (m.index ?? 0) + m[0].length;
-    let end = line.length;
-    for (let i = start; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === ";" || ch === "{" || ch === "}") {
-        end = i;
-        break;
-      }
-    }
-    regions.push({ prop, start, end });
-  }
-  return regions;
-}
-
-function regionAt(regions: DeclRegion[], idx: number): DeclRegion | null {
-  for (const r of regions) if (idx >= r.start && idx < r.end) return r;
-  return null;
-}
-
-function declKind(prop: string): StyleContextKind {
-  return prop.startsWith("--") ? "css-var-def" : "css-decl";
-}
-
-function scanLine(line: string, grammar: Grammar): RawHit[] {
-  const hits: RawHit[] = [];
+function scanColorLine(line: string, grammar: Grammar): RawStyleHit[] {
+  const hits: RawStyleHit[] = [];
   const consumed: Range[] = [];
   const regions = grammar === "js" ? [] : findDeclRegions(line);
 
@@ -199,8 +93,9 @@ function scanLine(line: string, grammar: Grammar): RawHit[] {
         col: start,
         contextKind: "tailwind-arbitrary",
         contextDetail: prefixOf(m[0]),
-        normalizedColor: norm.color,
+        normalizedValue: norm.color,
         alpha: norm.alpha,
+        axis: null,
       });
     }
     for (const m of line.matchAll(TW_NAMED_RE)) {
@@ -210,8 +105,9 @@ function scanLine(line: string, grammar: Grammar): RawHit[] {
         col: start,
         contextKind: "tailwind-named",
         contextDetail: prefixOf(m[0]),
-        normalizedColor: null,
+        normalizedValue: null,
         alpha: null,
+        axis: null,
       });
     }
   }
@@ -225,8 +121,9 @@ function scanLine(line: string, grammar: Grammar): RawHit[] {
       col: start,
       contextKind: "css-var-ref",
       contextDetail: m[1] ?? null,
-      normalizedColor: null,
+      normalizedValue: null,
       alpha: null,
+      axis: null,
     });
   }
 
@@ -244,8 +141,9 @@ function scanLine(line: string, grammar: Grammar): RawHit[] {
         col: start,
         contextKind: region ? declKind(region.prop) : "js-literal",
         contextDetail: region?.prop ?? null,
-        normalizedColor: norm.color,
+        normalizedValue: norm.color,
         alpha: norm.alpha,
+        axis: null,
       });
     }
   }
@@ -264,51 +162,13 @@ function scanLine(line: string, grammar: Grammar): RawHit[] {
       col: start,
       contextKind: declKind(region.prop),
       contextDetail: region.prop,
-      normalizedColor: norm.color,
+      normalizedValue: norm.color,
       alpha: norm.alpha,
+      axis: null,
     });
   }
 
   return hits;
-}
-
-function shouldSkipFile(text: string, relPath: string): boolean {
-  if (text.length > MAX_FILE || SKIP_FILE_RE.test(relPath)) return true;
-  return text.split("\n").some((l) => l.length > MAX_LINE);
-}
-
-function scanText(
-  text: string,
-  grammar: Grammar,
-  ext: string,
-): Omit<ColorUsageHit, "sourceId" | "kind" | "relPath" | "absPath">[] {
-  const syntax = syntaxFor(ext);
-  let block = initialBlockState();
-  let offset = 0;
-  const out: Omit<ColorUsageHit, "sourceId" | "kind" | "relPath" | "absPath">[] = [];
-  const lines = text.split("\n");
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? "";
-    for (const h of scanLine(line, grammar)) {
-      if (classifyLine(line, h.col, syntax, block).commented) continue;
-      const startOffset = offset + h.col;
-      out.push({
-        normalizedValue: h.normalizedColor,
-        alpha: h.alpha,
-        rawToken: h.rawToken,
-        line: i + 1,
-        col: h.col,
-        startOffset,
-        endOffset: startOffset + h.rawToken.length,
-        snippet: line.trim().slice(0, 200),
-        contextKind: h.contextKind,
-        contextDetail: h.contextDetail,
-      });
-    }
-    block = classifyLine(line, line.length, syntax, block).state;
-    offset += line.length + 1;
-  }
-  return out;
 }
 
 function svgHits(assets: Asset[], sourceId: number): ColorUsageHit[] {
@@ -327,6 +187,7 @@ function svgHits(assets: Asset[], sourceId: number): ColorUsageHit[] {
         sourceId,
         kind: "color",
         normalizedValue: norm?.color ?? null,
+        axis: null,
         alpha: norm?.alpha ?? null,
         rawToken: raw,
         relPath: a.relPath,
@@ -351,14 +212,10 @@ export function extractFileColors(
   relPath: string,
   absPath: string,
 ): ColorUsageHit[] {
-  const grammar = grammarFor(ext);
-  if (!grammar || !text || shouldSkipFile(text, relPath)) return [];
-  return scanText(text, grammar, ext).map((h) => ({
+  return scanFileText(text, ext, relPath, absPath, scanColorLine).map((h) => ({
     ...h,
     sourceId,
     kind: "color" as const,
-    relPath,
-    absPath,
   }));
 }
 
@@ -371,35 +228,9 @@ type ExtractOpts = {
 
 export async function extractColors(opts: ExtractOpts): Promise<ColorUsageHit[]> {
   const { sourceId, codeRoots, ignore, assets } = opts;
-  const out: ColorUsageHit[] = svgHits(assets, sourceId);
-  const limit = pLimit(16);
-
-  for (const root of codeRoots) {
-    const files = await fg(STYLE_GLOB, {
-      cwd: root,
-      ignore,
-      absolute: true,
-      onlyFiles: true,
-      dot: false,
-      suppressErrors: true,
-    });
-
-    await Promise.all(
-      files.map((file) =>
-        limit(async () => {
-          let text: string;
-          try {
-            text = await readFile(file, "utf8");
-          } catch {
-            return;
-          }
-          const relPath = file.startsWith(`${root}/`) ? file.slice(root.length + 1) : file;
-          const ext = extname(file).slice(1).toLowerCase();
-          for (const h of extractFileColors(text, ext, sourceId, relPath, file)) out.push(h);
-        }),
-      ),
-    );
-  }
-
-  return out;
+  const walked = await walkStyleFiles(codeRoots, ignore, scanColorLine);
+  return [
+    ...svgHits(assets, sourceId),
+    ...walked.map((h) => ({ ...h, sourceId, kind: "color" as const })),
+  ];
 }
