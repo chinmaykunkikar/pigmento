@@ -205,3 +205,15 @@ These are real but out of scope for the design-gap sprint. Listed so they don't 
 - **Preferences screen** — `⌘,` advertised (to be removed, T1). When prefs exist: theme toggle, default sort, hotkey customization.
 - **Agent-handoff richness** — design-source `agent-handoff.jsx` shows per-action dependency notes + confidence bars. Current PlanItemCard is more compact. Polish candidate.
 - **Removed-asset audit view** — Pass 7's "option C" (orphan rows in a Removed tab). Heavy feature; revisit only if users ask.
+
+## Asset-manager reframe — deferred by /plan-ceo-review (2026-07-22)
+
+Full context: `~/.gstack/projects/chinmaykunkikar-pika/ceo-plans/2026-07-22-asset-manager-reframe.md` (plan of record; supersedes parts of the 2026-06-10 Color Explorer sequencing).
+
+- **AM-1. Hosted demo + famous-repo gallery** (M) — read-only/snapshot mode + public URL; week-after Release 2.
+- **AM-2. Spacing / radii / shadows kinds** (M each) — v1.x breadth release riding the generic style tables; near-miss rules per kind first.
+- **AM-3. Cluster-level deep links** (S) — layers on the kind-level routes without rework.
+- **AM-4. MCP background auto-index** (M) — trigger: any dogfood cold start over 60s; replaces the synchronous D4.3 default when tripped.
+- **AM-5. `init --dry-run` + confirmation** (S, P3) — preview the guidance block before writing CLAUDE.md/AGENTS.md (outside-voice T8).
+
+Bookkeeping from the same review: CE-1 (palette poster) is PROMOTED into Release 2 of the reframe plan. CE-2 (CI gate) deferral re-affirmed. Cut/skipped by user decision 2026-07-22, do not re-propose: exportable HTML report, reduced-motion support in v1, Windows first-run verification.
