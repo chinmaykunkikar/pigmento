@@ -38,7 +38,7 @@ export function Sidebar({
     const expandDisabled = viewportForcesCollapse;
     return (
       <aside className="flex w-9 flex-shrink-0 flex-col items-center border-r border-border bg-surface py-2">
-        <span className="mb-2 flex h-7 w-7 items-center justify-center text-text" title="pika">
+        <span className="mb-2 flex h-7 w-7 items-center justify-center text-text" title="pigmento">
           <PikaMark size={16} />
         </span>
         <button

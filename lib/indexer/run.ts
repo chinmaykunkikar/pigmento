@@ -208,7 +208,7 @@ async function runStages(opts: IndexerOptions): Promise<void> {
   await stage(progress, sourceId, "clip", async () => {
     const res = await runClipStage(db, sourceId, { full, enabled: config.clip.enabled });
     if (res.skippedDisabled) {
-      return { result: res, detail: "disabled (set clip.enabled in pika.config.ts)" };
+      return { result: res, detail: "disabled (set clip.enabled in pigmento.config.ts)" };
     }
     if (res.skippedModelUnavailable) {
       return { result: res, detail: `model unavailable, skipped (${res.modelError})` };

@@ -2,11 +2,11 @@
   <img src="./docs/hero.png" alt="pika · every image in your repo, in one place" />
 </p>
 
-# pika
+# pigmento
 
 > Every image in your repo, in one place.
 
-Pika points at a codebase and gives you a browsable surface for every
+Pigmento points at a codebase and gives you a browsable surface for every
 icon, illustration, and image inside it. It clusters duplicates and
 near-duplicates by perceptual similarity, shows where each asset is
 referenced across the source, and hands the cleanup plan to a coding
@@ -37,12 +37,12 @@ It's not a build tool, not a CDN, not a Figma plugin. It's the *map* of the asse
 Prerequisites: Node 24, [pnpm 10](https://pnpm.io). On macOS, if you have libvips installed via Homebrew, prefix `pnpm install` with `SHARP_IGNORE_GLOBAL_LIBVIPS=1`.
 
 ```sh
-git clone https://github.com/chinmaykunkikar/pika.git
-cd pika
+git clone https://github.com/chinmaykunkikar/pigmento.git
+cd pigmento
 pnpm install
 pnpm db:migrate
-pnpm pika source add /path/to/your/repo
-pnpm pika index
+pnpm pigmento source add /path/to/your/repo
+pnpm pigmento index
 pnpm dev
 ```
 
@@ -52,17 +52,17 @@ The app opens at `http://localhost:9900`. Add more sources from the sidebar at a
 
 **Grid.** A high-density gallery of every image in the repo. Filter by folder, type, ref count, or search.
 
-**Clusters.** Pika collapses look-alikes into a single row. The eleven logos you exported four times all live here, with the highest-resolution version recommended as canonical and an `UNUSED` flag on anything with zero references.
+**Clusters.** Pigmento collapses look-alikes into a single row. The eleven logos you exported four times all live here, with the highest-resolution version recommended as canonical and an `UNUSED` flag on anything with zero references.
 
 ![Near-duplicate clusters](./docs/screenshots/clusters-near.png)
 
-**Match.** Drop any image onto the window and pika tells you whether a near-match already exists in the codebase, before you commit a new one.
+**Match.** Drop any image onto the window and pigmento tells you whether a near-match already exists in the codebase, before you commit a new one.
 
 ![Match a dropped file](./docs/screenshots/match.png)
 
 ## Agent handoff
 
-From the app, queue a set of merges and deletes into a cleanup plan. Pika emits a structured `plan.json` and a small CLI bridge hands it to your agent harness. The agent rewrites imports, deletes the redundant assets, and opens a PR. You stay in control of which clusters merge.
+From the app, queue a set of merges and deletes into a cleanup plan. Pigmento emits a structured `plan.json` and a small CLI bridge hands it to your agent harness. The agent rewrites imports, deletes the redundant assets, and opens a PR. You stay in control of which clusters merge.
 
 ![Plan dispatch panel · pick a harness, mode, and send to the agent](./docs/screenshots/dispatch.png)
 
@@ -112,7 +112,7 @@ Architecture boundaries are strict: UI never imports from `lib/db/` or `lib/inde
 
 ## Configuration
 
-`pika.config.ts` at the repo root holds source roots, code/style scan paths, ignore globs, and harness settings:
+`pigmento.config.ts` at the repo root holds source roots, code/style scan paths, ignore globs, and harness settings:
 
 ```ts
 import type { Config } from "./lib/config/schema";
@@ -140,11 +140,11 @@ export default config;
 ```sh
 pnpm dev                        # next dev on :9900
 pnpm build && pnpm start        # production build
-pnpm pika                       # CLI: source, index, status, match, plan
-pnpm pika source add <path>
-pnpm pika index [--full]
-pnpm pika status
-pnpm pika match <file>          # find near-matches for a file
+pnpm pigmento                   # CLI: source, index, status, match, plan
+pnpm pigmento source add <path>
+pnpm pigmento index [--full]
+pnpm pigmento status
+pnpm pigmento match <file>      # find near-matches for a file
 pnpm db:generate                # drizzle-kit generate from schema diff
 pnpm db:migrate                 # apply pending migrations
 pnpm db:studio                  # web UI for the SQLite store

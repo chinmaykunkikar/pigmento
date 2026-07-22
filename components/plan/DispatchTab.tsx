@@ -112,7 +112,7 @@ export function DispatchTab({ plan }: Props) {
 
       <Section label="Command preview">
         <pre className="overflow-auto rounded-sm bg-text p-3 font-mono text-2xs leading-relaxed text-[#e8e6e2]">
-          {`pnpm pika plan send --mode ${mode} --harness ${harness} ${plan.id}.json`}
+          {`pnpm pigmento plan send --mode ${mode} --harness ${harness} ${plan.id}.json`}
         </pre>
       </Section>
 

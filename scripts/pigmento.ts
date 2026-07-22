@@ -23,7 +23,7 @@ const program = new Command();
 
 const pkg = createRequire(import.meta.url)("../package.json") as { version: string };
 
-program.name("pika").description("pika · local-first asset cleanup").version(pkg.version);
+program.name("pigmento").description("pigmento · the asset manager for your codebase").version(pkg.version);
 
 program
   .command("index")
@@ -34,7 +34,7 @@ program
     const config = await loadConfig();
     const srcs = listSources(db);
     if (srcs.length === 0) {
-      err("no sources configured. run `pnpm pika source add <path>` first");
+      err("no sources configured. run `pnpm pigmento source add <path>` first");
       process.exit(1);
     }
     for (const source of srcs) {

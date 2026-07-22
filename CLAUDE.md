@@ -261,7 +261,7 @@ API (app/api/**)
     │ Drizzle queries
 Storage (lib/db/)
     │ drizzle-kit migrations
-Indexer (lib/indexer/, scripts/pika.ts)
+Indexer (lib/indexer/, scripts/pigmento.ts)
 ```
 
 - **UI imports from `lib/db/` and `lib/indexer/` are type-only** (`import type`). Runtime data flows exclusively via TanStack Query → `app/api/**`.
@@ -302,7 +302,7 @@ Indexer (lib/indexer/, scripts/pika.ts)
 
 ## UI state (zustand)
 
-Client-only state (selected view, drawer open, bounding-boxes toggle, filters, search string) lives in `useExplorerStore` (`lib/store.ts`). Persist via zustand's `persist` middleware to `localStorage` under key `pika:ui`. Exclude transient state (current hover, active keystroke) from persistence.
+Client-only state (selected view, drawer open, bounding-boxes toggle, filters, search string) lives in `useExplorerStore` (`lib/store.ts`). Persist via zustand's `persist` middleware to `localStorage` under key `pigmento:ui`. Exclude transient state (current hover, active keystroke) from persistence.
 
 ## "Add source" UX
 
@@ -338,20 +338,20 @@ lib/
   plan/             schema, parse-prompt, validate, export, dispatch/ (future)
   queries/          TanStack query key factory + shared hooks
   store.ts          zustand store
-scripts/pika.ts     CLI entry (commander) — binary name `pika`
+scripts/pigmento.ts     CLI entry (commander) — binary name `pika`
 drizzle.config.ts
 biome.json
 data/               sqlite + uploads (gitignored)
-pika.config.ts
+pigmento.config.ts
 ```
 
 ## Commands
 
 - `pnpm dev` — Next dev (Turbopack)
 - `pnpm build && pnpm start`
-- `pnpm index` — `tsx scripts/pika.ts index`
+- `pnpm index` — `tsx scripts/pigmento.ts index`
 - `pnpm index:full` — drop caches, re-scan everything
-- `pnpm pika <cmd>` — general CLI (`pika status`, `pika source add <path>`, `pika match <file>`)
+- `pnpm pigmento <cmd>` — general CLI (`pika status`, `pika source add <path>`, `pika match <file>`)
 - `pnpm db:generate` — drizzle-kit generate (new migration from schema diff)
 - `pnpm db:migrate` — drizzle-kit migrate (apply pending migrations)
 - `pnpm db:studio` — drizzle-kit studio (web UI for inspecting DB)
@@ -381,10 +381,10 @@ pika.config.ts
 ## When adding a new indexer stage
 
 1. Write the pure function in `lib/indexer/<stage>.ts` with a typed input and output.
-2. Add the stage to `scripts/pika.ts` as a sequenced step inside a `db.transaction()`.
+2. Add the stage to `scripts/pigmento.ts` as a sequenced step inside a `db.transaction()`.
 3. If new columns are needed: add to `lib/db/schema.ts`, then `pnpm db:generate && pnpm db:migrate`.
 4. Update `lib/db/queries/*.ts` with any new query that reads the field.
-5. Run `pnpm pika index --full` against `~/Tribe/cohort-live-web` to verify end-to-end.
+5. Run `pnpm pigmento index --full` against `~/Tribe/cohort-live-web` to verify end-to-end.
 
 ## When adding a new API route
 
@@ -410,7 +410,7 @@ Against the phase's acceptance criteria in the PRD:
 1. `pnpm typecheck && pnpm test` clean; `pnpm lint` clean on changed files (docs/ has pre-existing failures)
 2. `pnpm dev` renders; manually walk the phase's screens
 3. For DB phases: `pnpm db:studio` and verify counts/indexes, or `sqlite3 data/pika.db`
-4. For indexer phases: `pnpm pika index --full` against `~/Tribe/cohort-live-web`
+4. For indexer phases: `pnpm pigmento index --full` against `~/Tribe/cohort-live-web`
 5. Pixel check: chrome heights match tokens; accent only on selection/primary/focus
 
 ## Never do

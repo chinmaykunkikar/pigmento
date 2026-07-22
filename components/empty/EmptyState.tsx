@@ -20,7 +20,7 @@ export function EmptyState({ onAdded }: Props) {
           No sources indexed
         </div>
         <div className="text-sm leading-relaxed text-text-2">
-          Point pika at a local repo to scan every image and icon inside it. Spot the duplicates.
+          Point pigmento at a local repo to scan every image and icon inside it. Spot the duplicates.
           See where each one is used. Hand the cleanup to a coding agent. Everything stays on your
           machine.
         </div>
@@ -39,7 +39,7 @@ export function EmptyState({ onAdded }: Props) {
       </div>
 
       <div className="mt-6 max-w-110 rounded-sm border border-border bg-surface px-3 py-2 text-left font-mono text-xs text-text-3">
-        or from the terminal: <span className="text-text">pnpm pika source add /path/to/repo</span>
+        or from the terminal: <span className="text-text">pnpm pigmento source add /path/to/repo</span>
       </div>
 
       <AddSourceDialog open={open} onOpenChange={setOpen} onAdded={onAdded} />

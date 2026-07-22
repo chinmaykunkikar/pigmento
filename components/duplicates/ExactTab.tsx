@@ -80,7 +80,7 @@ export function ExactTab({ sourceId, sourceLabel }: Props) {
     const a = document.createElement("a");
     a.href = url;
     const stamp = new Date().toISOString().slice(0, 10);
-    a.download = `pika-duplicates-${sourceLabel.replace(/[^a-z0-9-]+/gi, "-")}-${stamp}.json`;
+    a.download = `pigmento-duplicates-${sourceLabel.replace(/[^a-z0-9-]+/gi, "-")}-${stamp}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

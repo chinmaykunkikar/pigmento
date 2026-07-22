@@ -32,7 +32,7 @@ export function PikaWordmark({
       {showMark ? (
         <PikaMark size={Math.round(size * 0.95)} color={color} dotColor={dotColor} blink={blink} />
       ) : null}
-      <span>pika</span>
+      <span>pigmento</span>
     </span>
   );
 }

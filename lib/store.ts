@@ -1,6 +1,26 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Plan, PlanAction } from "./plan/schema";
+
+const LEGACY_UI_KEY = "pika:ui";
+
+const uiStorage = createJSONStorage(() => {
+  const storage = window.localStorage;
+  return {
+    getItem: (name: string) => {
+      const current = storage.getItem(name);
+      if (current !== null) return current;
+      const legacy = storage.getItem(LEGACY_UI_KEY);
+      if (legacy !== null) {
+        storage.setItem(name, legacy);
+        storage.removeItem(LEGACY_UI_KEY);
+      }
+      return legacy;
+    },
+    setItem: (name: string, value: string) => storage.setItem(name, value),
+    removeItem: (name: string) => storage.removeItem(name),
+  };
+});
 
 export type View = "overview" | "grid" | "clusters" | "match";
 export type ClustersMode = "exact" | "near" | "name";
@@ -294,7 +314,8 @@ export const useExplorerStore = create<ExplorerState>()(
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     }),
     {
-      name: "pika:ui",
+      name: "pigmento:ui",
+      storage: uiStorage,
       version: 1,
       migrate: (persistedState, version) => {
         if (version < 1 && persistedState && typeof persistedState === "object") {
