@@ -16,3 +16,4 @@ tsconfig.tsbuildinfo
 
 # Design-source bundles (large, generated externally; not needed at runtime)
 design-source/
+.gstack/
