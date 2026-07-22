@@ -13,5 +13,8 @@ export const qk = {
   palette: (sourceId: number) => ["palette", sourceId] as const,
   drift: (sourceId: number) => ["drift", sourceId] as const,
   coverage: (sourceId: number) => ["coverage", sourceId] as const,
+  typeScale: (sourceId: number) => ["typeScale", sourceId] as const,
+  typeCoverage: (sourceId: number) => ["typeCoverage", sourceId] as const,
+  typeDrift: (sourceId: number) => ["typeDrift", sourceId] as const,
   status: ["status"] as const,
 };
