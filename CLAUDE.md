@@ -413,8 +413,18 @@ Against the phase's acceptance criteria in the PRD:
 4. For indexer phases: `pnpm pigmento index --full` against `~/Tribe/cohort-live-web`
 5. Pixel check: chrome heights match tokens; accent only on selection/primary/focus
 
+## Git workflow (PRs, not direct pushes)
+
+- **Never push directly to `master`.** Branch from up-to-date `origin/master`
+  (`git fetch origin && git switch -c <kebab-name> origin/master`), push the
+  branch, and open a PR with `gh pr create`. Master lands only via merged PRs.
+- Plain descriptive branch names, no username prefix (`~/.claude/rules/workflow-guardrails.md`).
+- Rebase on current `origin/master` before opening/updating the PR.
+- (Adopted 2026-07-23, replacing the earlier per-phase commit-and-push-to-master flow.)
+
 ## Never do
 
+- Push directly to `master` — open a PR instead (see Git workflow above)
 - Start a dev server unprompted (from `~/.claude/rules/workflow-guardrails.md`)
 - Install a component library other than Radix Primitives + cmdk + lucide-react
 - Add CSS-in-JS runtime libraries
