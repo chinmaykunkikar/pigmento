@@ -53,109 +53,118 @@ function kindCount(
 
 export type DogfoodOptions = { clip?: boolean; sample?: number; top?: number };
 
+// runIndexer emits on a process-global event bus keyed by sourceId, and every
+// temp DB seeds its first source as id 1, so two concurrent runs in one process
+// would cross-contaminate each other's stage map. Fail fast — this is sequential.
+let dogfoodRunning = false;
+
 export async function runDogfood(repoPath: string, opts: DogfoodOptions = {}) {
+  if (dogfoodRunning) {
+    throw new Error("runDogfood is not concurrency-safe in one process; run repos sequentially");
+  }
+  dogfoodRunning = true;
   const sampleN = opts.sample ?? 30;
   const topN = opts.top ?? 10;
   const dir = mkdtempSync(join(tmpdir(), "pika-dogfood-"));
   const sqlite = new Database(join(dir, "t.db"));
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("foreign_keys = ON");
-  const db = drizzle(sqlite, { schema });
-  migrate(db, { migrationsFolder: MIGRATIONS });
-
-  // codeRoots: [] — the default ./src,./app are relative to THIS checkout and would
-  // pull pigmento's own styles into the report (codex #1). source.root covers the repo.
-  const config = ConfigSchema.parse({ codeRoots: [], clip: { enabled: !!opts.clip } });
-  const [source] = db
-    .insert(schema.sources)
-    .values({ root: resolve(repoPath), label: basename(repoPath) })
-    .returning()
-    .all();
-  if (!source) throw new Error("failed to seed source");
-
-  const stages: Record<string, StageRecord> = {};
   const emitter = indexerEvents();
-  const onEvent = (ev: StageEvent) => {
-    if (ev.sourceId !== source.id) return;
-    if (ev.type === "stage-end") stages[ev.stage] = { ms: ev.ms, detail: ev.detail };
-  };
-  emitter.on("event", onEvent);
-
-  const t0 = Date.now();
+  let onEvent: ((ev: StageEvent) => void) | undefined;
   try {
+    sqlite.pragma("journal_mode = WAL");
+    sqlite.pragma("foreign_keys = ON");
+    const db = drizzle(sqlite, { schema });
+    migrate(db, { migrationsFolder: MIGRATIONS });
+
+    // codeRoots: [] — the default ./src,./app are relative to THIS checkout and would
+    // pull pigmento's own styles into the report (codex #1). source.root covers the repo.
+    const config = ConfigSchema.parse({ codeRoots: [], clip: { enabled: !!opts.clip } });
+    const [source] = db
+      .insert(schema.sources)
+      .values({ root: resolve(repoPath), label: basename(repoPath) })
+      .returning()
+      .all();
+    if (!source) throw new Error("failed to seed source");
+
+    const stages: Record<string, StageRecord> = {};
+    onEvent = (ev: StageEvent) => {
+      if (ev.sourceId !== source.id) return;
+      if (ev.type === "stage-end") stages[ev.stage] = { ms: ev.ms, detail: ev.detail };
+    };
+    emitter.on("event", onEvent);
+
+    const t0 = Date.now();
     await runIndexer({ db, source, config, full: true });
+    const totalMs = Date.now() - t0;
+
+    const clipStatus = stages.clip?.detail ?? null;
+    const styleFailures = detectStyleFailures(stages);
+    // CLIP-on that silently fell back to no embeddings is not a valid CLIP-on run (codex #11).
+    const clipUnavailable = !!opts.clip && (clipStatus?.includes("model unavailable") ?? false);
+
+    const colorStats = getColorStats(db, source.id);
+    const typeStats = getTypographyStats(db, source.id);
+    const colorSample = sampleRows(
+      db
+        .select({
+          raw: styleUsages.rawToken,
+          normalized: styleUsages.normalizedValue,
+          relPath: styleUsages.relPath,
+          line: styleUsages.line,
+          contextKind: styleUsages.contextKind,
+        })
+        .from(styleUsages)
+        .where(and(eq(styleUsages.sourceId, source.id), eq(styleUsages.kind, "color")))
+        .all(),
+      sampleN,
+    );
+    const typeSample = sampleRows(
+      db
+        .select({
+          raw: styleUsages.rawToken,
+          normalized: styleUsages.normalizedValue,
+          axis: styleUsages.axis,
+          relPath: styleUsages.relPath,
+          line: styleUsages.line,
+          contextKind: styleUsages.contextKind,
+        })
+        .from(styleUsages)
+        .where(and(eq(styleUsages.sourceId, source.id), eq(styleUsages.kind, "type")))
+        .all(),
+      sampleN,
+    );
+
+    return {
+      repo: basename(repoPath),
+      repoPath: resolve(repoPath),
+      clip: !!opts.clip,
+      clipStatus,
+      clipUnavailable,
+      latency: { totalMs, stages },
+      styleFailures,
+      color: {
+        usages: kindCount(db, source.id, "color", styleUsages),
+        clusters: kindCount(db, source.id, "color", schema.styleClusters),
+        coverage: colorStats.coverage,
+        palette: derivePalette(colorStats, topN),
+        drift: listColorDrift(db, source.id).slice(0, topN),
+        sample: colorSample,
+      },
+      type: {
+        usages: kindCount(db, source.id, "type", styleUsages),
+        clusters: kindCount(db, source.id, "type", schema.styleClusters),
+        coverage: typeStats.coverage,
+        scale: getTypographyScale(db, source.id),
+        drift: listTypeDrift(db, source.id).slice(0, topN),
+        mixed: deriveMixedSpellings(typeStats).slice(0, topN),
+        sample: typeSample,
+      },
+    };
   } finally {
-    emitter.off("event", onEvent);
+    if (onEvent) emitter.off("event", onEvent);
+    sqlite.close();
+    rmSync(dir, { recursive: true, force: true });
+    dogfoodRunning = false;
   }
-  const totalMs = Date.now() - t0;
-
-  const clipStatus = stages.clip?.detail ?? null;
-  const styleFailures = detectStyleFailures(stages);
-  // CLIP-on that silently fell back to no embeddings is not a valid CLIP-on run (codex #11).
-  const clipUnavailable = !!opts.clip && (clipStatus?.includes("model unavailable") ?? false);
-
-  const colorStats = getColorStats(db, source.id);
-  const typeStats = getTypographyStats(db, source.id);
-  const colorSample = sampleRows(
-    db
-      .select({
-        raw: styleUsages.rawToken,
-        normalized: styleUsages.normalizedValue,
-        relPath: styleUsages.relPath,
-        line: styleUsages.line,
-        contextKind: styleUsages.contextKind,
-      })
-      .from(styleUsages)
-      .where(and(eq(styleUsages.sourceId, source.id), eq(styleUsages.kind, "color")))
-      .all(),
-    sampleN,
-  );
-  const typeSample = sampleRows(
-    db
-      .select({
-        raw: styleUsages.rawToken,
-        normalized: styleUsages.normalizedValue,
-        axis: styleUsages.axis,
-        relPath: styleUsages.relPath,
-        line: styleUsages.line,
-        contextKind: styleUsages.contextKind,
-      })
-      .from(styleUsages)
-      .where(and(eq(styleUsages.sourceId, source.id), eq(styleUsages.kind, "type")))
-      .all(),
-    sampleN,
-  );
-
-  const metrics = {
-    repo: basename(repoPath),
-    repoPath: resolve(repoPath),
-    clip: !!opts.clip,
-    clipStatus,
-    clipUnavailable,
-    latency: { totalMs, stages },
-    styleFailures,
-    color: {
-      usages: kindCount(db, source.id, "color", styleUsages),
-      clusters: kindCount(db, source.id, "color", schema.styleClusters),
-      coverage: colorStats.coverage,
-      palette: derivePalette(colorStats, topN),
-      drift: listColorDrift(db, source.id).slice(0, topN),
-      sample: colorSample,
-    },
-    type: {
-      usages: kindCount(db, source.id, "type", styleUsages),
-      clusters: kindCount(db, source.id, "type", schema.styleClusters),
-      coverage: typeStats.coverage,
-      scale: getTypographyScale(db, source.id),
-      drift: listTypeDrift(db, source.id).slice(0, topN),
-      mixed: deriveMixedSpellings(typeStats).slice(0, topN),
-      sample: typeSample,
-    },
-  };
-
-  sqlite.close();
-  rmSync(dir, { recursive: true, force: true });
-  return metrics;
 }
 
 type Metrics = Awaited<ReturnType<typeof runDogfood>>;
@@ -210,19 +219,26 @@ function fmt(metrics: Metrics): string {
   return lines.join("\n");
 }
 
+const VALUE_FLAGS = new Set(["--json", "--sample", "--top"]);
+
 async function main() {
   const args = process.argv.slice(2);
-  const repo = args.find((a) => !a.startsWith("--"));
+  const flag = (name: string) => {
+    const i = args.indexOf(name);
+    return i >= 0 ? args[i + 1] : undefined;
+  };
+  // the positional repo is the first token that is neither a flag nor a flag's value
+  const valueIdx = new Set<number>();
+  args.forEach((a, i) => {
+    if (VALUE_FLAGS.has(a)) valueIdx.add(i + 1);
+  });
+  const repo = args.find((a, i) => !a.startsWith("--") && !valueIdx.has(i));
   if (!repo) {
     process.stderr.write(
       "usage: tsx scripts/dogfood.ts <repo-path> [--clip] [--json <out>] [--sample N] [--top N]\n",
     );
     process.exit(2);
   }
-  const flag = (name: string) => {
-    const i = args.indexOf(name);
-    return i >= 0 ? args[i + 1] : undefined;
-  };
   const metrics = await runDogfood(repo, {
     clip: args.includes("--clip"),
     sample: flag("--sample") ? Number(flag("--sample")) : undefined,
@@ -231,10 +247,18 @@ async function main() {
   const jsonOut = flag("--json");
   if (jsonOut) writeFileSync(jsonOut, JSON.stringify(metrics, null, 2));
   process.stdout.write(`${fmt(metrics)}\n`);
-  if (metrics.styleFailures.length > 0) {
-    process.stderr.write(
-      `\nGATE FAIL: style stage(s) failed: ${metrics.styleFailures.join(", ")}\n`,
-    );
+  const clipInvalid = metrics.clip && metrics.clipUnavailable;
+  if (metrics.styleFailures.length > 0 || clipInvalid) {
+    if (metrics.styleFailures.length > 0) {
+      process.stderr.write(
+        `\nGATE FAIL: style stage(s) failed: ${metrics.styleFailures.join(", ")}\n`,
+      );
+    }
+    if (clipInvalid) {
+      process.stderr.write(
+        "\nGATE FAIL: --clip requested but the CLIP model was unavailable; the latency is not a valid CLIP-on measurement\n",
+      );
+    }
     process.exit(1);
   }
 }

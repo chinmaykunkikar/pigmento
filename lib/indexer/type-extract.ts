@@ -51,7 +51,9 @@ function firstToken(value: string): string {
 // the family list against the real-repo garbage the dogfood gate surfaced.
 function isLiteralFamily(raw: string, grammar: Grammar): boolean {
   if (!raw) return false;
-  if (grammar === "js") return /^["']/.test(raw);
+  // JS: a whole single string literal only — nothing before/after the quotes, so
+  // `"Inter" + theme.fallback` and `theme.typography.fontFamily` are both rejected.
+  if (grammar === "js") return /^(["'])[^"']*\1\s*$/.test(raw);
   return !raw.startsWith("$") && !/[(){}]/.test(raw);
 }
 
