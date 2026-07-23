@@ -1,4 +1,5 @@
 import { and, count, eq, inArray, isNotNull } from "drizzle-orm";
+import { deltaE, NEAR_MISS_DELTA_E } from "@/lib/indexer/color-normalize";
 import type { Db } from "../client";
 import { styleClusterMembers, styleClusters, styleUsages } from "../schema";
 
@@ -404,4 +405,86 @@ export function listColorDrift(db: Db, sourceId: number): DriftFinding[] {
 
   findings.sort((a, b) => Number(a.neutral) - Number(b.neutral) || b.suspicion - a.suspicion);
   return findings;
+}
+
+// ── token resolution (resolve_token_for_value) ──────────────────────────────
+
+export type TokenCandidate = { color: string; token: string | null };
+
+export type ResolveResult =
+  | { within: true; token: string | null; value: string; deltaE: number }
+  | { within: false; nearest: string | null; deltaE: number | null };
+
+// Every css-var-def color, deterministically ordered so resolution ties and
+// byte-stable outputs never depend on DB row order.
+export function listDefinedColorTokens(db: Db, sourceId: number): TokenCandidate[] {
+  const rows = db
+    .select({ token: styleUsages.contextDetail, color: styleUsages.normalizedValue })
+    .from(styleUsages)
+    .where(
+      and(
+        eq(styleUsages.sourceId, sourceId),
+        eq(styleUsages.kind, "color"),
+        eq(styleUsages.contextKind, "css-var-def"),
+        isNotNull(styleUsages.contextDetail),
+        isNotNull(styleUsages.normalizedValue),
+      ),
+    )
+    .all();
+  const seen = new Set<string>();
+  const out: TokenCandidate[] = [];
+  for (const r of rows) {
+    if (!r.token || !r.color) continue;
+    const key = `${r.token} ${r.color}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ token: r.token, color: r.color });
+  }
+  out.sort((a, b) => cmp(a.color, b.color) || cmp(a.token ?? "", b.token ?? ""));
+  return out;
+}
+
+// Union of the derived palette and every defined token. A defined-but-low-usage
+// token is not in the top-N palette, so a palette-only search would miss it and
+// return a nearby popular color instead — the union keeps exact tokens winnable.
+export function getResolveCandidates(db: Db, sourceId: number): TokenCandidate[] {
+  const stats = getColorStats(db, sourceId);
+  const palette = derivePalette(stats);
+  const defined = listDefinedColorTokens(db, sourceId);
+  const tokenByColor = new Map<string, string>();
+  for (const d of defined)
+    if (d.token && !tokenByColor.has(d.color)) tokenByColor.set(d.color, d.token);
+  const seen = new Set<string>();
+  const out: TokenCandidate[] = [];
+  const push = (color: string, token: string | null) => {
+    const key = `${color} ${token ?? ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ color, token });
+  };
+  for (const d of defined) push(d.color, d.token);
+  for (const p of palette) push(p.color, tokenByColor.get(p.color) ?? null);
+  return out;
+}
+
+// Nearest candidate by ΔE2000. Pre-sorted so equal distances break toward a
+// defined token, then by color; the first strict minimum wins.
+export function resolveColorToken(target: string, candidates: TokenCandidate[]): ResolveResult {
+  const sorted = [...candidates].sort(
+    (a, b) => (a.token !== null ? 0 : 1) - (b.token !== null ? 0 : 1) || cmp(a.color, b.color),
+  );
+  let best: { c: TokenCandidate; d: number } | null = null;
+  for (const c of sorted) {
+    const d = deltaE(target, c.color);
+    if (best === null || d < best.d) best = { c, d };
+  }
+  if (best === null) return { within: false, nearest: null, deltaE: null };
+  if (best.d < NEAR_MISS_DELTA_E) {
+    return { within: true, token: best.c.token, value: best.c.color, deltaE: best.d };
+  }
+  return { within: false, nearest: best.c.color, deltaE: best.d };
+}
+
+function cmp(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }
