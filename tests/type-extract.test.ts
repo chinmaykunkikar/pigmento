@@ -95,6 +95,18 @@ describe("type extraction — family literal guard (dogfood gate)", () => {
   });
 });
 
+describe("type extraction — test files and fixtures are skipped (dogfood gate)", () => {
+  const css = ".a { font-size: 13px; font-family: Inter, sans-serif; }";
+  it("extracts from a normal file but not from test/spec/fixture paths", () => {
+    expect(
+      extractFileType(css, "css", 1, "app/base.css", "/tmp/app/base.css").length,
+    ).toBeGreaterThan(0);
+    expect(extractFileType(css, "css", 1, "src/theme.spec.css", "/tmp/x")).toHaveLength(0);
+    expect(extractFileType(css, "ts", 1, "src/__tests__/theme.ts", "/tmp/x")).toHaveLength(0);
+    expect(extractFileType(css, "scss", 1, "tests/unit/_colors.scss", "/tmp/x")).toHaveLength(0);
+  });
+});
+
 describe("type extraction — Tailwind type utilities", () => {
   it("tags text-size / font-weight / font-family / leading, not color utilities", () => {
     const hits = extract(

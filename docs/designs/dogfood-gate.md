@@ -297,12 +297,24 @@ classes** surfaced, neither fixed by a constant:
    (they are design-system *sources*, not consuming apps).
 2. **Test-file colors** — `sanitizer.spec.js`, `*.test.tsx` hold throwaway colors.
    Never brand colors.
-   → **OPEN DECISION (loop-back):** drift needs consuming-usage awareness (exclude
-   test files; treat color-definition files as token sources, not drift targets),
-   OR the drift claim is scoped to consuming apps. Not implemented — it changes
-   drift semantics and is a product call, not a mechanical fix. cohort-live-web
-   (an app) had clean, real drift, so this is specific to design-system-library
-   targets.
+
+   **Resolution (implemented):**
+   - **Test files fixed** — `style-walk.ts` now skips `*.{test,spec,stories}.*`,
+     `__tests__/`, `__mocks__/`, `tests?/`, `fixtures?/` for style extraction
+     (both kinds), so their colors/type never enter the palette, coverage, or
+     drift. Regression test in `type-extract.test.ts`. This removes the
+     `sanitizer.spec.js` / `*.test.tsx` FP class entirely.
+   - **Palette-definition files: documented limitation, not detected.**
+     Distinguishing a hardcoded-drift hex from an intentional palette entry in
+     arbitrary JS/TS is undecidable without semantics, and a path heuristic
+     (`colors/`, `theme*`) would misfire on real apps. So pika's drift targets
+     **consuming usage**; pointed at a design-system *source* (a library that
+     defines a palette) it will surface that palette as near-misses. This is a
+     v1 target-profile limitation, same posture as OV-6 / the SCSS gap.
+     **Future lever (not now):** the suspicion score already separates them
+     cleanly (real app drift scored 10-30 on cohort; palette FPs scored <4 here)
+     — a suspicion floor is the calibration knob, but it needs more *consuming-app*
+     repos than this design-system-heavy slate to set without overfitting (codex #8).
 
 **Axis C — latency.** All within the 2-min promise CLIP-off. The driver is
 `git-author` (12.4s shadcn, 5.5s bootstrap), NOT style (~0.1-1s) or CLIP. **MUI
@@ -317,10 +329,13 @@ light/dark counterpart pair (light/dark values differ by large ΔE and don't
 cluster). **OV-6 defer CONFIRMED** — the tripwire did not fire; the engine reopen
 for axis detection is not triggered.
 
-**Gate verdict: PARTIAL PASS.** Extraction validated (family bug found + fixed +
-regression-tested), latency within budget CLIP-off, theme-axis defer confirmed.
-**Blocked on the drift FP decision** before the drift claim is launch-ready — the
-one loop-back item.
+**Gate verdict: PASS (with one documented limitation).** Extraction validated
+(family bug found + fixed + regression-tested), latency within budget CLIP-off,
+theme-axis defer confirmed, drift test-file FP fixed. The palette-definition FP is
+a documented target-profile limitation (drift targets consuming apps), with the
+suspicion floor as the future lever once more app repos are dogfooded. Two engine
+fixes shipped from this gate: `isLiteralFamily` (family extraction) and the
+test-file skip (drift/coverage/palette).
 
 ## GSTACK REVIEW REPORT
 
@@ -336,7 +351,6 @@ one loop-back item.
 
 **CROSS-MODEL:** one tension, codex flagged the HTML-as-poster-source coupling; resolved at D4 (JSON evidence of record, HTML optional, poster-coupling dropped). No contradiction elsewhere; codex extended the eng pass rather than opposing it.
 
-**VERDICT:** ENG CLEARED + GATE RUN (partial pass) — harness built, 3 repos indexed at pinned SHAs, family-extraction bug found + fixed + regression-tested, latency within the 2-min budget CLIP-off, theme-axis defer confirmed. Design review n/a (no UI this slice).
+**VERDICT:** ENG CLEARED + GATE PASS — harness built, 3 repos indexed at pinned SHAs, two engine bugs found + fixed + regression-tested (family extraction, test-file exclusion), latency within the 2-min budget CLIP-off, theme-axis defer confirmed. Palette-definition drift is a documented target-profile limitation (drift targets consuming apps). Design review n/a (no UI this slice).
 
-**UNRESOLVED DECISIONS:**
-- Drift FP on design-system repos (the gate's loop-back): exclude test files + treat color-definition files as token sources rather than drift targets, OR scope the drift claim to consuming apps. Not implemented — it changes drift semantics (a product call). Everything else in the gate passed.
+NO UNRESOLVED DECISIONS

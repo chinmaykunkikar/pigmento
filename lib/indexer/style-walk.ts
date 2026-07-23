@@ -22,6 +22,11 @@ export const STYLE_GLOB =
   "**/*.{css,scss,sass,less,styl,ts,tsx,js,jsx,mjs,cjs,vue,svelte,astro,html,htm}";
 
 const SKIP_FILE_RE = /(?:\.min\.(?:css|js)|\.bundle\.js|\.d\.ts)$/i;
+// Colors/type in test files and fixtures are throwaway (a sanitizer spec's fake
+// palette, a snapshot's inline styles), never real design usage — the dogfood
+// gate saw them pollute drift. Skip them for style extraction.
+const TEST_FILE_RE =
+  /\.(?:test|spec|stories)\.\w+$|(?:^|\/)(?:__tests__|__mocks__|__fixtures__|tests?|fixtures?)\//i;
 const MAX_FILE = 2_000_000;
 const MAX_LINE = 50_000;
 
@@ -52,7 +57,8 @@ export function grammarFor(ext: string): Grammar | null {
 }
 
 export function shouldSkipFile(text: string, relPath: string): boolean {
-  if (text.length > MAX_FILE || SKIP_FILE_RE.test(relPath)) return true;
+  if (text.length > MAX_FILE || SKIP_FILE_RE.test(relPath) || TEST_FILE_RE.test(relPath))
+    return true;
   return text.split("\n").some((l) => l.length > MAX_LINE);
 }
 
