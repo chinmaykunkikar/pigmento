@@ -42,6 +42,19 @@ function firstToken(value: string): string {
   return tok.replace(/^['"]|['"]$/g, "");
 }
 
+// A font-family value is only a literal declaration when the value position holds
+// an actual family, not an expression it can equally hold. In JS/TS a real family
+// is a string literal (`fontFamily: "Inter"`); a bare identifier chain
+// (`theme.typography.fontFamily`), a type annotation (`fontFamily: string`), or a
+// template with interpolation is not. In CSS/SCSS a bareword stack is legal, but a
+// `$scss-var`, a `var()`/`#{}` interpolation, or any function call is not. Guards
+// the family list against the real-repo garbage the dogfood gate surfaced.
+function isLiteralFamily(raw: string, grammar: Grammar): boolean {
+  if (!raw) return false;
+  if (grammar === "js") return /^["']/.test(raw);
+  return !raw.startsWith("$") && !/[(){}]/.test(raw);
+}
+
 function scanTypeLine(line: string, grammar: Grammar): RawStyleHit[] {
   const hits: RawStyleHit[] = [];
   const regions = findDeclRegions(line);
@@ -89,7 +102,8 @@ function scanTypeLine(line: string, grammar: Grammar): RawStyleHit[] {
     }
 
     if (axis === "family") {
-      const raw = value.trim();
+      const raw = value.replace(/\/\*[\s\S]*$/, "").trim();
+      if (!isLiteralFamily(raw, grammar)) continue;
       const norm = normalizeFamily(raw);
       if (!norm) continue;
       hits.push({

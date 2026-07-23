@@ -62,6 +62,39 @@ describe("type extraction — JS is property-aware", () => {
   });
 });
 
+describe("type extraction — family literal guard (dogfood gate)", () => {
+  const families = (text: string, ext: string) =>
+    extract(text, ext).filter((h) => h.axis === "family" && h.contextKind !== "tailwind-named");
+
+  it("rejects JS expressions, type annotations, and template fragments as families", () => {
+    expect(families("const s = { fontFamily: theme.typography.fontFamily };", "ts")).toHaveLength(
+      0,
+    );
+    expect(families("const s = { fontFamily: t.typography.fontFamily };", "ts")).toHaveLength(0);
+    expect(families("interface S { fontFamily: string }", "ts")).toHaveLength(0);
+    expect(families("const s = { fontFamily: `var(${x})` };", "ts")).toHaveLength(0);
+  });
+
+  it("keeps a real quoted JS family", () => {
+    expect(families('const s = { fontFamily: "Roboto, sans-serif" };', "ts")[0]).toMatchObject({
+      normalizedValue: "roboto, sans-serif",
+    });
+  });
+
+  it("rejects SCSS $vars and var()/interpolation in font-family", () => {
+    expect(families(".a { font-family: $font-family-base; }", "scss")).toHaveLength(0);
+    expect(families(".a { font-family: var(--#{$prefix}-font); }", "scss")).toHaveLength(0);
+  });
+
+  it("strips a trailing rtl comment from a CSS family stack", () => {
+    const hits = families(
+      ".a { font-family: Playfair Display, serif /*rtl:Amiri, serif*/; }",
+      "css",
+    );
+    expect(hits[0]?.normalizedValue).toBe("playfair display, serif");
+  });
+});
+
 describe("type extraction — Tailwind type utilities", () => {
   it("tags text-size / font-weight / font-family / leading, not color utilities", () => {
     const hits = extract(
