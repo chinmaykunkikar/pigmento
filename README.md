@@ -12,7 +12,7 @@ near-duplicates by perceptual similarity, shows where each asset is
 referenced across the source, and hands the cleanup plan to a coding
 agent that opens a PR.
 
-Local-first. Runs on your machine. Nothing is uploaded.
+Local-first. Runs on your machine. Nothing is uploaded. The agent-facing MCP server (`pigmento mcp`) is local stdio only: no network listener, no remote transport.
 
 ```
 local-first · macos · linux · windows · MIT

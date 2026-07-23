@@ -59,8 +59,18 @@ function progressForwarder(extra: ProgressExtra) {
   };
 }
 
+const SERVER_INSTRUCTIONS = `pigmento is the design ground-truth for this repository, derived from its own code (colors, typography, image assets). Consult it before writing or changing UI:
+- resolve_token_for_value: snap a raw color to the nearest existing token before hardcoding one.
+- find_similar_asset: check whether an icon/image already exists before adding a new file.
+- list_drift: review near-miss colors/type already in the codebase.
+- get_palette / get_typography_scale: read the design system the code already expresses.
+All tools are read-only. The first call on an unindexed repo runs a synchronous full index and may take a while; if a call times out, retry and the index resumes.`;
+
 export function buildServer(): McpServer {
-  const server = new McpServer({ name: "pigmento", version: pkg.version });
+  const server = new McpServer(
+    { name: "pigmento", version: pkg.version },
+    { instructions: SERVER_INSTRUCTIONS },
+  );
   const dbPath = `${repoRootOf(process.cwd())}/data/pika.db`;
 
   async function dispatch(
@@ -97,12 +107,16 @@ export function buildServer(): McpServer {
 
   const FIRST_CALL =
     "First call on an unindexed repo triggers a synchronous full index and may take a while; retry on timeout.";
+  // Every tool only reads (the derived index of) this repo: read-only, closed domain.
+  const READ_ONLY = { readOnlyHint: true, openWorldHint: false } as const;
 
   server.registerTool(
     "get_palette",
     {
+      title: "Get brand palette",
       description: `The repo's brand color palette with per-color usage counts. ${FIRST_CALL}`,
       inputSchema: {},
+      annotations: READ_ONLY,
     },
     (args, extra) => dispatch("get_palette", args, extra, (r) => getPalette(r.db, r.source.id)),
   );
@@ -110,8 +124,10 @@ export function buildServer(): McpServer {
   server.registerTool(
     "resolve_token_for_value",
     {
+      title: "Resolve color to token",
       description: `Snap a raw CSS color to the nearest existing token/brand color by ΔE2000. ${FIRST_CALL}`,
       inputSchema: { value: z.string().describe("any CSS color, e.g. #1c7a75 or rgb(28,122,116)") },
+      annotations: READ_ONLY,
     },
     (args, extra) =>
       dispatch("resolve_token_for_value", args, extra, (r) =>
@@ -122,11 +138,13 @@ export function buildServer(): McpServer {
   server.registerTool(
     "find_similar_asset",
     {
+      title: "Find similar asset",
       description: `Find indexed assets similar to an image file (by phash/name, plus CLIP when enabled). ${FIRST_CALL}`,
       inputSchema: {
         path: z.string().describe("path to an image file inside the repo or OS temp dir"),
         topN: z.number().int().min(1).max(50).optional().describe("max results (default 10)"),
       },
+      annotations: READ_ONLY,
     },
     (args, extra) =>
       dispatch("find_similar_asset", args, extra, (r) =>
@@ -137,8 +155,10 @@ export function buildServer(): McpServer {
   server.registerTool(
     "get_typography_scale",
     {
+      title: "Get typography scale",
       description: `The repo's typographic scale: families, sizes, weights, line-heights. ${FIRST_CALL}`,
       inputSchema: {},
+      annotations: READ_ONLY,
     },
     (args, extra) =>
       dispatch("get_typography_scale", args, extra, (r) =>
@@ -149,11 +169,13 @@ export function buildServer(): McpServer {
   server.registerTool(
     "list_drift",
     {
+      title: "List design drift",
       description: `Suspicion-ranked near-miss color/type clusters with file:line. ${FIRST_CALL}`,
       inputSchema: {
         kind: z.enum(["color", "type"]).optional().describe("limit to one kind (default both)"),
         topN: z.number().int().min(1).max(100).optional().describe("max per kind (default 10)"),
       },
+      annotations: READ_ONLY,
     },
     (args, extra) =>
       dispatch("list_drift", args, extra, (r) => listDriftTool(r.db, r.source.id, args)),
