@@ -6,9 +6,8 @@ import { getSource } from "@/lib/db/queries/sources";
 import { embedImage } from "@/lib/match/clip";
 import { type ClipHealth, clipHealth } from "@/lib/match/embedding-cache";
 import { isAllowedExt, normalizeExt, type QuerySignature } from "@/lib/match/ext";
+import { MAX_MATCH_BYTES } from "@/lib/match/find";
 import { computeSignature } from "@/lib/match/signature";
-
-const MAX_BYTES = 2 * 1024 * 1024;
 
 export type MatchResponse = {
   signature: QuerySignature;
@@ -40,7 +39,9 @@ export async function POST(req: Request) {
     return fail("invalid sourceId", 400);
   }
   if (file.size === 0) return fail("file is empty", 400);
-  if (file.size > MAX_BYTES) return fail(`file exceeds ${MAX_BYTES / 1024 / 1024} MB`, 413);
+  if (file.size > MAX_MATCH_BYTES) {
+    return fail(`file exceeds ${MAX_MATCH_BYTES / 1024 / 1024} MB`, 413);
+  }
   if (!isAllowedExt(file.name)) {
     return fail("unsupported file type (svg, png, jpg, webp, gif only)", 415);
   }

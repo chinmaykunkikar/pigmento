@@ -5,12 +5,17 @@ import { Command, Option } from "commander";
 import { loadConfig } from "@/lib/config/load";
 import { getDb } from "@/lib/db/client";
 import { countAssets } from "@/lib/db/queries/assets";
-import { findMatches } from "@/lib/db/queries/matches";
 import { addSource, getSource, listSources } from "@/lib/db/queries/sources";
 import { runIndexer } from "@/lib/indexer/run";
-import { embedImage } from "@/lib/match/clip";
-import { isAllowedExt, normalizeExt } from "@/lib/match/ext";
-import { computeSignature } from "@/lib/match/signature";
+import { isAllowedExt } from "@/lib/match/ext";
+import { matchFile } from "@/lib/match/find";
+import { runCheck } from "@/lib/mcp/check";
+import { buildContextDigest } from "@/lib/mcp/context";
+import { runInit } from "@/lib/mcp/init";
+import { readToolLogTail } from "@/lib/mcp/log";
+import { repoRootOf } from "@/lib/mcp/repo";
+import { runMcpServer } from "@/lib/mcp/server";
+import { resolveRepoSource } from "@/lib/mcp/source";
 import { writePlanArtifacts } from "@/lib/plan/dispatch/artifacts";
 import { checkHarness } from "@/lib/plan/dispatch/registry";
 import type { DispatchEvent, DispatchHarnessName, RunnableMode } from "@/lib/plan/dispatch/types";
@@ -23,7 +28,10 @@ const program = new Command();
 
 const pkg = createRequire(import.meta.url)("../package.json") as { version: string };
 
-program.name("pigmento").description("pigmento · the asset manager for your codebase").version(pkg.version);
+program
+  .name("pigmento")
+  .description("pigmento · the asset manager for your codebase")
+  .version(pkg.version);
 
 program
   .command("index")
@@ -45,7 +53,19 @@ program
 program
   .command("status")
   .description("Show index status per source")
-  .action(() => {
+  .option("--agent", "show recent MCP tool calls instead", false)
+  .action((opts: { agent: boolean }) => {
+    if (opts.agent) {
+      const tail = readToolLogTail(`${repoRootOf(process.cwd())}/data/pika.db`);
+      if (tail.length === 0) {
+        out("no agent tool calls logged");
+        return;
+      }
+      for (const e of tail) {
+        out(`${e.ts}  ${e.tool.padEnd(24)} ${e.code.padEnd(12)} ${String(e.ms).padStart(6)}ms`);
+      }
+      return;
+    }
     const db = getDb();
     const srcs = listSources(db);
     if (srcs.length === 0) {
@@ -205,15 +225,13 @@ program
     const clipEnabled = config.clip.enabled;
 
     const buf = await readFile(abs);
-    const [signature, embedding] = await Promise.all([
-      computeSignature(buf, basename(abs)),
-      clipEnabled
-        ? embedImage(buf, normalizeExt(basename(abs)))
-            .then((r) => r.vec)
-            .catch(() => null)
-        : Promise.resolve(null),
-    ]);
-    const rawBuckets = findMatches(db, source.id, signature, embedding);
+    const { signature, buckets: rawBuckets } = await matchFile(
+      db,
+      source.id,
+      buf,
+      basename(abs),
+      clipEnabled,
+    );
     const buckets = {
       ...rawBuckets,
       near: rawBuckets.near.filter((m) => m.hamming <= thresholdRaw),
@@ -258,6 +276,58 @@ program
         ),
       );
     }
+  });
+
+program
+  .command("mcp")
+  .description("Run the MCP stdio server (agent surface)")
+  .action(async () => {
+    await runMcpServer();
+  });
+
+program
+  .command("check [ref-range]")
+  .description("Advisory drift report (re-indexes, then lists drift; never gates)")
+  .option("--json", "machine-readable output", false)
+  .action(async (refRange: string | undefined, opts: { json: boolean }) => {
+    const { db, source, config } = await resolveRepoSource();
+    const report = await runCheck(db, source, config, { refRange });
+    if (opts.json) {
+      out(JSON.stringify(report, null, 2));
+      return;
+    }
+    if (!report.ok) {
+      err(`${report.code}: ${report.message} — ${report.remedy}`);
+      process.exit(1);
+    }
+    out(`${source.label}  indexed ${report.indexedAt ?? "never"}`);
+    if (report.staleStages.length > 0) out(`  stale stages: ${report.staleStages.join(", ")}`);
+    out(`  color drift: ${report.color.length}   type drift: ${report.type.length}`);
+    for (const d of report.color.slice(0, 10)) {
+      const v = d.variants[0];
+      const loc = v ? `${v.file}:${v.line}` : "";
+      out(`  color ${d.canonical} <- ${d.variants.length}  ${loc}  → ${d.suggestedToken}`);
+    }
+    for (const d of report.type.slice(0, 10)) {
+      const v = d.variants[0];
+      const loc = v ? `${v.file}:${v.line}` : "";
+      out(`  type [${d.axis}] ${d.canonical} <- ${d.variants.length}  ${loc}`);
+    }
+  });
+
+program
+  .command("context")
+  .description("Print a compact design digest for prompt injection")
+  .action(async () => {
+    const { db, source } = await resolveRepoSource();
+    out(buildContextDigest(db, source));
+  });
+
+program
+  .command("init")
+  .description("Write the pigmento agent-guidance block into CLAUDE.md / AGENTS.md")
+  .action(() => {
+    for (const p of runInit().written) out(`wrote block -> ${p}`);
   });
 
 function refs(n: number): string {
