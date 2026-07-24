@@ -1,8 +1,8 @@
-import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import type { StageEvent } from "@/lib/indexer/events";
+import { version } from "@/lib/version";
 import { err } from "./envelope";
 import { appendToolLog, argDigest } from "./log";
 import { repoRootOf } from "./repo";
@@ -14,8 +14,6 @@ import {
   listDriftTool,
   resolveTokenForValue,
 } from "./tools";
-
-const pkg = createRequire(import.meta.url)("../../package.json") as { version: string };
 
 type ProgressExtra = {
   _meta?: { progressToken?: string | number };
@@ -68,7 +66,7 @@ All tools are read-only. The first call on an unindexed repo runs a synchronous 
 
 export function buildServer(): McpServer {
   const server = new McpServer(
-    { name: "pigmento", version: pkg.version },
+    { name: "pigmento", version },
     { instructions: SERVER_INSTRUCTIONS },
   );
   const dbPath = `${repoRootOf(process.cwd())}/data/pika.db`;
