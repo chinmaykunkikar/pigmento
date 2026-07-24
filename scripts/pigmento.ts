@@ -1,5 +1,4 @@
 import { readFile, stat } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { basename, resolve } from "node:path";
 import { Command, Option } from "commander";
 import { loadConfig } from "@/lib/config/load";
@@ -20,18 +19,17 @@ import { writePlanArtifacts } from "@/lib/plan/dispatch/artifacts";
 import { checkHarness } from "@/lib/plan/dispatch/registry";
 import type { DispatchEvent, DispatchHarnessName, RunnableMode } from "@/lib/plan/dispatch/types";
 import { planSchema } from "@/lib/plan/schema";
+import { version } from "@/lib/version";
 
 const out = (s: string) => process.stdout.write(`${s}\n`);
 const err = (s: string) => process.stderr.write(`${s}\n`);
 
 const program = new Command();
 
-const pkg = createRequire(import.meta.url)("../package.json") as { version: string };
-
 program
   .name("pigmento")
   .description("pigmento · the asset manager for your codebase")
-  .version(pkg.version);
+  .version(version);
 
 program
   .command("index")

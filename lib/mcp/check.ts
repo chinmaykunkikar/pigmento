@@ -38,7 +38,9 @@ export async function runCheck(
   };
   bus.on("event", listener);
   try {
-    await runIndexer({ db, source, config, full: false });
+    // check --json prints the report as JSON to stdout; keep reindex progress
+    // off stdout so it never corrupts that (or the MCP stream via the tool).
+    await runIndexer({ db, source, config, full: false, progressWrite: () => {} });
   } catch (e) {
     if (e instanceof RunActiveError) {
       return err("not_indexed", "an index run is already active", "retry in a few seconds");

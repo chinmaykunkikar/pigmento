@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { env, pipeline, RawImage } from "@huggingface/transformers";
+import type { pipeline, RawImage } from "@huggingface/transformers";
 import sharp from "sharp";
 
 const MODEL_ID = "Xenova/clip-vit-base-patch32";
@@ -9,11 +9,19 @@ const MODEL_REVISION = "d15189d7028b43f1d3e65039190477f6af591c2a";
 const RASTER_PX = 256;
 const NEAR_WHITE = 250;
 
-env.cacheDir = join(process.cwd(), "data", "models");
-// opt-in escape hatch for offline installs with pre-seeded model dirs
-env.allowLocalModels = process.env.PIKA_ALLOW_LOCAL_MODELS === "1";
-
 export type ClipImageEncoder = Awaited<ReturnType<typeof pipeline<"image-feature-extraction">>>;
+
+// CLIP ships as an optionalDependency (E1): load @huggingface/transformers
+// lazily so a missing or failed native build degrades (embedImage rejects, and
+// callers fall back to phash/name) instead of bricking every module that only
+// wants cosine()/serialize from this file.
+async function loadTransformers() {
+  const mod = await import("@huggingface/transformers");
+  mod.env.cacheDir = join(process.cwd(), "data", "models");
+  // opt-in escape hatch for offline installs with pre-seeded model dirs
+  mod.env.allowLocalModels = process.env.PIKA_ALLOW_LOCAL_MODELS === "1";
+  return mod;
+}
 
 const ENCODER_KEY = Symbol.for("pika.clipEncoder");
 
@@ -25,13 +33,17 @@ export function getClipImageEncoder(): Promise<ClipImageEncoder> {
   const g = globalThis as unknown as EncoderStore;
   let promise = g[ENCODER_KEY];
   if (!promise) {
-    promise = pipeline("image-feature-extraction", MODEL_ID, {
-      dtype: "q8",
-      revision: MODEL_REVISION,
-    }).catch((err) => {
-      g[ENCODER_KEY] = undefined;
-      throw err;
-    });
+    promise = loadTransformers()
+      .then((mod) =>
+        mod.pipeline("image-feature-extraction", MODEL_ID, {
+          dtype: "q8",
+          revision: MODEL_REVISION,
+        }),
+      )
+      .catch((err) => {
+        g[ENCODER_KEY] = undefined;
+        throw err;
+      });
     g[ENCODER_KEY] = promise;
   }
   return promise;
@@ -55,6 +67,7 @@ async function rasterize(
   buf: Buffer,
   ext: string,
 ): Promise<{ image: RawImage; whiteFraction: number }> {
+  const { RawImage } = await loadTransformers();
   const input = ext === "svg" ? sharp(buf, { density: 96 }) : sharp(buf);
   const { data, info } = await input
     .flatten({ background: "#ffffff" })
