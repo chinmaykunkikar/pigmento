@@ -2,7 +2,7 @@ import { copyFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { eq } from "drizzle-orm";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConfigSchema } from "@/lib/config/schema";
 import * as schema from "@/lib/db/schema";
 import { FailureLog } from "@/lib/indexer/attempt";
@@ -205,5 +205,45 @@ describe("runIndexer lifecycle", () => {
       expect(hashStage.failures?.some((f) => f.file === "garbage.svg")).toBe(true);
       expect(hashStage.detail).toContain("failed");
     }
+  });
+});
+
+const looksLikeProgress = (chunk: unknown): boolean =>
+  typeof chunk === "string" && (chunk.includes("[scan") || chunk.startsWith("done"));
+
+describe("progress writer injection (MCP/check stdout safety)", () => {
+  it("routes stage progress to an injected writer, never to stdout", async () => {
+    const t = makeDb();
+    const dir = makeSourceDir(["house.svg"]);
+    const source = seedSource(t.db, dir);
+
+    const captured: string[] = [];
+    const stdoutSpy = vi.spyOn(process.stdout, "write");
+    await runIndexer({
+      db: t.db,
+      source,
+      config,
+      full: true,
+      progressWrite: (s) => captured.push(s),
+    });
+    const leaked = stdoutSpy.mock.calls.some(([chunk]) => looksLikeProgress(chunk));
+    stdoutSpy.mockRestore();
+
+    expect(captured.some((s) => s.includes("[scan"))).toBe(true);
+    expect(captured.some((s) => s.startsWith("done"))).toBe(true);
+    expect(leaked).toBe(false);
+  });
+
+  it("falls back to stdout when no writer is injected (CLI default)", async () => {
+    const t = makeDb();
+    const dir = makeSourceDir(["house.svg"]);
+    const source = seedSource(t.db, dir);
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runIndexer({ db: t.db, source, config, full: true });
+    const wroteProgress = stdoutSpy.mock.calls.some(([chunk]) => looksLikeProgress(chunk));
+    stdoutSpy.mockRestore();
+
+    expect(wroteProgress).toBe(true);
   });
 });

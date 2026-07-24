@@ -42,6 +42,10 @@ export type IndexerOptions = {
   source: Source;
   config: Config;
   full: boolean;
+  // where stage progress prints; defaults to stdout (CLI). The MCP/check paths
+  // pass a silent writer so cold-start progress never lands on the JSON-RPC or
+  // --json stdout stream.
+  progressWrite?: (s: string) => void;
 };
 
 // Acquires the cross-process index_runs sentinel synchronously (throws
@@ -80,7 +84,7 @@ async function assertRootExists(root: string): Promise<void> {
 
 async function runStages(opts: IndexerOptions): Promise<void> {
   const { db, source, config, full } = opts;
-  const progress = new Progress();
+  const progress = new Progress(opts.progressWrite);
   const sourceId = source.id;
   const runStart = Date.now();
 

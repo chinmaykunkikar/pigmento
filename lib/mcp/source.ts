@@ -10,7 +10,19 @@ import { runIndexer } from "@/lib/indexer/run";
 import { RunActiveError } from "@/lib/indexer/run-registry";
 import { repoRootOf } from "./repo";
 
-const MIGRATIONS_FOLDER = pathResolve(import.meta.dirname, "../db/migrations");
+// The CLI bundle (scripts/build-cli.mjs) copies migrations to dist/migrations
+// and sets this flag; bundling flattens the source tree so the dev-relative
+// "../db/migrations" no longer points anywhere. In dev (tsx) the flag is absent.
+declare const __PIGMENTO_BUNDLED__: boolean | undefined;
+
+function migrationsFolder(): string {
+  if (typeof __PIGMENTO_BUNDLED__ === "undefined") {
+    return pathResolve(import.meta.dirname, "../db/migrations");
+  }
+  return pathResolve(import.meta.dirname, "migrations");
+}
+
+const MIGRATIONS_FOLDER = migrationsFolder();
 const migrated = new Set<string>();
 const inflight = new Map<string, Promise<void>>();
 const configCache = new Map<string, Config>();
@@ -121,7 +133,9 @@ export async function doIndex(
   };
   bus.on("event", listener);
   try {
-    await runIndexer({ db, source, config, full: false });
+    // stdout is the MCP JSON-RPC stream here; keep indexer progress off it
+    // (progress reaches the client via onProgress -> notifications/progress).
+    await runIndexer({ db, source, config, full: false, progressWrite: () => {} });
   } catch (e) {
     if (e instanceof RunActiveError) {
       throw new NotIndexedError(
