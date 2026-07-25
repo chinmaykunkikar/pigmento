@@ -103,7 +103,7 @@ export async function validateRename(input: ValidateInput): Promise<PreflightRes
     });
   }
 
-  if (newName && newName.includes("/")) {
+  if (newName?.includes("/")) {
     conflicts.push({
       code: "ILLEGAL_CHAR",
       message: "Name cannot contain path separators.",
