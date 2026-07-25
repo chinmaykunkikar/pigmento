@@ -72,7 +72,7 @@ describe("type extraction — family literal guard (dogfood gate)", () => {
     );
     expect(families("const s = { fontFamily: t.typography.fontFamily };", "ts")).toHaveLength(0);
     expect(families("interface S { fontFamily: string }", "ts")).toHaveLength(0);
-    expect(families("const s = { fontFamily: `var(${x})` };", "ts")).toHaveLength(0);
+    expect(families(`const s = { fontFamily: \`var(\${x})\` };`, "ts")).toHaveLength(0);
   });
 
   it("keeps a real quoted JS family", () => {

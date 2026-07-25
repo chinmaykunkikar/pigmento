@@ -77,7 +77,7 @@ async function executeRun(opts: IndexerOptions, runId: number): Promise<void> {
 
 async function assertRootExists(root: string): Promise<void> {
   const st = await stat(root).catch(() => null);
-  if (!st || !st.isDirectory()) {
+  if (!st?.isDirectory()) {
     throw new Error(`source root is missing or not a directory: ${root}`);
   }
 }
