@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
+import { DM_Mono, Hanken_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import Providers from "./providers";
 import "./globals.css";
+
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-hanken",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  variable: "--font-dm-mono",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -30,7 +44,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${hanken.variable} ${dmMono.variable}`}>
       <body className="bg-bg text-text font-sans">
         <Providers>{children}</Providers>
       </body>

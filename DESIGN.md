@@ -6,29 +6,60 @@ Engineering-scoped rules (imports, file size, commands) live in `CLAUDE.md`. Thi
 
 ---
 
+## 0. R2 direction (locked 2026-07-25)
+
+The R2 reskin adopts **Instrument White**, replacing the warm-paper "tool-grade" register. The design-language sections below (Voice, Principles, Tokens, accent rule, Accessibility, restated) have been rewritten to Instrument White as of the token-foundation slice. The IA-dependent sections (Surface inventory, Keyboard) still describe the pre-R2 single-shell app and are rewritten with the IA-restructure slice. Where anything below still conflicts with this block, this block wins.
+
+**Aesthetic base.** Minimal white, modern, finished. Near-white surfaces, soft-shadow depth instead of warm-paper borders, tight geometric sans, one restrained cool accent, tabular mono for numerics. A restrained ascii/dither signature (dithered coverage ramps, dotted hairlines, mono readouts) is the only brand texture. Light mode only.
+
+**Minimalism is a hard constraint, not a preference.** The default state of every surface is calm and sparse. Show the answer, not the instrument panel. Depth, controls, and dense data are opt-in, revealed when the user reaches for them, never all on screen at once. No cockpit. If a surface feels busy, that is a bug, not density done right. This deliberately corrects the Pika mistake of putting everything in the user's face at once.
+
+**Progressive disclosure is the default interaction model.** A surface opens showing the single most important thing. Secondary data, filters, and tools appear on intent (hover, click, expand, a "go deeper" affordance), not on load. Prefer one clear number or object over a grid of everything.
+
+**Editorial as seasoning, never the dish.** Editorial confidence (a large number, one confident line of copy, generous air) is allowed as an accent on the pushed surfaces (poster, first-run, overview home). It must never tip a working surface into the full magazine register. When in doubt, quieter.
+
+**Weighting.** Value is received without asking; the browsable app is the "go deeper" destination, not the front door. Spend the visual confidence on the pushed surfaces (poster, first-run) and keep the app itself quiet.
+
+### Locked R2 decisions (appended as forks resolve)
+
+- **Aesthetic (2026-07-25):** Instrument White, per the block above.
+- **Type (2026-07-25):** `Hanken Grotesk` (sans, UI and display) + `DM Mono` (mono, the signature texture: paths, hashes, counts, coverage ramps, drift readouts). Two faces only; hierarchy comes from weight and size, not a third display face. Scale register: **Balanced** (body 14px, hero number 60px, comfortable spacing), calm by default without going sparse. Pushed surfaces (poster, first-run, overview hero) scale up for air. Exact `@theme` token values land in the build slice.
+- **Color (2026-07-25):** Monochrome / ink. The product chrome is achromatic: pure-neutral (zinc-range) surfaces and an **ink accent** (near-black, working value `#18181b`) that carries the single "you are here / do this" role (selection, primary action, focus ring, mark dot, coverage ramp). **This reframes the pre-R2 accent rule: the accent is no longer a brand hue.** The only chroma on screen is the data: the repo's extracted palette swatches and the functional semantic families (`ok`/`warn`/`danger`/`info`/`cluster`/`citron`), which stay colored because they are signals. Achromatic chrome maximizes contrast for the colors the tool exists to reveal, and removes the old accent-vs-`info` overlap. Working neutrals from the demo (surface `#fff`, bg `#fafafa`, sunken `#f0f0f1`, ink `#18181b`, text-2 `#71717a`, text-3 `#a1a1aa`, hairline `#ececed`); semantic hexes and every color-on-color pair finalized to WCAG AA in the build slice. Whether the poster and wordmark carry any brand hue is revisited in the poster fork; the app itself stays achromatic.
+- **Motion (2026-07-25):** Crisp base. Fast, functional, confirming: hover/press 120-170ms, entrance 170-200ms, ease-out; exits shorter than entrances. No decorative motion in the working views. One reserved **signature beat**: after an index completes, the overview hero number counts up (0 to coverage %) and the coverage ramp fills block by block. The signature is hero-only, never sprayed across the UI. No `prefers-reduced-motion` in v1 (A8). Easing and duration tokens finalized in the build slice.
+- **Overview home layout (2026-07-25):** Identity band + peer rows. Top band: the brand palette as the identity hero with a one-line coverage verdict (the coverage number plus "the rest are literals sitting next to the tokens they should use"). Below: three calm kind rows (Colors, Typography, Images), each showing its headline metrics and a go-deeper affordance; the rows are the progressive-disclosure entry into each kind view. Poster download sits in the top bar. The three kinds read as peers with the palette as the shared identity. This is the indexed `/`; the never-indexed first-run is its own fork.
+- **Colors view + insight-kind pattern (2026-07-25):** Palette-first browser. A coverage strip on top (the number, the ramp, tokenized/literal/unresolved counts); the palette as a grid of copyable color cards (swatch, hex, usage count, distinct files, click-to-copy with toast) as the main content; drift as a calm section below (top near-misses with suggested `var(--token)` and file:line, "go deeper" to the full ranked list). Progressive disclosure: a color opens per-color detail; the drift list expands. **This is the pattern the Typography view inherits**, with a type specimen in place of the palette grid and mixed-spelling/type drift in place of color drift.
+- **Typography view (2026-07-25):** Inherits the insight-kind frame (coverage strip on top, drift section below). Content zone is a **scale ladder**: the detected sizes rendered at their actual sizes, largest to smallest, each annotated with size / weight / usage, read as a specimen sheet rather than a label list. Families and weights show as chips in the coverage strip. The clean-verdict state (delight pack) replaces the drift section when there are zero mixed spellings. The per-kind content zone is allowed to differ from Colors (scale ladder vs palette grid) because the data differs; the shared frame (coverage strip, drift-below, monochrome, copy affordances) keeps the kinds a family.
+- **Images view (2026-07-25):** Stat-strip navigation. A summary strip whose actionable counts (assets, duplicate groups, unused, clusters, variant groups) double as navigation into the preserved sub-views (grid, duplicates, clusters, variants, match); the asset grid is the default content. Issue counts (duplicates, unused) render in the danger family to draw the eye. Match is a small tool / drop-target in the strip, not a count. Reskinned tiles: a faint neutral checker behind the asset preview (which keeps its own color, chrome stays achromatic), mono filename, dims and size, ref count (`0 refs` in danger), colorblind-safe badges (text plus color) for duplicate, cluster, and zero-ref. Completes the three peer kinds.
+- **First-run home (A7) (2026-07-25):** Promise + ghosted overview. The never-indexed state IS the overview home, ghosted: dashed palette placeholders under the "Design identity" label, a promise line ("Point pigmento at a repo. See the design system it actually has."), and the three add-source entries (drag folder, paste path, CLI). On index it morphs in place, no screen swap: swatches resolve to the real palette (staggered), the promise becomes the coverage verdict with the count-up signature, the entry block collapses and the three peer rows expand. **Collapse/expand animates `grid-template-rows` (0fr↔1fr) with an overflow-hidden inner, never `max-height`/`padding`** (avoids layout thrash). Structural continuity between the empty and populated states is the whole point of the morph.
+- **Poster (CE-1) (2026-07-25):** Palette-dominant. Seven full-bleed color bands (the repo's brand palette, each labeled with its hex) fill the card, with a single ink bar carrying the mark dot, repo name, coverage plus drift count, and the `pigmento` wordmark. Maximum color impact and stop-scroll value; doubles as a copyable palette reference. The ground stays monochrome (the ink bar) so the palette is the only color, consistent with the app. Server-composed via `sharp` at OG dimensions (1200x630), one-click download from the overview, and emitted by the CLI for the launch-kit famous-repo posters. The editorial-ink and receipt-card compositions are candidates for additional CLI formats later, not the primary.
+
+**All seven R2 design forks are now resolved (2026-07-25). This block is the design brief; the build slices below implement it and then this file's sections 1-13 get rewritten to match.**
+
+---
+
 ## 1. Voice
 
-Tool-grade. Warm-neutral. Single accent. The interface whispers; the data and the relationships between files are the content.
+Instrument White. Minimal, modern, finished. The chrome is quiet and achromatic; the only color on screen is the data the tool exists to reveal. The interface shows the answer, not the instrument panel.
 
-Target user: design-system engineers cleaning up an icon library, frontend leads auditing asset bloat in a monorepo, solo developers asking "is there already an icon for this?" before adding another. They sit in front of this screen for extended stretches during cleanup work.
+Target user: design-system engineers cleaning up a token set, frontend leads auditing drift across a monorepo, solo developers asking "what does our design system actually look like?" They reach pigmento to *receive* their design identity, then go deeper only when they choose to.
 
-Emotional goal across a long session: **clear, focused, satisfying**. The user can see progress. Every action has a definite outcome. Nothing surprises them.
+Emotional goal: **calm, clear, confident**. A surface opens showing one important thing. Progress is visible, every action has a definite outcome, and nothing is on their face that they did not ask to see.
 
-What pika is **not**:
-- Not SaaS marketing. No hero type, no gradient CTAs, no feature grids.
-- Not Figma-chrome. No dark default, no floating purple accents.
-- Not Storybook-doc. No centred prose.
-- Not consumer-friendly. No pastel, no emoji, no illustrations.
+What pigmento is **not**:
+- Not a cockpit. No wall of controls, no everything-at-once. Depth is opt-in. (This is the Pika mistake, corrected.)
+- Not SaaS-marketing filler. Editorial confidence is spent only on the pushed surfaces (poster, first-run, overview hero), never on a working view.
+- Not warm or decorative. No paper texture, no brand-hue accent, no gradients, no illustrations, no emoji.
 
 ---
 
 ## 2. Principles
 
-1. **Tokens first, brackets last.** If a value isn't in `@theme`, add it to `@theme` before using it.
-2. **Chrome whispers, data speaks.** Fixed heights, hairline borders, mono for structure, sans for narrative.
-3. **The accent rule is inviolable.** `--color-accent` appears only on selection, single primary action, and focus.
-4. **Precomputed, never lazy.** No spinners past initial load. Views read indexed DB shape.
-5. **Information density beats prettiness.** Tighter rows, mono-aligned numerics, hairline dividers. Users spend hours here.
+1. **Minimalism is a hard constraint.** The default state of every surface is calm and sparse. If a surface feels busy, that is a bug. Show the answer; reveal depth on intent.
+2. **Progressive disclosure is the interaction model.** A surface opens on the single most important thing. Secondary data, filters, and tools appear on hover, click, or a "go deeper" affordance, never on load.
+3. **Tokens first, brackets last.** If a value isn't in `@theme`, add it to `@theme` before using it.
+4. **The accent is ink.** `--color-accent` (`#18181b`) is the only "you are here / do this" signal: selection, single primary action, focus, mark dot, coverage ramp. The only chroma on screen is the data (palette swatches) and the functional semantic families.
+5. **Precomputed, never lazy.** No spinners past initial load. Views read indexed DB shape.
+6. **Weight the pushed surfaces.** Value is received without asking. Spend visual confidence on the poster and first-run; keep the browsable app quiet.
 
 ---
 
@@ -36,54 +67,56 @@ What pika is **not**:
 
 ### Color
 
+The chrome is achromatic (a pure zinc ramp). The only chroma on screen is the data: the repo's extracted palette swatches and the functional semantic families.
+
 **Surfaces — depth stack** (always move inward as UI nests deeper; never skip levels)
 
 | Token | Hex | Use |
 |---|---|---|
-| `--color-bg` | `#f5f3ef` | App shell, outermost layer behind all panels |
-| `--color-surface` | `#faf9f6` | Panel face — sidebars, cards, drawers, modals |
-| `--color-sunken` | `#edeae4` | Recessed chrome inside a surface — toolbar, input bg, sidebar header |
-| `--color-sunken-2` | `#e4e1da` | Deepest well — asset tile bg, checker base, nested inset |
-| `--color-hover` | `#e8e5df` | Universal hover overlay for rows, tiles, tree nodes |
+| `--color-bg` | `#fafafa` | App shell, outermost layer behind all panels |
+| `--color-surface` | `#ffffff` | Panel face — sidebars, cards, drawers, modals |
+| `--color-sunken` | `#f0f0f1` | Recessed chrome inside a surface — toolbar, input bg, sidebar header |
+| `--color-sunken-2` | `#e4e4e7` | Deepest well — asset tile bg, nested inset, selection tint |
+| `--color-hover` | `#f4f4f5` | Universal hover overlay for rows, tiles, tree nodes |
 
 **Text — four ink weights** (use in order; `text-4` is ghost ink, disabled/empty-state only)
 
 | Token | Hex | Use |
 |---|---|---|
-| `--color-text` | `#18160f` | Primary — filenames, labels, body |
-| `--color-text-2` | `#524f48` | Secondary — file paths, asset type, descriptions |
-| `--color-text-3` | `#878480` | Tertiary — timestamps, counts, placeholders, kbd hints |
-| `--color-text-4` | `#b0ada6` | Ghost — disabled fields, empty-state hints |
+| `--color-text` | `#18181b` | Primary — filenames, labels, body |
+| `--color-text-2` | `#52525b` | Secondary — file paths, asset type, descriptions |
+| `--color-text-3` | `#71717a` | Tertiary — timestamps, counts, placeholders, kbd hints |
+| `--color-text-4` | `#a1a1aa` | Ghost — disabled fields, empty-state hints |
 
-**Borders — no shadows; borders carry separation**
-
-| Token | Hex | Use |
-|---|---|---|
-| `--color-border` | `#e0ddd8` | Hairline — panel edges, row dividers, card outlines |
-| `--color-border-2` | `#ccc9c2` | Strong — focus rings, drag targets, active selection |
-| `--color-divider` | `#eae7e2` | Subtle internal — section separator inside a card |
-
-**Primary accent — Slate Teal** (the single "you are here / do this" color — selection, primary CTA, focus ring, mark dot)
+**Borders — hairlines** (R2 pairs these with soft elevation shadows below; borders no longer carry all separation alone)
 
 | Token | Hex | Use |
 |---|---|---|
-| `--color-accent` | `#1c7a74` | Base — fill for active nav, primary CTA, source-indicator dot, mark dot, focus ring |
-| `--color-accent-hover` | `#166860` | Hover/pressed of any accent-filled element |
-| `--color-accent-bg` | `#e6f4f3` | Tinted background for selected row/tile (paired with `accent-text`) |
-| `--color-accent-text` | `#124f4b` | Text on `accent-bg` (passes AA on white) |
+| `--color-border` | `#ececed` | Hairline — panel edges, row dividers, card outlines |
+| `--color-border-2` | `#d4d4d8` | Strong — focus rings, drag targets, active selection |
+| `--color-divider` | `#f4f4f5` | Subtle internal — section separator inside a card |
+
+**Accent — ink** (the single "you are here / do this" color; achromatic, no longer a brand hue)
+
+| Token | Hex | Use |
+|---|---|---|
+| `--color-accent` | `#18181b` | Base — active nav, primary CTA, source-indicator dot, mark dot, focus ring, coverage ramp |
+| `--color-accent-hover` | `#09090b` | Hover/pressed of any accent-filled element |
+| `--color-accent-bg` | `#e4e4e7` | Tinted selection fill (paired with `accent-text` plus an ink edge). Same value as `sunken-2`: selection is a whisper fill, not a loud tint |
+| `--color-accent-text` | `#18181b` | Text on `accent-bg` |
 | `--color-on-accent` | `#ffffff` | Text on `accent` base (e.g. primary button label) |
 
-**Semantic — one color per state.** Never mix roles. Each family has `base / bg / text` slots:
+**Semantic — one color per state.** Never mix roles. Each family has `base / bg / text` slots, tuned to WCAG AA:
 
 | Family | base / bg / text | Means |
 |---|---|---|
-| **ok** | `#2d8a52` / `#eaf5ee` / `#1d5c36` | Success, ready, safe — daemon ready, scan done, success toast |
-| **warn** | `#a07800` / `#faf4e0` / `#6b5000` | Pending, stale, needs attention — DROPPED chip, queued items, stale index. Use as text/icon on `warn-bg`, never solid fill |
-| **danger** | `#b03a2e` / `#fbeae8` / `#7a2820` | Destructive, unused, irreversible — `0 refs` chip, delete, CANONICAL marker on dupes, errors |
-| **info** | `#3b6cd8` / `#eef3fe` / `#2a53b0` | Match, preview, external link — Match tab highlight, "Preview migration", info callouts. Teal = "do this", blue = "look at this" — never use info for primary nav |
-| **cluster** | `#7a4ad9` / `#f2edfc` / `#522fa0` | Grouping/relatedness — CLUSTER chip, grouped-view cluster count, cluster-membership indicator. Never as a generic accent |
+| **ok** | `#15803d` / `#dcfce7` / `#166534` | Success, ready, safe — daemon ready, scan done, success toast |
+| **warn** | `#b45309` / `#fef3c7` / `#92400e` | Pending, stale, needs attention — DROPPED chip, queued items, stale index. Use as text/icon on `warn-bg`, never solid fill |
+| **danger** | `#dc2626` / `#fee2e2` / `#991b1b` | Destructive, unused, irreversible — `0 refs` chip, delete, CANONICAL marker on dupes, errors |
+| **info** | `#2563eb` / `#dbeafe` / `#1e40af` | Match, preview, external link — Match tab highlight, "Preview migration", info callouts. Ink = "do this", blue = "look at this" — never use info for primary nav |
+| **cluster** | `#7c3aed` / `#ede9fe` / `#5b21b6` | Grouping/relatedness — CLUSTER chip, grouped-view cluster count, cluster-membership indicator. Never as a generic accent |
 
-**Citron — quantity chip only** (raw "here is a number you should see" signal — not "good", not "bad")
+**Citron — quantity chip only** (raw "here is a number you should see" signal — not "good", not "bad"; carried over from the pre-R2 palette unchanged)
 
 | Token | Hex | Use |
 |---|---|---|
@@ -95,54 +128,75 @@ What pika is **not**:
 
 | Token | Hex | Use |
 |---|---|---|
-| `--color-checker-a/-b` | `#ffffff` / `#f0eeea` | Asset-preview transparency checker. Infrastructure only — never reuse |
-| `--color-overlay` | `rgba(20,20,30,0.2)` | Dialog/drawer scrim |
+| `--color-checker-a/-b` | `#ffffff` / `#f1f1f2` | Asset-preview transparency checker. Infrastructure only — never reuse |
+| `--color-preview-dark` | `#18181b` | Solid ground for white / light-stroke assets that vanish on the checker |
+| `--color-overlay` | `rgba(24,24,27,0.4)` | Dialog/drawer scrim |
 
-Contrast floor: WCAG AA (4.5:1 text, 3:1 UI). Every new color-on-color pair must be verified before shipping.
+Contrast floor: WCAG AA (4.5:1 text, 3:1 UI). Every new color-on-color pair must be verified before shipping. `text-3` and `text-4` are for tertiary/ghost roles (timestamps, placeholders, disabled) and are not held to the 4.5:1 body-text floor; any count or label a user must read uses `text-2` or darker.
 
 ### Type
 
-Inter for UI. JetBrains Mono for paths, hashes, counts, kbd, and anything structural.
+Hanken Grotesk for UI and display. DM Mono for paths, hashes, counts, coverage ramps, drift readouts, kbd, and anything structural (the signature texture). Two faces only; hierarchy comes from weight and size, not a third display face. Loaded via `next/font` in `app/layout.tsx` (`--font-hanken` / `--font-dm-mono`), referenced by `--font-sans` / `--font-mono` in `@theme`.
+
+Scale register: **Balanced** — body 14px, hero number 60px, calm by default without going sparse.
 
 | Token | Size | LH | Weight | Tracking | Use |
 |---|---|---|---|---|---|
-| `text-3xs` | 9px | 12 | 500 | — | Tiny labels (badges) |
-| `text-2xs` | 10px | 13 | 500 | — | Meta (kbd caption) |
-| `text-xs` | 11px | 14 | 450 | — | Captions, table-meta, mono paths |
-| `text-sm` | 12px | 16 | 450 | — | UI default |
-| `text-base` | 13px | 18 | 450 | -0.05px | Body default |
-| `text-md` | 14px | 20 | 500 | -0.1px | Emphasized body, section labels |
-| `text-lg` | 16px | 22 | 550 | -0.2px | Subheaders |
-| `text-xl` | 20px | 26 | 600 | -0.3px | Page titles |
+| `text-3xs` | 10px | 13 | 500 | — | Tiny labels (badges) |
+| `text-2xs` | 11px | 14 | 500 | — | Meta (kbd caption) |
+| `text-xs` | 12px | 16 | 500 | — | Captions, table-meta, mono paths |
+| `text-sm` | 13px | 18 | 450 | — | Dense UI |
+| `text-base` | 14px | 21 | 400 | -0.06px | Body default |
+| `text-md` | 15px | 22 | 500 | -0.1px | Emphasized body, section labels |
+| `text-lg` | 18px | 24 | 600 | -0.15px | Subheaders |
+| `text-xl` | 22px | 28 | 600 | -0.25px | Page titles |
+| `text-2xl` | 30px | 34 | 600 | -0.4px | Section hero |
+| `text-3xl` | 40px | 42 | 600 | -0.6px | Overview identity display |
+| `text-hero` | 60px | 58 | 600 | -0.8px | Pushed-surface count-up, poster |
 
 Numeric columns always use `tabular-nums`.
 
 ### Radius
 
+R2 grows corners toward the finished, modern feel.
+
 | Token | px | Use |
 |---|---|---|
-| `rounded-xs` | 2px | Pips, histogram bars, badges |
-| `rounded-sm` | 3px | Default controls, cards |
-| `rounded-md` | 4px | Floating pills (ActionBar) |
-| `rounded-lg` | 6px | Large overlays |
+| `rounded-xs` | 4px | Badges, small chips, histogram bars |
+| `rounded-sm` | 6px | Default controls, inputs |
+| `rounded-md` | 8px | Cards, tiles |
+| `rounded-lg` | 12px | Panels, drawers, dialogs, posters |
 
-### Shadows (utilities: `shadow-drawer`, `shadow-floating`, `shadow-tile-selected`, `shadow-variant-selected`)
+Pills use the built-in `rounded-full`.
 
-Only functional shadows. No decorative drop-shadows anywhere.
+### Shadows
 
-**Exception — drawer + floating shadows MUST stay inline `style={{ boxShadow: "var(--shadow-drawer)" }}`.** `DetailDrawer`, `PlanDrawer`, and `ActionBar` each need inline shadow because it forces the element into its own compositing layer. Without that layer promotion, Chrome breaks the CSS `translate` property on sibling absolute-positioned elements during transitions — the second drawer's `translate-x-full` silently fails to apply and it renders visibly on screen. The other shadow utilities (`shadow-tile-selected`, `shadow-variant-selected`) are fine as classNames because those elements aren't siblings competing for the same compositing layer.
+R2 uses **soft-shadow depth**. Neutral (zinc) shadows only, never warm, never colored. Borders still do close-range separation (hairlines between rows); shadows carry elevation (a panel sitting above the page). This replaces the pre-R2 "no elevation shadows; borders carry everything" rule.
+
+| Utility | Use |
+|---|---|
+| `shadow-xs` | Chips, buttons — a 1px lift |
+| `shadow-sm` | Cards, tiles at rest |
+| `shadow-md` | Raised panels, popovers, dropdowns |
+| `shadow-lg` | Drawers, dialogs, floating pills |
+
+Functional shadows (`shadow-drawer`, `shadow-floating`, `shadow-tile-selected`, `shadow-variant-selected`) remain for their specific surfaces; the selection shadows are now ink.
+
+**Exception — drawer + floating shadows MUST stay inline `style={{ boxShadow: "var(--shadow-drawer)" }}`.** `DetailDrawer`, `PlanDrawer`, and `ActionBar` each need inline shadow because it forces the element into its own compositing layer. Without that layer promotion, Chrome breaks the CSS `translate` property on sibling absolute-positioned elements during transitions — the second drawer's `translate-x-full` silently fails to apply and it renders visibly on screen. Inline `style` may reference the new tokens via `var(--shadow-drawer)`; it stays inline (not a className) to keep the compositing-layer promotion. The other shadow utilities (`shadow-tile-selected`, `shadow-variant-selected`) are fine as classNames because those elements aren't siblings competing for the same compositing layer.
 
 ### Motion
 
-Easing: `--ease-out-quart` (general), `--ease-out-quint` (drawers), `--ease-out-expo` (overlay entry).
+**Crisp base.** Fast, functional, confirming. Ease-out; exits shorter than entrances.
 
-Durations by role:
-- Hover/press: 120–160ms, `ease-out-quart`
-- Entrance (overlay, drawer): 180–220ms, `ease-out-expo` / `ease-out-quint`
-- Exit: shorter than entrance (160ms typical)
-- Success flash: 220ms, `flash-highlight` keyframe
+Shared curves: `--ease-out-quart` (general), `--ease-out-quint` (drawers), `--ease-out-expo` (overlay entry). Durations live on the components:
+- Hover/press: 120–170ms, `ease-out-quart`
+- Entrance (overlay, drawer, row): 170–200ms, `ease-out-expo` / `ease-out-quint`
+- Exit: shorter than entrance (~120ms)
+- Success flash: 200ms, `flash-highlight` keyframe
 
-Respect `prefers-reduced-motion` (already wired in `globals.css`). Durations drop to 0.01ms.
+No decorative motion in the working views. **One signature beat**, hero-only: after an index completes, the overview hero number counts up (0 → coverage %) and the coverage ramp fills block by block. Never sprayed across the UI.
+
+Per A8, v1 ships **no bespoke `prefers-reduced-motion` variants**. The global `@media (prefers-reduced-motion: reduce)` block in `globals.css` is kept as a free OS-respecting safety net that zeroes CSS transition/animation durations; the signature count-up is JS-driven (rAF) and short, so it plays regardless.
 
 ### Iconography
 
@@ -190,18 +244,18 @@ If a design wants something off this scale, escalate before padding.
 
 ## 5. The accent rule
 
-`--color-accent` (`#1c7a74`, Slate Teal) appears ONLY on:
+`--color-accent` (`#18181b`, ink) appears ONLY on:
 1. Currently selected items (tile outline, tree row left bar, tab underline, segmented-control active, radio dot)
 2. The single primary action on any given screen — fill `bg-accent` + `text-on-accent` (white)
 3. Focus rings (`focus-visible:ring-1 ring-accent/40`)
-4. The dot in the pika mark and source-indicator dots
+4. The dot in the pika mark, source-indicator dots, and the coverage-ramp fill
 
 Never as decoration. Never as a hover color (use `accent-hover` for the hover/pressed state of accent-filled elements). Never on an icon unless the icon signals selection. One accent per view, at most.
 
-For selection states where a full-saturation fill is too heavy, pair `bg-accent-bg` with `text-accent-text` (the tinted-row treatment).
+For selection states where a full ink fill is too heavy, pair `bg-accent-bg` (`#e4e4e7`) with `text-accent-text` (the tinted-row treatment) plus an ink edge.
 
-The accent is the only "do this / you are here" signal. Other named families cover other meanings, never overlap:
-- `info` (blue) — observe/preview/links: Match tab, "Preview migration", external link icons. Teal = "do this", blue = "look at this".
+In R2 the accent is ink, not a hue, so it never competes with the data. The only chroma on screen is the extracted palette and the functional semantic families. The accent is the only "do this / you are here" signal. Other named families cover other meanings, never overlap:
+- `info` (blue) — observe/preview/links: Match tab, "Preview migration", external link icons. Ink = "do this", blue = "look at this".
 - `ok` — success/ready (daemon ready, scan done). Never for selection.
 - `warn` — pending/stale (DROPPED chip, stale index). Text/icon on `warn-bg`, never solid fill.
 - `danger` — destructive/unused (`0 refs` chip, delete, CANONICAL marker).
@@ -301,7 +355,7 @@ Every shortcut that is advertised in UI (EmptyState hint strip, CommandPalette h
 - Live regions on async ops: re-index progress → `aria-live="polite"`, error banners → `aria-live="assertive"`.
 - Icon-only buttons always have `aria-label`.
 - Selection state conveyed by *at least two* signals (color + icon OR color + text) — never color alone.
-- Respect `prefers-reduced-motion` (done).
+- Per A8, v1 authors no bespoke reduced-motion variants; the global `prefers-reduced-motion` block stays as an OS-respecting safety net (see § 3 Motion).
 
 ---
 
@@ -327,6 +381,6 @@ Dark mode is a later phase. Don't build a dark token set now, but don't encode a
 
 ## 13. Principles, restated
 
-> Tokens first. Chrome whispers. Accent is sacred. Precomputed, never lazy. Density beats prettiness.
+> Minimal by default. Progressive disclosure. The accent is ink. Precomputed, never lazy. Weight the pushed surfaces.
 
 When a design decision is unclear, consult this file. If the answer isn't here, fix *this file* first, then the code.

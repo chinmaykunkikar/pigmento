@@ -14,24 +14,25 @@ Design-system engineers cleaning up an icon library before shipping a new token 
 
 ### Brand Personality
 
-Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets out of the way, the data and the relationships between files are the content. Emotional goal across a long cleanup session: **clear, focused, satisfying** — the user can see progress, every action has a definite outcome, and nothing surprises them. Visual language is close to a developer IDE or a high-end terminal, not a SaaS dashboard or a consumer productivity app.
+Instrument White: minimal, modern, finished. The chrome is quiet and achromatic; the data is the only color on screen. Emotional goal across a long session: **calm, clear, confident**. A surface opens on one important thing; depth is opt-in, never all on screen at once (the Pika cockpit mistake, corrected). Visual language is a refined modern developer tool, not a warm terminal and not a marketing dashboard.
 
 ### Aesthetic Direction
 
 - **Theme scope:** light mode only for MVP. A dark palette may land as a later phase; do not design-double tokens now, but don't encode assumptions that would block it later either.
-- **Palette** (authoritative in `app/globals.css @theme`): warm paper neutrals across a four-level depth stack (`bg #f5f3ef` → `surface #faf9f6` → `sunken #edeae4` → `sunken-2 #e4e1da`), with `hover #e8e5df` as the universal interactive overlay. Ink in four weights (`text #18160f` → `text-4 #b0ada6`). Borders are hairlines (`border #e0ddd8`, `border-2 #ccc9c2`, `divider #eae7e2`) — there are no elevation shadows in this system; borders carry all separation work.
-- **One accent colour:** Slate Teal `#1c7a74` (with `accent-hover #166860`, `accent-bg #e6f4f3`, `accent-text #124f4b`, `on-accent #ffffff`). Reserved strictly for: currently-selected items, the single primary action on any given screen, the dot in the pika mark, and focus rings. Never decorative, never a hover-only colour, never on an icon unless it signals selection.
-- **Semantic families — one colour per state.** Each has `base / bg / text` slots and exactly one role:
-  - `ok` `#2d8a52` — success, ready, safe (daemon ready, scan complete, success toast). Never use for selection.
-  - `warn` `#a07800` — pending, needs attention, stale (DROPPED chip, queued items, stale index). Use as text/icon on `warn-bg`, never as a solid fill.
-  - `danger` `#b03a2e` — destructive, unused, irreversible (`0 refs` tag, delete actions, CANONICAL marker on duplicate groups, errors).
-  - `info` `#3b6cd8` — match / preview / external links / informational callouts (Match tab highlight, "Preview migration" action). Distinct from accent: teal = "do this", blue = "look at this".
-  - `cluster` `#7a4ad9` — grouping / relatedness only (CLUSTER tag chip, grouped-view cluster count, cluster-membership indicator). Never as a generic accent.
-  - `citron` `#e8ec3a` — high-visibility quantity signal only ("×3 cluster" chip, "312 dupes" status count). Never means "good" or "bad". Always pair fill with `citron-ink #1a1c00` (the only combination that passes contrast). `citron-muted #b8bc00` is the inline-text variant. Chips/badges only — never a primary button, never a full-width background.
-- **Surfaces:** hairlines, not cards. 1px `border-border` between regions. No gradients. No decorative shadows anywhere except the detail drawer's edge shadow.
-- **Type:** Inter for UI, JetBrains Mono for paths, hashes, counts, kbd hints, and anything structural. Per-size line-height, weight, and tracking come from `tokens.jsx` and are wired into `@theme` modifiers (`--text-<size>--line-height` etc.).
-- **Density:** 4px grid everywhere; fixed chrome heights (24/26/28/32 for controls, 24/36/44 for surfaces) are design contracts, not suggestions.
-- **What it is not:** not SaaS-marketing (no hero type, no gradient CTAs, no feature grids), not Figma-chrome (no dark default, no floating purple accents), not Storybook-doc (no centred prose), not consumer-friendly-rounded (no pastel, no emoji, no illustrations).
+- **Minimalism is a hard constraint.** The default state of every surface is calm and sparse. Show the answer, not the instrument panel. Depth, controls, and dense data are opt-in, revealed on intent, never all on screen at once. If a surface feels busy, that is a bug.
+- **Palette** (authoritative in `app/globals.css @theme`): the chrome is achromatic, a pure zinc ramp. Four-level depth stack (`bg #fafafa`, `surface #ffffff`, `sunken #f0f0f1`, `sunken-2 #e4e4e7`) with `hover #f4f4f5` as the universal overlay. Ink in four weights (`text #18181b`, `text-2 #52525b`, `text-3 #71717a`, `text-4 #a1a1aa`). Hairline borders (`border #ececed`, `border-2 #d4d4d8`, `divider #f4f4f5`). R2 pairs hairlines with soft zinc elevation shadows (`shadow-xs/sm/md/lg`); the data's own color is the only chroma.
+- **The accent is ink** `#18181b` (with `accent-hover #09090b`, `accent-bg #e4e4e7`, `accent-text #18181b`, `on-accent #ffffff`). Achromatic, no longer a brand hue. Reserved strictly for: currently-selected items, the single primary action on any given screen, the dot in the pika mark, focus rings, and the coverage-ramp fill. Never decorative, never a hover-only colour, never on an icon unless it signals selection.
+- **Semantic families, one colour per state.** These stay chromatic because they are signals, not decoration. Each has `base / bg / text` slots, tuned to WCAG AA:
+  - `ok` `#15803d` / `#dcfce7` / `#166534`: success, ready, safe (daemon ready, scan complete, success toast). Never use for selection.
+  - `warn` `#b45309` / `#fef3c7` / `#92400e`: pending, needs attention, stale (DROPPED chip, queued items, stale index). Text/icon on `warn-bg`, never a solid fill.
+  - `danger` `#dc2626` / `#fee2e2` / `#991b1b`: destructive, unused, irreversible (`0 refs`, delete, CANONICAL marker on duplicate groups, errors).
+  - `info` `#2563eb` / `#dbeafe` / `#1e40af`: match / preview / external links / callouts (Match tab highlight, "Preview migration"). Ink = "do this", blue = "look at this".
+  - `cluster` `#7c3aed` / `#ede9fe` / `#5b21b6`: grouping / relatedness only (CLUSTER chip, cluster count, cluster-membership indicator). Never as a generic accent.
+  - `citron` `#e8ec3a` (with `citron-ink #1a1c00`, `citron-muted #b8bc00`): high-visibility quantity signal only ("×3 cluster", "312 dupes"), carried over unchanged. Chips/badges only, never a primary button, never a full-width background.
+- **Surfaces:** hairlines plus soft elevation. Borders do close-range separation (rows, cards); `shadow-*` carries elevation (panels, drawers, popovers above the page). No gradients, no warm or colored shadows.
+- **Type:** Hanken Grotesk for UI and display, DM Mono for paths, hashes, counts, coverage ramps, drift readouts, kbd hints, and anything structural. Loaded via `next/font` in `app/layout.tsx`. Balanced scale (body 14px, hero 60px). Per-size line-height, weight, and tracking are wired into `@theme` modifiers (`--text-<size>--line-height` etc.).
+- **Density:** 4px grid everywhere. Calm by default; density is earned inside the data views (grids, drift lists), never forced onto an opening surface.
+- **What it is not:** not a cockpit (no wall of controls, no everything-at-once), not SaaS-marketing filler (editorial confidence only on pushed surfaces), not warm or decorative (no paper texture, no brand-hue accent, no gradients, no emoji, no illustrations).
 
 ### Accessibility
 
@@ -39,11 +40,12 @@ Tool-grade, warm-neutral, single-accent. The interface whispers — chrome gets 
 
 ### Design Principles
 
-1. **Tokens first, brackets last.** Before writing any class that names a colour, size, font, or radius, check whether the token already exists in `@theme`. If it's in `tokens.jsx` but not in `@theme`, fix that first. Bracket-arbitrary values (`text-[10px]`, `max-w-[360px]`) are reserved for genuinely off-scale one-offs and require a reason.
-2. **Chrome whispers, data speaks.** Fixed surface heights, hairline borders, mono for structure, sans for narrative. Never add decoration that competes with the content grid, the reference list, or the duplicate table.
-3. **The accent rule is inviolable.** `--color-accent` (Slate Teal `#1c7a74`) appears only on selection, single primary action, the dot in the mark, and focus. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy. The other named families (`info`, `cluster`, `citron`, `ok`, `warn`, `danger`) each cover exactly one state — never reach for a semantic colour for decoration.
-4. **Precomputed, never lazy.** Every UI query reads from indexed DB shape. If a view needs a number that isn't in the schema yet, extend the indexer first — don't compute-at-request-time. This shows up visually as no spinners past initial load.
-5. **Information density beats prettiness.** Users spend hours in this interface. The right answer is almost always *fit more on screen without sacrificing legibility* — tighter rows, mono-aligned numerics, hairline dividers — not pad-and-card it into a marketing screenshot.
+1. **Minimalism is a hard constraint.** The default state of every surface is calm and sparse. Show the answer, not the instrument panel. If a surface feels busy, that is a bug, not density done right.
+2. **Progressive disclosure.** A surface opens on the single most important thing. Secondary data, filters, and tools appear on hover, click, or a "go deeper" affordance, never on load.
+3. **Tokens first, brackets last.** Before writing any class that names a colour, size, font, or radius, check whether the token already exists in `@theme`. Add it to `@theme` before using it. Bracket-arbitrary values (`text-[10px]`, `max-w-[360px]`) are reserved for genuinely off-scale one-offs and require a reason.
+4. **The accent is ink.** `--color-accent` (`#18181b`) appears only on selection, single primary action, the dot in the mark, focus, and the coverage ramp. If you reach for it for emphasis, you have chosen the wrong component or the wrong hierarchy. The named semantic families (`info`, `cluster`, `citron`, `ok`, `warn`, `danger`) each cover exactly one state; never reach for a semantic colour for decoration. The chrome is achromatic; the only chroma is the data.
+5. **Precomputed, never lazy.** Every UI query reads from indexed DB shape. If a view needs a number that isn't in the schema yet, extend the indexer first, don't compute-at-request-time. This shows up visually as no spinners past initial load.
+6. **Weight the pushed surfaces.** Value is received without asking; the browsable app is the "go deeper" destination. Spend visual confidence on the poster and first-run, keep the app quiet.
 
 ## Stack (verified 2026-04-22; re-check current before any phase start)
 
@@ -90,78 +92,9 @@ Do NOT add: Base Web, styled-components, emotion, styletron, CSS Modules, Vanill
 
 ### Tokens live in `app/globals.css` via `@theme`
 
-```css
-@import "tailwindcss";
+`app/globals.css` is the single source of truth for every color, font, type-size, radius, shadow, and easing token. Do not duplicate hex values in this doc (it used to mirror them and they drifted). Read `@theme` before naming any value. The R2 system is Instrument White: achromatic zinc chrome, ink accent (`#18181b`), Hanken Grotesk + DM Mono, Balanced type scale (body 14px), soft zinc elevation shadows. Full rationale in `DESIGN.md` § 0 and § 3.
 
-@theme {
-  /* colors — generate bg-*, text-*, border-* utilities */
-  /* surfaces: depth stack bg → surface → sunken → sunken-2; hover is universal */
-  --color-bg:           #f5f3ef;
-  --color-surface:      #faf9f6;
-  --color-sunken:       #edeae4;
-  --color-sunken-2:     #e4e1da;
-  --color-hover:        #e8e5df;
-  /* text: four ink weights, use in order */
-  --color-text:         #18160f;
-  --color-text-2:       #524f48;
-  --color-text-3:       #878480;
-  --color-text-4:       #b0ada6;
-  /* borders: hairline / strong / subtle internal */
-  --color-border:       #e0ddd8;
-  --color-border-2:     #ccc9c2;
-  --color-divider:      #eae7e2;
-  /* primary accent — Slate Teal: selection, primary CTA, focus, mark dot */
-  --color-accent:       #1c7a74;
-  --color-accent-hover: #166860;
-  --color-accent-bg:    #e6f4f3;
-  --color-accent-text:  #124f4b;
-  --color-on-accent:    #ffffff;
-  /* semantic — ok / success / ready */
-  --color-ok:           #2d8a52;
-  --color-ok-bg:        #eaf5ee;
-  --color-ok-text:      #1d5c36;
-  /* semantic — warn / pending / stale (text on bg, never solid fill) */
-  --color-warn:         #a07800;
-  --color-warn-bg:      #faf4e0;
-  --color-warn-text:    #6b5000;
-  /* semantic — danger / destructive / 0-refs */
-  --color-danger:       #b03a2e;
-  --color-danger-bg:    #fbeae8;
-  --color-danger-text:  #7a2820;
-  /* semantic — info / match / preview / external links (NOT primary nav) */
-  --color-info:         #3b6cd8;
-  --color-info-bg:      #eef3fe;
-  --color-info-text:    #2a53b0;
-  /* semantic — cluster / grouping (CLUSTER chip only) */
-  --color-cluster:      #7a4ad9;
-  --color-cluster-bg:   #f2edfc;
-  --color-cluster-text: #522fa0;
-  /* semantic — citron / quantity chip only (×3, 312 dupes); pair with citron-ink */
-  --color-citron:       #e8ec3a;
-  --color-citron-ink:   #1a1c00;
-  --color-citron-muted: #b8bc00;
-
-  /* fonts — generate font-sans, font-mono */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
-
-  /* type scale — generate text-xs, text-sm, text-base, text-md, text-lg, text-xl */
-  --text-xs:   11px;
-  --text-sm:   12px;
-  --text-base: 13px;
-  --text-md:   14px;
-  --text-lg:   16px;
-  --text-xl:   20px;
-
-  /* radius — generate rounded-xs, rounded-sm, rounded-md, rounded-lg */
-  --radius-xs: 2px;
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-
-  /* spacing base stays at default 0.25rem (4px); every h-N/w-N/p-N accepts any integer */
-}
-```
+Token families in `@theme`: surfaces (`bg` `surface` `sunken` `sunken-2` `hover`), text (`text` through `text-4`), borders (`border` `border-2` `divider`), ink accent (`accent` `accent-hover` `accent-bg` `accent-text` `on-accent`), semantic (`ok` `warn` `danger` `info` `cluster` `citron`, each with `base` / `-bg` / `-text`), preview (`checker-a/-b` `preview-dark`), fonts (`font-sans` = Hanken Grotesk, `font-mono` = DM Mono, both via `next/font`), type scale (`text-3xs` through `text-hero`), radius (`rounded-xs/sm/md/lg`, plus built-in `rounded-full`), shadows (`shadow-xs/sm/md/lg` plus the functional `shadow-drawer/-floating/-tile-selected/-variant-selected`), easing (`ease-out-quart/-quint/-expo`).
 
 Tokens auto-generate utilities: `bg-surface`, `text-accent`, `border-border`, `font-mono`, `text-base`, `rounded-sm`.
 
@@ -198,10 +131,10 @@ Only reach for `h-[37px]` when the value is genuinely off the 4px grid (almost n
 
 Old `bg-[--x]` syntax is gone. Parens for CSS var references, brackets for literals + inline prop-setting.
 
-### Hairlines, not cards
+### Hairlines + soft elevation
 
-- `border-b border-border` between regions, not rounded cards with shadows
-- No `shadow-*` utilities anywhere except the detail drawer border
+- `border-b border-border` between regions (rows, cards) for close-range separation
+- `shadow-xs/sm/md/lg` for elevation (panels, drawers, popovers sitting above the page); neutral zinc shadows only, never warm or colored
 - No gradients
 
 ### Fixed chrome dimensions
@@ -221,30 +154,31 @@ Never override. If a design looks cramped, the design is wrong and we escalate, 
 
 ### The accent rule
 
-`--color-accent` (`#1c7a74`, Slate Teal) appears ONLY on:
+`--color-accent` (`#18181b`, ink) appears ONLY on:
 1. Currently selected items (tile outline, tree row left bar, tab underline)
-2. Primary action buttons (one per screen) — fill with `bg-accent` + `text-on-accent` (white)
+2. Primary action buttons (one per screen), fill with `bg-accent` + `text-on-accent` (white)
 3. Focus rings
-4. The dot in the pika mark and source-indicator dots
+4. The dot in the pika mark, source-indicator dots, and the coverage-ramp fill
 
 Never as decoration. Never as a hover color (use `accent-hover` for hover/pressed of accent-filled elements). Never on an icon unless it's indicating selection.
 
-For selected rows/tiles where a full-saturation fill is too heavy, use `bg-accent-bg` + `text-accent-text` for a tinted selection state.
+For selected rows/tiles where a full ink fill is too heavy, use `bg-accent-bg` + `text-accent-text` for a tinted selection state plus an ink edge.
 
-The accent is the only "do this / you are here" signal. Other named families cover other meanings, never overlap:
-- `info` (blue) — observe/preview/links: Match tab, "Preview migration", external link icons. Teal = "do this", blue = "look at this".
-- `ok` — success/ready (daemon ready, scan done). Never for selection.
-- `warn` — pending/stale (DROPPED chip, stale index). Text/icon on `warn-bg`, never solid fill.
-- `danger` — destructive/unused (`0 refs` chip, delete actions, CANONICAL marker).
-- `cluster` — grouping only (CLUSTER chip, cluster-membership indicator). Never a generic accent.
-- `citron` — quantity chip only (`×3`, `312 dupes`). Always with `citron-ink`. Chips/badges only — no primary buttons, no full-width fills.
+The accent is ink, so it never competes with the data. It is the only "do this / you are here" signal. Other named families cover other meanings, never overlap:
+- `info` (blue): observe/preview/links: Match tab, "Preview migration", external link icons. Ink = "do this", blue = "look at this".
+- `ok`: success/ready (daemon ready, scan done). Never for selection.
+- `warn`: pending/stale (DROPPED chip, stale index). Text/icon on `warn-bg`, never solid fill.
+- `danger`: destructive/unused (`0 refs` chip, delete actions, CANONICAL marker).
+- `cluster`: grouping only (CLUSTER chip, cluster-membership indicator). Never a generic accent.
+- `citron`: quantity chip only (`×3`, `312 dupes`). Always with `citron-ink`. Chips/badges only, no primary buttons, no full-width fills.
 
 ### Typography
 
-- UI: `font-sans` (Inter)
-- Paths, hashes, counts, code, kbd hints: `font-mono` (JetBrains Mono)
+- UI and display: `font-sans` (Hanken Grotesk)
+- Paths, hashes, counts, code, coverage ramps, drift readouts, kbd hints: `font-mono` (DM Mono)
+- Both loaded via `next/font` in `app/layout.tsx`; `@theme` references `--font-hanken` / `--font-dm-mono`
 - Numeric columns: add `tabular-nums` for alignment
-- Size scale from `@theme`: `text-xs` 11px, `text-sm` 12px, `text-base` 13px, `text-md` 14px, `text-lg` 16px, `text-xl` 20px. Always use these, never arbitrary brackets.
+- Balanced size scale from `@theme` (body `text-base` 14px, up to `text-3xl` 40px and `text-hero` 60px for pushed surfaces). Always use these tokens, never arbitrary brackets.
 
 ### Icons (UI chrome)
 
