@@ -156,3 +156,13 @@ User decision D4.1 (amended): full product rename still stands, but the WORKING 
 **VERDICT:** CEO + ENG CLEARED — ready to implement once the naming workstream lands; design review recommended before Release 2.
 
 NO UNRESOLVED DECISIONS
+
+## Product-positioning reflection (user session, 2026-07-25)
+
+Not a review pass; three decisions from a founder step-back on "who is the user and what is missing." These refine framing and priority, not scope.
+
+1. **Value is received without asking, not fetched.** The winning shape delivers the answer where the user already is (agent tool-call mid-task, PR check, editor surface), never as a localhost app the user must stop and open. npm is one-time plumbing (install once), and the pushed experience lives on top of it. The distinctive human asset surface stays, but as the destination for exploration, not the daily-driver front door. Consequence: weight Release-2 investment toward the pushed surfaces; treat the browsable app as the "go deeper" view, not the primary occasion.
+
+2. **Drop the "95% of repos have no design system" claim; it is unsourced.** It was rhetorical, never measured, and unprovable without a soft proxy (token files / theme customization conflate "uses a component lib" with "has an enforced system"). The defensible, evidenced version is the measured drift number: cohort-live-web indexed at 53.4% color coverage, i.e. even repos that authored tokens are ~half hardcoded literals sitting next to them. Launch copy should lead with "your system is already drifting, here is the receipt," not "you have nothing."
+
+3. **Cold-start latency is the one place the received-without-asking illusion breaks.** MCP does require indexing: the first tool call runs the full synchronous index (same 16-stage engine), amortized to a warm read after. The distinction from the human app is only that it is a hidden side effect of a question, not a step the user initiates. But on a large repo the first call can exceed the harness tool timeout and look broken. This re-confirms, at higher priority under decision 1, the 60s tripwire and the deferred background-auto-index fallback (AM-4) as the first real-use risk to watch.
