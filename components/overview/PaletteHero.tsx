@@ -18,6 +18,7 @@ export function PaletteHero({ palette }: { palette: BrandColor[] | null }) {
               background: c ? c.color : "transparent",
               borderColor: c ? "transparent" : "var(--color-border-2)",
               borderStyle: c ? "solid" : "dashed",
+              boxShadow: c ? "inset 0 0 0 1px rgba(24, 24, 27, 0.08)" : undefined,
               transitionDelay: `${i * 55}ms`,
             }}
             title={
