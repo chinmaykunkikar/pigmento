@@ -7,6 +7,7 @@ export const qk = {
   groups: (kind: string) => ["groups", kind] as const,
   duplicates: (mode: string) => ["duplicates", mode] as const,
   overview: (sourceId: number) => ["overview", sourceId] as const,
+  identity: (sourceId: number) => ["identity", sourceId] as const,
   renamePreflight: (id: number, target: string) =>
     ["asset", id, "rename", "preflight", target] as const,
   styles: ["styles"] as const,

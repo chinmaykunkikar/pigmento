@@ -134,8 +134,11 @@ function usePostIndexRouting(run: IndexerRun | null) {
     }
 
     const justEnded = run?.endedAt && prev && !prev.endedAt;
-    if (justEnded && !useExplorerStore.getState().navManuallySet) {
-      router.push("/");
+    if (justEnded) {
+      useExplorerStore.setState({ signaturePending: true });
+      if (!useExplorerStore.getState().navManuallySet) {
+        router.push("/");
+      }
     }
   }, [run, router]);
 }

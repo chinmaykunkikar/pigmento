@@ -1,6 +1,6 @@
 "use client";
 
-import { PostIndexOverview } from "@/components/overview/PostIndexOverview";
+import { OverviewHome } from "@/components/overview/OverviewHome";
 import { useSelectedSource } from "@/lib/hooks/useSelectedSource";
 
 export default function OverviewPage() {
@@ -9,7 +9,7 @@ export default function OverviewPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <PostIndexOverview
+      <OverviewHome
         sourceId={source.id}
         sourceLabel={source.label}
         lastIndexedAt={source.lastIndexedAt ?? source.createdAt}

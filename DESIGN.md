@@ -315,7 +315,7 @@ Asset kinds are App Router routes; the URL is the source of truth for the active
 | Shell | `components/Shell.tsx` | Shared chrome + gating (loading / error / empty / first-index); mounts Sidebar, Toolbar, drawers; renders the active route |
 | Toolbar | `components/Toolbar.tsx` | Kind nav (route-based), search + filters (Images grid only), Plan, Re-index |
 | Sidebar | `components/Sidebar.tsx` | Source switcher + folder tree |
-| Overview home | `app/page.tsx` → `components/overview/PostIndexOverview.tsx` | `/` — design-identity + next-action list after indexing |
+| Overview home | `app/page.tsx` → `components/overview/OverviewHome.tsx` | `/` — identity band (`IdentityBand`: palette hero + count-up coverage verdict) over Colors/Typography/Images peer rows (`KindRows`). Reads `/api/identity` (`getDesignIdentity`). Count-up signature fires on index completion via `store.signaturePending`. First-run ghost + in-place morph (A7) is a follow-up slice; today first-run still uses `EmptyState` |
 | Images | `app/images/page.tsx` | `/images` — sub-view switch (grid / clusters / match), backed by `store.imagesView` |
 | Colors | `app/colors/page.tsx` | `/colors` — palette browser (placeholder via `KindPlaceholder`; view built in a later slice) |
 | Typography | `app/typography/page.tsx` | `/typography` — type specimen (placeholder via `KindPlaceholder`; view built in a later slice) |
