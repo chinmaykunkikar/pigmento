@@ -1,160 +1,196 @@
 @import "tailwindcss";
 
 @theme {
+  /* R2 Instrument White — the product chrome is monochrome/ink. The only
+     chroma on screen is the data: the repo's extracted palette swatches and the
+     functional semantic families. Surfaces are a pure zinc ramp; the accent is
+     ink, not a brand hue. Light mode only. */
+
   /* Surfaces — depth stack: bg → surface → sunken → sunken-2. Always move
-     inward as UI nests deeper. Never skip levels. */
-  --color-bg: #f5f3ef;
-  --color-surface: #faf9f6;
-  --color-sunken: #edeae4;
-  --color-sunken-2: #e4e1da;
-  --color-hover: #e8e5df;
+     inward as UI nests deeper. Never skip levels. hover is the universal
+     row/tile/tree interactive overlay. */
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-sunken: #f0f0f1;
+  --color-sunken-2: #e4e4e7;
+  --color-hover: #f4f4f5;
 
   /* Text — four ink weights. Use in order: text → text-2 → text-3 → text-4.
      text-4 is ghost ink, reserved for disabled/empty-state copy only. */
-  --color-text: #18160f;
-  --color-text-2: #524f48;
-  --color-text-3: #878480;
-  --color-text-4: #b0ada6;
+  --color-text: #18181b;
+  --color-text-2: #52525b;
+  --color-text-3: #71717a;
+  --color-text-4: #a1a1aa;
 
-  /* Borders — no elevation shadows; borders carry all separation work.
-     border is the workhorse hairline; border-2 is for focus rings and
-     active-selection emphasis; divider is the whisper inside a panel. */
-  --color-border: #e0ddd8;
-  --color-border-2: #ccc9c2;
-  --color-divider: #eae7e2;
+  /* Borders — hairlines. R2 pairs these with soft elevation shadows (below);
+     borders no longer carry all separation on their own. border is the
+     workhorse hairline; border-2 is focus rings and active-selection emphasis;
+     divider is the whisper inside a panel. */
+  --color-border: #ececed;
+  --color-border-2: #d4d4d8;
+  --color-divider: #f4f4f5;
 
-  /* Primary accent — Slate Teal. The single "you are here / do this" color.
-     Active nav, primary CTA, selected tile outline, focus ring, source-
-     indicator dot, mark dot. Never decorative, never a hover-only color,
-     never on an icon unless it signals selection. */
-  --color-accent: #1c7a74;
-  --color-accent-hover: #166860;
-  --color-accent-bg: #e6f4f3;
-  --color-accent-text: #124f4b;
+  /* Accent — ink. The single "you are here / do this" color: active nav,
+     primary CTA, selected outline, focus ring, mark dot, coverage ramp fill.
+     In R2 the accent is achromatic ink, no longer a brand hue. Never
+     decorative, never a hover-only color. */
+  --color-accent: #18181b;
+  --color-accent-hover: #09090b;
+  --color-accent-bg: #e4e4e7;
+  --color-accent-text: #18181b;
   --color-on-accent: #ffffff;
 
   /* Semantic — ok / success / ready. Daemon ready, scan complete, success
      toast, "safe to delete" confirmed. Never use for the selected state. */
-  --color-ok: #2d8a52;
-  --color-ok-bg: #eaf5ee;
-  --color-ok-text: #1d5c36;
+  --color-ok: #15803d;
+  --color-ok-bg: #dcfce7;
+  --color-ok-text: #166534;
 
   /* Semantic — warn / pending / stale. DROPPED chip, queued items, stale-
-     index warning, pending agent run. Use as text/icon on warn-bg, never
-     as a solid fill alone. */
-  --color-warn: #a07800;
-  --color-warn-bg: #faf4e0;
-  --color-warn-text: #6b5000;
+     index warning, pending agent run. Use as text/icon on warn-bg, never as a
+     solid fill alone. */
+  --color-warn: #b45309;
+  --color-warn-bg: #fef3c7;
+  --color-warn-text: #92400e;
 
   /* Semantic — danger / destructive / unused. "0 refs" tag, delete actions,
      CANONICAL marker on duplicate groups, error states. */
-  --color-danger: #b03a2e;
-  --color-danger-bg: #fbeae8;
-  --color-danger-text: #7a2820;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #991b1b;
 
   /* Semantic — info / match / preview. Match tab highlight, "Preview
-     migration" action, external links, informational callouts. Distinct
-     from accent: teal = "do this", blue = "look at this". */
-  --color-info: #3b6cd8;
-  --color-info-bg: #eef3fe;
-  --color-info-text: #2a53b0;
+     migration" action, external links, informational callouts. Distinct from
+     accent: ink = "do this", blue = "look at this". */
+  --color-info: #2563eb;
+  --color-info-bg: #dbeafe;
+  --color-info-text: #1e40af;
   --color-on-info: #ffffff;
 
-  /* Semantic — cluster / group. CLUSTER tag chip, grouped-view cluster
-     count, cluster-membership indicator on tile hover. Only when the
-     concept being communicated is "these things are related". */
-  --color-cluster: #7a4ad9;
-  --color-cluster-bg: #f2edfc;
-  --color-cluster-text: #522fa0;
+  /* Semantic — cluster / group. CLUSTER tag chip, grouped-view cluster count,
+     cluster-membership indicator on tile hover. Only when the concept being
+     communicated is "these things are related". */
+  --color-cluster: #7c3aed;
+  --color-cluster-bg: #ede9fe;
+  --color-cluster-text: #5b21b6;
 
-  /* Semantic — citron / quantity. "×3 cluster" count chip, "312 dupes"
-     status-bar count, raw quantity-of-things-that-need-attention signal.
-     Never means "good" or "bad". Always pair fill with citron-ink (the
-     only combination that passes contrast). citron-muted is the inline
-     text variant for when full citron is too loud. Use only on small
-     chip/badge components, never full-width backgrounds, never as a
-     primary button (no hover/focus states defined). */
+  /* Semantic — citron / quantity. "×3 cluster" count chip, "312 dupes" status-
+     bar count, raw quantity-of-things-that-need-attention signal. Never means
+     "good" or "bad". Always pair fill with citron-ink (the only combination
+     that passes contrast). citron-muted is the inline text variant. Chip/badge
+     components only, never full-width backgrounds, never a primary button.
+     Carried over from the pre-R2 palette unchanged. */
   --color-citron: #e8ec3a;
   --color-citron-ink: #1a1c00;
   --color-citron-muted: #b8bc00;
 
-  /* Preview backdrop — the ground behind indexed SVG/PNG assets.
-     checker-a/b build the default transparency checkerboard; preview-dark
-     is the high-contrast solid for white / light-stroke assets that vanish
-     on the checker. Infrastructure, not palette. Never use elsewhere. */
+  /* Preview backdrop — the ground behind indexed SVG/PNG assets. Neutralized
+     to zinc so the asset's own color reads true. checker-a/b build the default
+     transparency checkerboard; preview-dark is the high-contrast solid for
+     white / light-stroke assets. Infrastructure, not palette. */
   --color-checker-a: #ffffff;
-  --color-checker-b: #f0eeea;
-  --color-preview-dark: #2a2824;
+  --color-checker-b: #f1f1f2;
+  --color-preview-dark: #18181b;
 
-  --color-overlay: rgba(20, 20, 30, 0.2);
+  --color-overlay: rgba(24, 24, 27, 0.4);
 
-  /* Brand-only surfaces — the pitch ground, the citron tag chip, and the
-     paper card. Product chrome uses the regular tokens above; these are
-     reserved for hero lockups, terminal mockups, and stickers. */
-  --color-pika-paper: #f4f2ec;
-  --color-pika-pitch: #0e1013;
-  --color-pika-pitch-ink: #e8e6df;
+  /* Brand-only surfaces — the pitch ground, the citron tag chip, the paper
+     card. Product chrome uses the regular tokens above; these are reserved for
+     hero lockups, terminal mockups, and stickers. */
+  --color-pika-paper: #fafafa;
+  --color-pika-pitch: #131316;
+  --color-pika-pitch-ink: #f4f4f5;
   --color-pika-citron: #e8ec3a;
   --color-pika-citron-ink: #1a1c00;
 
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  /* Type — Hanken Grotesk (UI + display) and DM Mono (paths, hashes, counts,
+     coverage ramps, drift readouts — the signature texture). Loaded via
+     next/font in app/layout.tsx, exposed as --font-hanken / --font-dm-mono. */
+  --font-sans: var(--font-hanken), -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), "SF Mono", Menlo, Consolas, monospace;
 
-  --text-3xs: 9px;
-  --text-3xs--line-height: 12px;
+  /* Type scale — Balanced register. Body 14px; hierarchy from weight and size,
+     not a third face. */
+  --text-3xs: 10px;
+  --text-3xs--line-height: 13px;
   --text-3xs--font-weight: 500;
 
-  --text-2xs: 10px;
-  --text-2xs--line-height: 13px;
+  --text-2xs: 11px;
+  --text-2xs--line-height: 14px;
   --text-2xs--font-weight: 500;
 
-  --text-xs: 11px;
-  --text-xs--line-height: 14px;
-  --text-xs--font-weight: 450;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-xs--font-weight: 500;
 
-  --text-sm: 12px;
-  --text-sm--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
   --text-sm--font-weight: 450;
 
-  --text-base: 13px;
-  --text-base--line-height: 18px;
-  --text-base--font-weight: 450;
-  --text-base--letter-spacing: -0.05px;
+  --text-base: 14px;
+  --text-base--line-height: 21px;
+  --text-base--font-weight: 400;
+  --text-base--letter-spacing: -0.06px;
 
-  --text-md: 14px;
-  --text-md--line-height: 20px;
+  --text-md: 15px;
+  --text-md--line-height: 22px;
   --text-md--font-weight: 500;
   --text-md--letter-spacing: -0.1px;
 
-  --text-lg: 16px;
-  --text-lg--line-height: 22px;
-  --text-lg--font-weight: 550;
-  --text-lg--letter-spacing: -0.2px;
+  --text-lg: 18px;
+  --text-lg--line-height: 24px;
+  --text-lg--font-weight: 600;
+  --text-lg--letter-spacing: -0.15px;
 
-  --text-xl: 20px;
-  --text-xl--line-height: 26px;
+  --text-xl: 22px;
+  --text-xl--line-height: 28px;
   --text-xl--font-weight: 600;
-  --text-xl--letter-spacing: -0.3px;
+  --text-xl--letter-spacing: -0.25px;
 
-  --text-2xl: 28px;
-  --text-2xl--line-height: 30px;
+  --text-2xl: 30px;
+  --text-2xl--line-height: 34px;
   --text-2xl--font-weight: 600;
   --text-2xl--letter-spacing: -0.4px;
 
-  --radius-xs: 2px;
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
+  --text-3xl: 40px;
+  --text-3xl--line-height: 42px;
+  --text-3xl--font-weight: 600;
+  --text-3xl--letter-spacing: -0.6px;
+
+  /* Hero — pushed-surface display number (overview count-up, poster). */
+  --text-hero: 60px;
+  --text-hero--line-height: 58px;
+  --text-hero--font-weight: 600;
+  --text-hero--letter-spacing: -0.8px;
+
+  /* Radius — R2 grows corners toward the finished, modern feel. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
   --border-status: 3px;
 
-  --shadow-drawer: -12px 0 32px -16px rgba(20, 20, 30, 0.18);
-  --shadow-floating: 0 1px 2px rgba(20, 20, 30, 0.06), 0 8px 24px -12px rgba(20, 20, 30, 0.22);
-  --shadow-tile-selected: inset 0 0 0 2px var(--color-accent), 0 1px 0 var(--color-border),
-    0 12px 24px -10px color-mix(in oklab, var(--color-accent) 35%, transparent);
-  --shadow-variant-selected: inset 0 0 0 2px var(--color-accent),
-    0 8px 20px -10px color-mix(in oklab, var(--color-accent) 40%, transparent);
+  /* Elevation — R2 introduces soft-shadow depth. Neutral (zinc) shadows,
+     never warm, never colored. Use xs/sm for chips and cards, md for raised
+     panels and popovers, lg for drawers and dialogs. */
+  --shadow-xs: 0 1px 2px rgba(24, 24, 27, 0.05);
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.06), 0 1px 1px rgba(24, 24, 27, 0.04);
+  --shadow-md: 0 1px 1px rgba(24, 24, 27, 0.06), 0 12px 28px -18px rgba(24, 24, 27, 0.3);
+  --shadow-lg: 0 1px 2px rgba(24, 24, 27, 0.08), 0 24px 48px -24px rgba(24, 24, 27, 0.4);
 
+  /* Functional shadows. DetailDrawer / PlanDrawer / ActionBar reference
+     --shadow-drawer / --shadow-floating via inline style to force a compositing
+     layer (see DESIGN.md § 3, TODOS T10). Selection shadows are now ink. */
+  --shadow-drawer: -12px 0 40px -16px rgba(24, 24, 27, 0.2);
+  --shadow-floating: 0 1px 2px rgba(24, 24, 27, 0.08), 0 12px 32px -12px rgba(24, 24, 27, 0.3);
+  --shadow-tile-selected: inset 0 0 0 2px var(--color-accent), 0 8px 20px -12px rgba(24, 24, 27, 0.25);
+  --shadow-variant-selected: inset 0 0 0 2px var(--color-accent), 0 6px 16px -10px rgba(24, 24, 27, 0.25);
+
+  /* Motion — Crisp base. Hover/press 120-170ms, entrance 170-200ms, ease-out;
+     exits shorter than entrances. One hero-only signature beat (overview
+     count-up + stepwise ramp). Durations live on the components; these are the
+     shared curves. */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
