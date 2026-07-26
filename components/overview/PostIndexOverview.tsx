@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { OverviewCounts } from "@/lib/db/queries/overview";
+import { useKindNav } from "@/lib/hooks/useKindNav";
 import { useOverviewCounts } from "@/lib/queries/overview";
 import { useExplorerStore } from "@/lib/store";
 import { formatBytes, relativeTime } from "@/lib/time";
@@ -17,7 +18,7 @@ type Props = {
 
 export function PostIndexOverview({ sourceId, sourceLabel, lastIndexedAt }: Props) {
   const q = useOverviewCounts(sourceId);
-  const setView = useExplorerStore((s) => s.setView);
+  const { goToImagesView } = useKindNav();
   const setUnusedOnly = useExplorerStore((s) => s.setUnusedOnly);
   const setClustersMode = useExplorerStore((s) => s.setClustersMode);
 
@@ -26,7 +27,7 @@ export function PostIndexOverview({ sourceId, sourceLabel, lastIndexedAt }: Prop
   const go = (target: Row["target"]) => () => {
     if (target.view === "grid") setUnusedOnly(target.unusedOnly ?? false);
     if (target.view === "clusters" && target.clustersMode) setClustersMode(target.clustersMode);
-    setView(target.view, { manual: true });
+    goToImagesView(target.view);
   };
 
   return (
@@ -101,7 +102,7 @@ export function PostIndexOverview({ sourceId, sourceLabel, lastIndexedAt }: Prop
         )}
 
         <p className="font-mono text-xs text-text-4">
-          ` jumps back here at any time. Use 1/2/3 to navigate views, 4 to toggle the cleanup plan.
+          ` returns here. 1/2/3 open Images, Colors, and Typography. 4 toggles the cleanup plan.
         </p>
       </div>
     </ScrollArea>

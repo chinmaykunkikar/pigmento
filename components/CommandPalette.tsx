@@ -4,6 +4,7 @@ import { Command } from "cmdk";
 import { type ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
+import { useKindNav } from "@/lib/hooks/useKindNav";
 import { useReindex } from "@/lib/queries/reindex";
 import { PREVIEW_BACKDROP_LABELS, useExplorerStore } from "@/lib/store";
 import {
@@ -14,12 +15,15 @@ import {
   Eye,
   EyeOff,
   Home,
+  Image,
   Layers,
   LayoutGrid,
+  Palette,
   RefreshCw,
   ScanSearch,
   Search,
   Trash2,
+  Type,
 } from "./icons";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 
@@ -31,7 +35,7 @@ type Action = {
   hint?: string;
   combo?: string;
   icon: ReactNode;
-  group: "View" | "Source" | "Display" | "Plan";
+  group: "Navigate" | "Images" | "Source" | "Display" | "Plan";
   onRun: () => void;
   enabled: boolean;
 };
@@ -39,7 +43,7 @@ type Action = {
 export function CommandPalette({ source }: Props) {
   const open = useExplorerStore((s) => s.paletteOpen);
   const setOpen = useExplorerStore((s) => s.setPaletteOpen);
-  const setView = useExplorerStore((s) => s.setView);
+  const { goToKind, goToImagesView } = useKindNav();
   const boundingBoxes = useExplorerStore((s) => s.boundingBoxes);
   const setBoundingBoxes = useExplorerStore((s) => s.setBoundingBoxes);
   const previewBackdrop = useExplorerStore((s) => s.previewBackdrop);
@@ -75,48 +79,72 @@ export function CommandPalette({ source }: Props) {
 
   const actions: Action[] = [
     {
-      id: "view:overview",
+      id: "nav:overview",
       label: "Go to Overview",
       combo: "`",
       icon: <Home size={12} strokeWidth={1.5} />,
-      group: "View",
-      onRun: run(() => setView("overview")),
+      group: "Navigate",
+      onRun: run(() => goToKind("overview")),
       enabled: !!source,
     },
     {
-      id: "view:grid",
-      label: "Go to Grid",
+      id: "nav:images",
+      label: "Go to Images",
       combo: "1",
-      icon: <LayoutGrid size={12} strokeWidth={1.5} />,
-      group: "View",
-      onRun: run(() => setView("grid")),
+      icon: <Image size={12} strokeWidth={1.5} />,
+      group: "Navigate",
+      onRun: run(() => goToKind("images")),
       enabled: !!source,
     },
     {
-      id: "view:clusters",
-      label: "Go to Clusters",
+      id: "nav:colors",
+      label: "Go to Colors",
       combo: "2",
-      icon: <Layers size={12} strokeWidth={1.5} />,
-      group: "View",
-      onRun: run(() => setView("clusters")),
+      icon: <Palette size={12} strokeWidth={1.5} />,
+      group: "Navigate",
+      onRun: run(() => goToKind("colors")),
       enabled: !!source,
     },
     {
-      id: "view:match",
-      label: "Match a file",
+      id: "nav:typography",
+      label: "Go to Typography",
       combo: "3",
-      icon: <ScanSearch size={12} strokeWidth={1.5} />,
-      group: "View",
-      onRun: run(() => setView("match")),
+      icon: <Type size={12} strokeWidth={1.5} />,
+      group: "Navigate",
+      onRun: run(() => goToKind("typography")),
       enabled: !!source,
     },
     {
-      id: "view:plan",
+      id: "nav:plan",
       label: planCount > 0 ? `Toggle cleanup plan · ${planCount}` : "Open cleanup plan",
       combo: "4",
       icon: <ClipboardList size={12} strokeWidth={1.5} />,
-      group: "View",
+      group: "Navigate",
       onRun: run(togglePlanDrawer),
+      enabled: !!source,
+    },
+    {
+      id: "images:grid",
+      label: "Images · Grid",
+      icon: <LayoutGrid size={12} strokeWidth={1.5} />,
+      group: "Images",
+      onRun: run(() => goToImagesView("grid")),
+      enabled: !!source,
+    },
+    {
+      id: "images:clusters",
+      label: "Images · Clusters",
+      icon: <Layers size={12} strokeWidth={1.5} />,
+      group: "Images",
+      onRun: run(() => goToImagesView("clusters")),
+      enabled: !!source,
+    },
+    {
+      id: "images:match",
+      label: "Images · Match a file",
+      icon: <ScanSearch size={12} strokeWidth={1.5} />,
+      group: "Images",
+      onRun: run(() => goToImagesView("match")),
       enabled: !!source,
     },
     {

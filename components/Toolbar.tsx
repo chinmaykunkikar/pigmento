@@ -1,13 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/cn";
 import type { SourceWithMeta } from "@/lib/db/queries/sources";
+import { type Kind, kindFromPath, useKindNav } from "@/lib/hooks/useKindNav";
 import { useOverviewCounts } from "@/lib/queries/overview";
 import { useReindex } from "@/lib/queries/reindex";
-import { EXT_FILTERS, type ExtFilter, useExplorerStore, type View } from "@/lib/store";
+import { EXT_FILTERS, type ExtFilter, useExplorerStore } from "@/lib/store";
 import { relativeTime } from "@/lib/time";
-import { ClipboardList, Home, Layers, LayoutGrid, RefreshCw, ScanSearch, Search, X } from "./icons";
+import { ClipboardList, Home, Image, Palette, RefreshCw, Search, Type, X } from "./icons";
 import { formatCombo, KbdHint } from "./primitives/KbdHint";
 import { TypePill } from "./primitives/Pill";
 import { Segmented } from "./primitives/Segmented";
@@ -27,8 +29,10 @@ const EXT_LABELS: Record<ExtFilter, string> = {
 };
 
 export function Toolbar({ source, indexerProgress }: Props) {
-  const view = useExplorerStore((s) => s.view);
-  const setView = useExplorerStore((s) => s.setView);
+  const pathname = usePathname();
+  const activeKind = kindFromPath(pathname);
+  const imagesView = useExplorerStore((s) => s.imagesView);
+  const { goToKind } = useKindNav();
   const unusedOnly = useExplorerStore((s) => s.unusedOnly);
   const setUnusedOnly = useExplorerStore((s) => s.setUnusedOnly);
   const search = useExplorerStore((s) => s.search);
@@ -58,8 +62,8 @@ export function Toolbar({ source, indexerProgress }: Props) {
   const planBadge = () => (planCount > 0 ? `Plan · ${planCount}` : "Plan");
 
   const filterActive = search.length > 0 || extFilter.length > 0 || unusedOnly;
-  const filtersApply = view === "grid";
-  const inactiveTip = "Type / size / unused / search apply to the Grid view only";
+  const filtersApply = activeKind === "images" && imagesView === "grid";
+  const inactiveTip = "Type / size / unused / search apply to the Images grid only";
 
   return (
     <div className="relative flex h-11 flex-shrink-0 items-center gap-3 border-b border-border bg-surface px-4">
@@ -141,22 +145,14 @@ export function Toolbar({ source, indexerProgress }: Props) {
 
       <div className="flex-1" />
 
-      <Segmented<View>
-        value={view}
-        onChange={(v) => setView(v)}
+      <Segmented<Kind>
+        value={activeKind}
+        onChange={goToKind}
         items={[
           { value: "overview", icon: <Home size={12} strokeWidth={1.5} />, label: "Overview" },
-          { value: "grid", icon: <LayoutGrid size={12} strokeWidth={1.5} />, label: "Grid" },
-          {
-            value: "clusters",
-            icon: <Layers size={12} strokeWidth={1.5} />,
-            label: "Clusters",
-          },
-          {
-            value: "match",
-            icon: <ScanSearch size={12} strokeWidth={1.5} />,
-            label: "Match",
-          },
+          { value: "images", icon: <Image size={12} strokeWidth={1.5} />, label: "Images" },
+          { value: "colors", icon: <Palette size={12} strokeWidth={1.5} />, label: "Colors" },
+          { value: "typography", icon: <Type size={12} strokeWidth={1.5} />, label: "Type" },
         ]}
       />
 

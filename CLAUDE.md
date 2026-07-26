@@ -251,16 +251,20 @@ All three funnel into `POST /api/sources` which resolves + validates + kicks off
 
 ```
 app/
-  layout.tsx        Root HTML + drag-drop capture
-  providers.tsx     "use client" — QueryClientProvider, DragDropContext
+  layout.tsx        Root HTML + fonts; wraps every route in <Shell> chrome
+  providers.tsx     "use client" — QueryClientProvider
   globals.css       Tailwind @import + @theme tokens
-  page.tsx          Main shell (no URL nav; state in zustand)
+  page.tsx          / — overview home (design-identity)
+  images/page.tsx   /images — asset grid + clusters + match sub-views
+  colors/page.tsx   /colors — palette browser (view being built)
+  typography/page.tsx /typography — type specimen (view being built)
   api/**            Route handlers, zod-validated
 components/
-  Shell.tsx, Toolbar.tsx, StatusBar.tsx, CommandPalette.tsx
-  tree/ grid/ grouped/ duplicates/ detail/ match/ plan/ empty/ indexing/ primitives/
+  Shell.tsx (shared chrome + gating), Toolbar.tsx (kind nav), CommandPalette.tsx
+  KindPlaceholder.tsx, overview/ tree/ grid/ grouped/ duplicates/ detail/ match/ plan/ empty/ indexing/ primitives/
 lib/
   design/tokens.ts  TS mirror of CSS @theme values, for programmatic access
+  hooks/            useKindNav (route nav), useSelectedSource, useDebounce, useHotkeys
   config/           zod schema + jiti loader
   db/
     schema.ts       Drizzle table definitions
@@ -278,6 +282,8 @@ biome.json
 data/               sqlite + uploads (gitignored)
 pigmento.config.ts
 ```
+
+**Navigation model.** Asset kinds are App Router routes: `/` (overview), `/images`, `/colors`, `/typography`. The URL is the single source of truth for the active kind (`kindFromPath` / `useKindNav`); there is no `store.view`. Only the sub-view *within* Images (grid / clusters / match) lives in zustand as `store.imagesView`. `layout.tsx` mounts `<Shell>` once (sidebar, toolbar, drawers, source/index gating) and renders the active route as its child; drawers and the plan/dispatch overlay are global across every kind.
 
 ## Commands
 

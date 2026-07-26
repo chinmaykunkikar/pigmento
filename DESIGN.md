@@ -8,7 +8,7 @@ Engineering-scoped rules (imports, file size, commands) live in `CLAUDE.md`. Thi
 
 ## 0. R2 direction (locked 2026-07-25)
 
-The R2 reskin adopts **Instrument White**, replacing the warm-paper "tool-grade" register. The design-language sections below (Voice, Principles, Tokens, accent rule, Accessibility, restated) have been rewritten to Instrument White as of the token-foundation slice. The IA-dependent sections (Surface inventory, Keyboard) still describe the pre-R2 single-shell app and are rewritten with the IA-restructure slice. Where anything below still conflicts with this block, this block wins.
+The R2 reskin adopts **Instrument White**, replacing the warm-paper "tool-grade" register. The design-language sections below (Voice, Principles, Tokens, accent rule, Accessibility, restated) have been rewritten to Instrument White as of the token-foundation slice. The IA-dependent sections (Surface inventory, Keyboard) are rewritten to the kind-routed IA as of the IA-restructure slice. Where anything below still conflicts with this block, this block wins.
 
 **Aesthetic base.** Minimal white, modern, finished. Near-white surfaces, soft-shadow depth instead of warm-paper borders, tight geometric sans, one restrained cool accent, tabular mono for numerics. A restrained ascii/dither signature (dithered coverage ramps, dotted hairlines, mono readouts) is the only brand texture. Light mode only.
 
@@ -308,38 +308,47 @@ Where the matrix is incomplete today: see `TODOS.md`.
 
 ## 8. Surface inventory
 
+Asset kinds are App Router routes; the URL is the source of truth for the active kind (`/`, `/images`, `/colors`, `/typography`). `Shell` is shared chrome mounted once by `app/layout.tsx` and wraps every route; each route page renders only its kind content. The sub-view *inside* Images (grid / clusters / match) stays in the zustand store, not the URL.
+
 | Surface | File | Purpose |
 |---|---|---|
-| Shell | `components/Shell.tsx` | 3-region layout: Sidebar / Main / StatusBar |
-| Toolbar | `components/Toolbar.tsx` | Search, filters, view switcher, Plan, Re-index |
+| Shell | `components/Shell.tsx` | Shared chrome + gating (loading / error / empty / first-index); mounts Sidebar, Toolbar, drawers; renders the active route |
+| Toolbar | `components/Toolbar.tsx` | Kind nav (route-based), search + filters (Images grid only), Plan, Re-index |
 | Sidebar | `components/Sidebar.tsx` | Source switcher + folder tree |
-| StatusBar | `components/StatusBar.tsx` | Count + bytes + path |
-| Overview | `components/overview/PostIndexOverview.tsx` | Next-action list after indexing |
+| Overview home | `app/page.tsx` → `components/overview/PostIndexOverview.tsx` | `/` — design-identity + next-action list after indexing |
+| Images | `app/images/page.tsx` | `/images` — sub-view switch (grid / clusters / match), backed by `store.imagesView` |
+| Colors | `app/colors/page.tsx` | `/colors` — palette browser (placeholder via `KindPlaceholder`; view built in a later slice) |
+| Typography | `app/typography/page.tsx` | `/typography` — type specimen (placeholder via `KindPlaceholder`; view built in a later slice) |
 | Grid | `components/grid/AssetGrid.tsx` | Virtualized asset tiles |
 | Clusters | `components/clusters/ClustersView.tsx` | Grouped variants + near-dup browser |
 | Match | `components/match/MatchView.tsx` | Drag/drop lookup by signature |
 | Duplicates | `components/duplicates/DupTab.tsx` | Exact + near-pair tables |
 | Indexing | `components/indexing/IndexingCenter.tsx` | Live pipeline status |
-| DetailDrawer | `components/detail/DetailDrawer.tsx` | Selected-asset metadata + references |
-| PlanDrawer | `components/plan/PlanDrawer.tsx` | Cleanup plan → prompt → dispatch |
-| ActionBar | `components/actions/ActionBar.tsx` | Floating bottom pill (selection → plan) |
+| DetailDrawer | `components/detail/DetailDrawer.tsx` | Selected-asset metadata + references (global overlay) |
+| PlanDrawer | `components/plan/PlanDrawer.tsx` | Cleanup plan → prompt → dispatch (global overlay) |
+| ActionBar | `components/actions/ActionBar.tsx` | Floating bottom pill, selection → plan (global overlay) |
 | CommandPalette | `components/CommandPalette.tsx` | `⌘K` keyboard-first nav |
 | EmptyState | `components/empty/EmptyState.tsx` | First-run / no sources |
+
+The `StatusBar` referenced in earlier drafts is not a mounted surface; count/bytes/path live in the Images `BreadcrumbBar`.
 
 ---
 
 ## 9. Keyboard surface (discoverable via `⌘K`)
 
+The number keys map to the **kinds** (route nav), matching the primary IA. Images sub-views are reached inside `/images` via the sub-view control or the palette's Images group, not top-level number keys.
+
 | Combo | Action |
 |---|---|
 | `⌘K` | Command palette |
-| `⌘F` | Focus search |
+| `⌘F` | Focus search (Images grid) |
 | `⌘B` | Toggle sidebar |
-| `` ` `` | Jump to Overview |
-| `1` | Grid |
-| `2` | Clusters |
-| `3` | Match |
+| `` ` `` | Overview home (`/`) |
+| `1` | Images (`/images`) |
+| `2` | Colors (`/colors`) |
+| `3` | Typography (`/typography`) |
 | `4` | Toggle plan drawer |
+| `b` | Cycle preview backdrop |
 | `Esc` | Close drawer / palette / clear selection |
 
 Every shortcut that is advertised in UI (EmptyState hint strip, CommandPalette hints) must be registered in `ShortcutLayer.tsx`. Advertised-but-missing shortcuts erode trust; enforce in review.
