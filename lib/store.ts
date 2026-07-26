@@ -22,7 +22,7 @@ const uiStorage = createJSONStorage(() => {
   };
 });
 
-export type View = "overview" | "grid" | "clusters" | "match";
+export type ImagesView = "grid" | "clusters" | "match";
 export type ClustersMode = "exact" | "near" | "name";
 export const EXT_FILTERS = ["svg", "png", "jpg", "webp", "gif"] as const;
 export type ExtFilter = (typeof EXT_FILTERS)[number];
@@ -66,8 +66,8 @@ export type ExplorerState = {
   selectedFolder: string | null;
   selectedAssetId: number | null;
   assetHistory: AssetHistoryEntry[];
-  view: View;
-  viewManuallySet: boolean;
+  imagesView: ImagesView;
+  navManuallySet: boolean;
   drawerOpen: boolean;
   boundingBoxes: boolean;
   previewBackdrop: PreviewBackdrop;
@@ -83,7 +83,8 @@ export type ExplorerState = {
   openAsset: (id: number, prevName?: string) => void;
   goBackAsset: () => void;
   closeDrawer: () => void;
-  setView: (view: View, opts?: { manual?: boolean }) => void;
+  setImagesView: (view: ImagesView) => void;
+  setNavManuallySet: (v: boolean) => void;
   clustersMode: ClustersMode;
   setClustersMode: (mode: ClustersMode) => void;
   setDrawerOpen: (open: boolean) => void;
@@ -131,8 +132,8 @@ export const useExplorerStore = create<ExplorerState>()(
       selectedFolder: null,
       selectedAssetId: null,
       assetHistory: [],
-      view: "overview",
-      viewManuallySet: false,
+      imagesView: "grid",
+      navManuallySet: false,
       drawerOpen: false,
       boundingBoxes: false,
       previewBackdrop: "checker",
@@ -177,7 +178,8 @@ export const useExplorerStore = create<ExplorerState>()(
           };
         }),
       closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null, assetHistory: [] }),
-      setView: (view, opts) => set({ view, viewManuallySet: opts?.manual ?? true }),
+      setImagesView: (imagesView) => set({ imagesView, navManuallySet: true }),
+      setNavManuallySet: (navManuallySet) => set({ navManuallySet }),
       clustersMode: "exact",
       setClustersMode: (clustersMode) => set({ clustersMode }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
@@ -316,24 +318,30 @@ export const useExplorerStore = create<ExplorerState>()(
     {
       name: "pigmento:ui",
       storage: uiStorage,
-      version: 1,
+      version: 2,
       migrate: (persistedState, version) => {
-        if (version < 1 && persistedState && typeof persistedState === "object") {
-          const s = persistedState as Record<string, unknown>;
+        if (!persistedState || typeof persistedState !== "object") {
+          return persistedState as ExplorerState;
+        }
+        const s = persistedState as Record<string, unknown>;
+        if (version < 1) {
           delete s.drawerOpen;
           delete s.selectedAssetId;
         }
-        if (persistedState && typeof persistedState === "object") {
-          const s = persistedState as Record<string, unknown>;
+        if (version < 2) {
           if (s.view === "grouped" || s.view === "duplicates") s.view = "clusters";
-          if (s.view === "plan") s.view = "overview";
+          if (s.view === "grid" || s.view === "clusters" || s.view === "match") {
+            s.imagesView = s.view;
+          }
+          delete s.view;
+          delete s.viewManuallySet;
         }
         return persistedState as ExplorerState;
       },
       partialize: (state) => ({
         selectedSourceId: state.selectedSourceId,
         selectedFolder: state.selectedFolder,
-        view: state.view,
+        imagesView: state.imagesView,
         clustersMode: state.clustersMode,
         boundingBoxes: state.boundingBoxes,
         previewBackdrop: state.previewBackdrop,

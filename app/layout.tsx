@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Mono, Hanken_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
+import { Shell } from "@/components/Shell";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -46,7 +47,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${hanken.variable} ${dmMono.variable}`}>
       <body className="bg-bg text-text font-sans">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Shell>{children}</Shell>
+        </Providers>
       </body>
     </html>
   );
