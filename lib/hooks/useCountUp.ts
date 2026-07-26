@@ -18,6 +18,7 @@ export function useCountUp(
       setValue(target);
       return;
     }
+    setValue(0);
     let startTs: number | null = null;
     const tick = (ts: number) => {
       if (startTs === null) startTs = ts;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef } from "react";
 import { useSelectedSource } from "@/lib/hooks/useSelectedSource";
 import { type IndexerRun, useIndexerStatus } from "@/lib/queries/indexer-status";
@@ -20,6 +20,8 @@ import { Sidebar } from "./Sidebar";
 import { Toolbar } from "./Toolbar";
 
 export function Shell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const sources = useSources();
   const selectedSourceId = useExplorerStore((s) => s.selectedSourceId);
   const selectedFolder = useExplorerStore((s) => s.selectedFolder);
@@ -62,7 +64,10 @@ export function Shell({ children }: { children: ReactNode }) {
     );
   }
 
-  if (list.length === 0 || !selectedSource) {
+  // The home route owns its own first-run: the ghosted overview + add-source
+  // entries render inside the chrome and morph in place on index (A7). Every other
+  // route needs a source before it means anything, so it still takes over.
+  if ((list.length === 0 || !selectedSource) && !onHome) {
     return (
       <div className="flex h-screen flex-col">
         <NarrowViewportBanner />
@@ -77,7 +82,11 @@ export function Shell({ children }: { children: ReactNode }) {
   }
 
   const firstIndexTakeover =
-    indexerRun && indexerRun.sourceId === selectedSource.id && !selectedSource.lastIndexedAt;
+    !onHome &&
+    indexerRun &&
+    selectedSource &&
+    indexerRun.sourceId === selectedSource.id &&
+    !selectedSource.lastIndexedAt;
 
   return (
     <div className="flex h-screen flex-col">
@@ -85,7 +94,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="flex min-h-0 flex-1">
         <Sidebar
           sources={list}
-          selectedSourceId={selectedSource.id}
+          selectedSourceId={selectedSource?.id ?? null}
           selectedFolder={effectivePath}
           onSelectSource={(id) => {
             setSelectedSource(id);
@@ -97,7 +106,9 @@ export function Shell({ children }: { children: ReactNode }) {
           <Toolbar
             source={selectedSource}
             indexerProgress={
-              indexerRun && indexerRun.sourceId === selectedSource.id ? indexerRun.progress : null
+              indexerRun && selectedSource && indexerRun.sourceId === selectedSource.id
+                ? indexerRun.progress
+                : null
             }
           />
           {firstIndexTakeover ? (
@@ -105,10 +116,14 @@ export function Shell({ children }: { children: ReactNode }) {
           ) : (
             <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
               {children}
-              <ActionBar sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
-              <DetailDrawer />
-              <PlanDrawer sourceLabel={selectedSource.label} />
-              {indexerRun && indexerRun.sourceId === selectedSource.id ? (
+              {selectedSource ? (
+                <>
+                  <ActionBar sourceId={selectedSource.id} sourceLabel={selectedSource.label} />
+                  <DetailDrawer />
+                  <PlanDrawer sourceLabel={selectedSource.label} />
+                </>
+              ) : null}
+              {indexerRun && selectedSource && indexerRun.sourceId === selectedSource.id ? (
                 <IndexingStrip run={indexerRun} />
               ) : null}
             </div>
