@@ -68,6 +68,7 @@ export type ExplorerState = {
   assetHistory: AssetHistoryEntry[];
   imagesView: ImagesView;
   navManuallySet: boolean;
+  signaturePending: boolean;
   drawerOpen: boolean;
   boundingBoxes: boolean;
   previewBackdrop: PreviewBackdrop;
@@ -85,6 +86,7 @@ export type ExplorerState = {
   closeDrawer: () => void;
   setImagesView: (view: ImagesView) => void;
   setNavManuallySet: (v: boolean) => void;
+  setSignaturePending: (v: boolean) => void;
   clustersMode: ClustersMode;
   setClustersMode: (mode: ClustersMode) => void;
   setDrawerOpen: (open: boolean) => void;
@@ -134,6 +136,7 @@ export const useExplorerStore = create<ExplorerState>()(
       assetHistory: [],
       imagesView: "grid",
       navManuallySet: false,
+      signaturePending: false,
       drawerOpen: false,
       boundingBoxes: false,
       previewBackdrop: "checker",
@@ -180,6 +183,7 @@ export const useExplorerStore = create<ExplorerState>()(
       closeDrawer: () => set({ drawerOpen: false, selectedAssetId: null, assetHistory: [] }),
       setImagesView: (imagesView) => set({ imagesView, navManuallySet: true }),
       setNavManuallySet: (navManuallySet) => set({ navManuallySet }),
+      setSignaturePending: (signaturePending) => set({ signaturePending }),
       clustersMode: "exact",
       setClustersMode: (clustersMode) => set({ clustersMode }),
       setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
