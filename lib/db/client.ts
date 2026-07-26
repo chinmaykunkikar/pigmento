@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+import { ensureMigrated } from "./migrate";
 import * as schema from "./schema";
 
 export type Db = ReturnType<typeof drizzle<typeof schema>>;
@@ -20,6 +21,7 @@ export function getDb(dbPath = "./data/pika.db"): Db {
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");
   instance = drizzle(sqlite, { schema });
+  ensureMigrated(abs, instance);
   g[DB_KEY] = instance;
   return instance;
 }
